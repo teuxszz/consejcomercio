@@ -20,6 +20,8 @@ import { MeEspacoPage } from '@/pages/MeEspacoPage'
 import { MensagensPage } from '@/pages/MensagensPage'
 import { CadenciaPage } from '@/pages/CadenciaPage'
 import { ObjecoesPage } from '@/pages/ObjecoesPage'
+import { IcpDinamicoPage } from '@/pages/IcpDinamicoPage'
+import { RenovacoesPage } from '@/pages/RenovacoesPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { MapaPage } from '@/pages/MapaPage'
 import { ImportarPage } from '@/pages/ImportarPage'
@@ -61,6 +63,8 @@ export const router = createBrowserRouter([
       { path: 'mensagens', element: <MensagensPage /> },
       { path: 'cadencia', element: <CadenciaPage /> },
       { path: 'objecoes', element: <ObjecoesPage /> },
+      { path: 'icp-dinamico', element: <IcpDinamicoPage /> },
+      { path: 'renovacoes', element: <RenovacoesPage /> },
       { path: 'slack', element: <SlackPage /> },
       { path: 'auditoria', element: <AuditoriaPage /> },
       { path: 'configuracoes', element: <ConfiguracoesPage /> },

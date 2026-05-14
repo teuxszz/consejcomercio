@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { useLeads } from '@/hooks/useLeads'
 import { useClientes } from '@/hooks/useClientes'
 import { useContratos } from '@/hooks/useContratos'
@@ -10,9 +11,19 @@ import { formatCurrency, getDaysUntilExpiry, formatDate } from '@/lib/utils'
 import { differenceInDays } from 'date-fns'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Users, Briefcase, TrendingUp, FileText, AlertCircle, Share2, DollarSign, Calendar, Clock, Video, MapPin, Flame, Bell, ArrowRight, Gift, Activity, RefreshCw } from 'lucide-react'
-import { isThisMonth } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
+import { PeriodSelector } from '@/components/shared/PeriodSelector'
+import { ProjecaoFechamento } from '@/components/dashboard/ProjecaoFechamento'
+import {
+  getCurrentYear,
+  getPeriodRange,
+  getPreviousPeriodRange,
+  isInRange,
+  isCurrentCycle,
+  formatPeriodLabel,
+  type PeriodValue,
+} from '@/lib/periods'
 
 const COLORS = ['#0089ac', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316']
 
@@ -27,11 +38,35 @@ export function DashboardPage() {
   const { data: oportunidades } = useOportunidades()
   const { data: reunioesSemana = [] } = useReunioesSemanais()
 
-  // KPIs
-  const activeLeads = leads?.filter(l => ACTIVE_LEAD_STAGES.includes(l.status)).length || 0
+  const [period, setPeriod] = useState<PeriodValue>({ year: getCurrentYear(), granularity: 'total' })
+  const range = useMemo(() => getPeriodRange(period), [period])
+  const prevRange = useMemo(() => getPreviousPeriodRange(period), [period])
+
+  // Leads criados no período / período anterior (para deltas)
+  const leadsPeriod = useMemo(
+    () => leads?.filter(l => isInRange(l.created_at, range)) ?? [],
+    [leads, range]
+  )
+  const leadsPrevPeriod = useMemo(
+    () => leads?.filter(l => isInRange(l.created_at, prevRange)) ?? [],
+    [leads, prevRange]
+  )
+
+  function delta(curr: number, prev: number): { pct: number; label: string } | null {
+    if (prev === 0) return null
+    const pct = Math.round(((curr - prev) / prev) * 100)
+    return { pct, label: `${pct >= 0 ? '+' : ''}${pct}% vs ${period.year - 1}` }
+  }
+
+  // KPIs (filtrados pelo período)
+  const activeLeads = leadsPeriod.filter(l => ACTIVE_LEAD_STAGES.includes(l.status)).length
+  const wonInPeriod = leadsPeriod.filter(l => l.status === 'ganho_assessoria' || l.status === 'ganho_consultoria').length
+  const wonPrevPeriod = leadsPrevPeriod.filter(l => l.status === 'ganho_assessoria' || l.status === 'ganho_consultoria').length
+  const wonDelta = delta(wonInPeriod, wonPrevPeriod)
+
   const activeClientes = clientes?.filter(c => c.status === 'ativo').length || 0
-  const totalConversions = clientes?.length || 0
-  const totalLeads = leads?.length || 0
+  const totalConversions = wonInPeriod  // conversões dentro do período
+  const totalLeads = leadsPeriod.length
   const convRate = totalLeads ? Math.round((totalConversions / totalLeads) * 100) : 0
 
   const mrrContratos = contratos?.filter(c => c.status === 'ativo' && c.valor_mensal) || []
@@ -47,11 +82,7 @@ export function DashboardPage() {
   const expiring60 = contratos?.filter(c => { const d = getDaysUntilExpiry(c.data_fim); return d !== null && d > 30 && d <= 60 && c.status === 'ativo' }) || []
   const expiring90 = contratos?.filter(c => { const d = getDaysUntilExpiry(c.data_fim); return d !== null && d > 60 && d <= 90 && c.status === 'ativo' }) || []
 
-  // ── North Star: leads ganhos este mês ─────────────────────────────────────
-  const wonThisMonth = leads?.filter(l =>
-    (l.status === 'ganho_assessoria' || l.status === 'ganho_consultoria') &&
-    isThisMonth(new Date(l.updated_at))
-  ).length || 0
+  // ── North Star: leads ganhos no período selecionado ──────────────────────
 
   // ── Pós-consultoria: clientes sem assessoria e contrato encerrado há >45d ─
   const postConsultoriaUpsell = clientes?.filter(c => {
@@ -73,11 +104,11 @@ export function DashboardPage() {
   const STAGNANT_THRESHOLDS: Record<string, number> = {
     classificacao: 3, levantamento_oportunidade: 5, educar_lead: 7, proposta_comercial: 7, negociacao: 10, stand_by: 14,
   }
-  const stagnantLeads = leads?.filter(l => {
+  const stagnantLeads = leadsPeriod.filter(l => {
     if (['ganho_assessoria', 'ganho_consultoria', 'perdido', 'cancelado'].includes(l.status)) return false
     const days = differenceInDays(new Date(), new Date(l.updated_at))
     return days >= (STAGNANT_THRESHOLDS[l.status] ?? 7)
-  }).sort((a, b) => differenceInDays(new Date(), new Date(b.updated_at)) - differenceInDays(new Date(), new Date(a.updated_at))) || []
+  }).sort((a, b) => differenceInDays(new Date(), new Date(b.updated_at)) - differenceInDays(new Date(), new Date(a.updated_at)))
 
   const renewalsUrgent = contratos?.filter(c => {
     const d = getDaysUntilExpiry(c.data_fim)
@@ -86,15 +117,15 @@ export function DashboardPage() {
 
   const hasActionItems = stagnantLeads.length > 0 || renewalsUrgent.length > 0 || recompensasPendentes > 0 || postConsultoriaUpsell.length > 0
 
-  // Pipeline funnel data
+  // Pipeline funnel data (filtrado por período)
   const funnelData = PIPELINE_STAGES.map(s => ({
     name: s.label.replace('Diagnóstico', 'Diag.'),
-    value: leads?.filter(l => l.status === s.id).length || 0,
+    value: leadsPeriod.filter(l => l.status === s.id).length,
   }))
 
-  // Lead sources
+  // Canais de prospecção (filtrado por período)
   const sourceData = Object.entries(
-    leads?.reduce((acc, l) => { acc[l.origem] = (acc[l.origem] || 0) + 1; return acc }, {} as Record<string, number>) || {}
+    leadsPeriod.reduce((acc, l) => { acc[l.origem] = (acc[l.origem] || 0) + 1; return acc }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name: LEAD_SOURCE_LABELS[name] || name, value }))
 
   // Contratos por status
@@ -106,7 +137,18 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {formatPeriodLabel(period)}
+            {!isCurrentCycle(period) && (
+              <span className="ml-2 text-amber-400">— ciclo histórico</span>
+            )}
+          </p>
+        </div>
+        <PeriodSelector value={period} onChange={setPeriod} derivedYearsFrom={leads ?? []} />
+      </div>
 
       {/* ── Para hoje ── */}
       {hasActionItems && (
@@ -174,16 +216,18 @@ export function DashboardPage() {
       {/* ── North Star ── */}
       <div className="rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap" style={{ background: 'linear-gradient(135deg, rgba(0,137,172,0.12) 0%, rgba(107,208,231,0.06) 100%)', border: '1px solid rgba(0,137,172,0.25)' }}>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--cyan-mid)' }}>North Star · Este Mês</p>
-          <p className="text-3xl font-bold mt-1" style={{ color: 'rgba(107,208,231,0.95)' }}>{wonThisMonth}</p>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(150,175,195,0.70)' }}>
-            {wonThisMonth === 0
-              ? 'Nenhum novo cliente fechado ainda'
-              : `novo${wonThisMonth > 1 ? 's' : ''} cliente${wonThisMonth > 1 ? 's' : ''} conquistado${wonThisMonth > 1 ? 's' : ''}`}
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--cyan-mid)' }}>
+            North Star · {formatPeriodLabel(period)}
           </p>
-          {wonThisMonth === 0 && totalConversions > 0 && (
-            <p className="text-xs mt-1" style={{ color: 'rgba(107,208,231,0.40)' }}>
-              {totalConversions} cliente{totalConversions > 1 ? 's' : ''} no histórico total
+          <p className="text-3xl font-bold mt-1" style={{ color: 'rgba(107,208,231,0.95)' }}>{wonInPeriod}</p>
+          <p className="text-sm mt-0.5" style={{ color: 'rgba(150,175,195,0.70)' }}>
+            {wonInPeriod === 0
+              ? 'Nenhum novo cliente fechado no período'
+              : `novo${wonInPeriod > 1 ? 's' : ''} cliente${wonInPeriod > 1 ? 's' : ''} conquistado${wonInPeriod > 1 ? 's' : ''}`}
+          </p>
+          {wonDelta && (
+            <p className="text-xs mt-1" style={{ color: wonDelta.pct >= 0 ? 'rgba(110,231,183,0.75)' : 'rgba(252,165,165,0.75)' }}>
+              {wonDelta.label}
             </p>
           )}
         </div>
@@ -285,6 +329,9 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Projeção de fechamento — mês corrente */}
+      <ProjecaoFechamento leads={leads ?? []} />
 
       {/* Reuniões da semana — destaque */}
       <Card className="border-2" style={{ borderColor: '#0089ac' }}>

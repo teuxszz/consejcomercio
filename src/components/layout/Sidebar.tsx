@@ -3,7 +3,7 @@ import {
   LayoutDashboard, KanbanSquare, Stethoscope, Users, FileText,
   Inbox, Share2, Handshake, TrendingUp, ClipboardList, Settings,
   LogOut, MessageSquare, CalendarDays, Sparkles, Search, BarChart2, Map, Upload, GraduationCap,
-  Sun, Moon, Target, HelpCircle, Send, Coins, Gift, ShieldQuestion,
+  Sun, Moon, Target, HelpCircle, Send, Coins, Gift, ShieldQuestion, Crosshair,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil } from '@/hooks/usePerfis'
@@ -16,9 +16,10 @@ import { toast } from 'sonner'
 const NAV_GROUPS: { label?: string; items: { to: string; label: string; icon: React.FC<{ className?: string }> }[] }[] = [
   {
     items: [
-      { to: '/dashboard',  label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/analytics',  label: 'Analytics',  icon: BarChart2       },
-      { to: '/mapa',       label: 'Mapa',        icon: Map             },
+      { to: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
+      { to: '/analytics',     label: 'Analytics',     icon: BarChart2       },
+      { to: '/icp-dinamico',  label: 'ICP Dinâmico',  icon: Crosshair       },
+      { to: '/mapa',          label: 'Mapa',          icon: Map             },
     ],
   },
   {
@@ -35,6 +36,7 @@ const NAV_GROUPS: { label?: string; items: { to: string; label: string; icon: Re
     items: [
       { to: '/clientes',      label: 'Clientes',      icon: Users       },
       { to: '/contratos',     label: 'Contratos',     icon: FileText    },
+      { to: '/renovacoes',    label: 'Renovações',    icon: CalendarDays },
       { to: '/demandas',      label: 'Demandas',      icon: Inbox       },
       { to: '/oportunidades', label: 'Oportunidades', icon: TrendingUp  },
     ],

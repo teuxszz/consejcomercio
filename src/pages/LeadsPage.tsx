@@ -4,9 +4,18 @@ import { useLeads } from '@/hooks/useLeads'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { KanbanBoard } from '@/components/leads/KanbanBoard'
 import { LEAD_SOURCES, SEGMENTS } from '@/lib/constants'
-import { X } from 'lucide-react'
+import { X, History } from 'lucide-react'
 import { SearchInput } from '@/components/ui/search-input'
 import { ScopeToggle, type Scope } from '@/components/shared/ScopeToggle'
+import { PeriodSelector } from '@/components/shared/PeriodSelector'
+import {
+  getCurrentYear,
+  getPeriodRange,
+  isInRange,
+  isCurrentCycle,
+  formatPeriodLabel,
+  type PeriodValue,
+} from '@/lib/periods'
 
 export function LeadsPage() {
   const { data: leads, isLoading } = useLeads()
@@ -14,6 +23,9 @@ export function LeadsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [scope, setScope]             = useState<Scope>('all')
   const [search, setSearch]           = useState('')
+  const [period, setPeriod]           = useState<PeriodValue>({ year: getCurrentYear(), granularity: 'total' })
+  const range = useMemo(() => getPeriodRange(period), [period])
+  const isHistorical = !isCurrentCycle(period)
   const origemFilter = searchParams.get('canal') ?? 'todos'
   const setOrigemFilter = (value: string) => {
     const next = new URLSearchParams(searchParams)
@@ -29,13 +41,14 @@ export function LeadsPage() {
   const filteredLeads = useMemo(() => {
     if (!leads) return []
     return leads.filter(l => {
+      const matchPeriod    = isInRange(l.created_at, range)
       const matchScope     = scope === 'all' || (meuPerfil?.id && l.responsavel_id === meuPerfil.id)
       const matchSearch    = !search || l.nome.toLowerCase().includes(search.toLowerCase()) || (l.empresa ?? '').toLowerCase().includes(search.toLowerCase())
       const matchOrigem    = origemFilter === 'todos' || l.origem === origemFilter
       const matchSegmento  = segmentoFilter === 'todos' || l.segmento === segmentoFilter
-      return matchScope && matchSearch && matchOrigem && matchSegmento
+      return matchPeriod && matchScope && matchSearch && matchOrigem && matchSegmento
     })
-  }, [leads, scope, meuPerfil, search, origemFilter, segmentoFilter])
+  }, [leads, range, scope, meuPerfil, search, origemFilter, segmentoFilter])
 
   const hasFilter = search || origemFilter !== 'todos' || segmentoFilter !== 'todos' || scope !== 'all'
 
@@ -56,7 +69,16 @@ export function LeadsPage() {
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Pipeline de Leads</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold text-foreground">Pipeline de Leads</h1>
+              <span className="text-sm text-fg2">— {formatPeriodLabel(period)}</span>
+              {isHistorical && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <History className="w-3 h-3" />
+                  Histórico
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground mt-0.5">
               Arraste os cards entre as colunas para avançar leads no funil
               {hasFilter && (
@@ -66,6 +88,7 @@ export function LeadsPage() {
               )}
             </p>
           </div>
+          <PeriodSelector value={period} onChange={setPeriod} derivedYearsFrom={leads ?? []} />
         </div>
 
         {/* Filter bar */}

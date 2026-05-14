@@ -11,12 +11,17 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts'
-import { TrendingUp, Target, Clock, DollarSign, AlertCircle, Zap, Trophy, Users, Activity } from 'lucide-react'
+import { TrendingUp, Target, Clock, DollarSign, AlertCircle, Zap, Trophy, Users, Activity, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-type Period = '30d' | '90d' | '6m' | 'all'
-const PERIOD_LABELS: Record<Period, string> = { '30d': 'Últimos 30d', '90d': 'Últimos 90d', '6m': 'Últimos 6m', 'all': 'Tudo' }
-const PERIOD_DAYS: Record<Period, number> = { '30d': 30, '90d': 90, '6m': 180, 'all': Infinity }
+import { PeriodSelector } from '@/components/shared/PeriodSelector'
+import {
+  getCurrentYear,
+  getPeriodRange,
+  isInRange,
+  isCurrentCycle,
+  formatPeriodLabel,
+  type PeriodValue,
+} from '@/lib/periods'
 
 const COLORS = ['#0089ac', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#f97316', '#06b6d4']
 const STAGE_ORDER = PIPELINE_STAGES.map(s => s.id)
@@ -57,14 +62,12 @@ export function AnalyticsPage() {
   const { data: contratos = [] }  = useContratos()
   const { data: indicacoes = [] } = useIndicacoes()
   const { data: clientes = [] }   = useClientes()
-  const [period, setPeriod] = useState<Period>('all')
+  const [period, setPeriod] = useState<PeriodValue>({ year: getCurrentYear(), granularity: 'total' })
 
   const metrics = useMemo(() => {
-    // ── Period filter ──────────────────────────────────────────────────────
-    const maxDays = PERIOD_DAYS[period]
-    const filteredLeads = period === 'all'
-      ? leads
-      : leads.filter(l => differenceInDays(new Date(), new Date(l.created_at)) <= maxDays)
+    // ── Period filter (ano civil — jan→dez) ───────────────────────────────
+    const range = getPeriodRange(period)
+    const filteredLeads = leads.filter(l => isInRange(l.created_at, range))
 
     // ── Funil ──────────────────────────────────────────────────────────────
     const funnelCounts = PIPELINE_STAGES.map(s => ({
@@ -235,24 +238,19 @@ export function AnalyticsPage() {
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Analytics Comercial</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-foreground">Analytics Comercial</h1>
+            <span className="text-sm text-fg2">— {formatPeriodLabel(period)}</span>
+            {!isCurrentCycle(period) && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                <History className="w-3 h-3" />
+                Histórico
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mt-0.5">Métricas de conversão, tempo de funil e performance por canal</p>
         </div>
-        {/* Period selector */}
-        <div className="flex items-center gap-1 bg-[var(--alpha-bg-xs)] p-1 rounded-lg shrink-0">
-          {(Object.keys(PERIOD_LABELS) as Period[]).map(p => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                period === p ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-fg2'
-              )}
-            >
-              {PERIOD_LABELS[p]}
-            </button>
-          ))}
-        </div>
+        <PeriodSelector value={period} onChange={setPeriod} derivedYearsFrom={leads ?? []} />
       </div>
 
       {/* ── KPI Cards ── */}
