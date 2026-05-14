@@ -413,7 +413,7 @@ export function AnalyticsPage() {
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-[#6bd0e7]" />
-            Performance por Canal de Aquisição
+            Performance por Canal de Prospecção
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -656,11 +656,11 @@ export function AnalyticsPage() {
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <p className="text-xs text-fg4 mb-1">Melhor canal de aquisição</p>
+              <p className="text-xs text-fg4 mb-1">Melhor canal de prospecção</p>
               <p className="text-sm text-white leading-relaxed">
                 {metrics.bySource[0]
                   ? `"${metrics.bySource[0].name}" tem o maior win rate (${metrics.bySource[0].taxa}%). Invista mais esforço e indicações nesse canal.`
-                  : 'Atribua origem aos leads para descobrir qual canal mais converte.'}
+                  : 'Atribua canal de prospecção aos leads para descobrir qual mais converte.'}
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">

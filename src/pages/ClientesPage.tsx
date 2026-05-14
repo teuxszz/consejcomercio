@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { CLIENT_STATUS_OPTIONS, SEGMENTS } from '@/lib/constants'
 import { getDaysUntilExpiry, formatCurrency, formatDate } from '@/lib/utils'
 import { Search, Briefcase, AlertCircle, Plus, Trash2, ArrowUpDown, RefreshCw, TrendingUp, CheckCircle2, XCircle, Clock, DollarSign } from 'lucide-react'
+import { DeleteConfirmDialog } from '@/components/shared/DeleteConfirmDialog'
 import { cn } from '@/lib/utils'
 import type { Cliente, Contrato } from '@/types'
 import { NewClienteModal } from '@/components/clientes/NewClienteModal'
@@ -254,9 +255,11 @@ export function ClientesPage() {
     return list
   }, [clientes, search, statusFilter, tipoFilter, healthFilter, segmentoFilter, sortBy, indicacoes])
 
-  function handleDelete(e: React.MouseEvent, id: string) {
-    e.stopPropagation()
-    deleteCliente.mutate(id)
+  const clienteToDelete = deleteConfirm ? (clientes ?? []).find(c => c.id === deleteConfirm) ?? null : null
+
+  async function handleConfirmDelete() {
+    if (!deleteConfirm) return
+    await deleteCliente.mutateAsync(deleteConfirm)
     setDeleteConfirm(null)
   }
 
@@ -558,7 +561,7 @@ export function ClientesPage() {
             const nextExpiry     = getNextExpiry(cliente.contratos)
             const daysLeft       = nextExpiry ? getDaysUntilExpiry(nextExpiry) : null
             const isExpiringSoon = daysLeft !== null && daysLeft <= 60 && daysLeft >= 0
-            const isConfirming   = deleteConfirm === cliente.id
+            const isConfirming   = false  // Inline confirm removed — DeleteConfirmDialog handles it
             const health         = getClientHealth(cliente)
             const hs             = HEALTH_STYLES[health.level]
             const refCount       = indicacoes.filter(i => i.indicante_cliente_id === cliente.id).length
@@ -607,7 +610,7 @@ export function ClientesPage() {
                   </div>
 
                   {/* Right side */}
-                  {!isConfirming ? (
+                  {(
                     <div className="flex items-center gap-3 shrink-0">
                       {/* Health Score indicator */}
                       <div className="flex items-center gap-1.5" title={health.text}>
@@ -646,23 +649,6 @@ export function ClientesPage() {
                         title="Excluir cliente"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    /* Inline delete confirmation — no native confirm() */
-                    <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
-                      <span className="text-xs text-red-600 font-medium">Excluir?</span>
-                      <button
-                        onClick={e => handleDelete(e, cliente.id)}
-                        className="text-xs px-2.5 py-1 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors"
-                      >
-                        Sim
-                      </button>
-                      <button
-                        onClick={e => { e.stopPropagation(); setDeleteConfirm(null) }}
-                        className="text-xs px-2.5 py-1 rounded-md border border text-muted-foreground hover:bg-[var(--alpha-bg-xs)] transition-colors"
-                      >
-                        Cancelar
                       </button>
                     </div>
                   )}
@@ -752,6 +738,15 @@ export function ClientesPage() {
         open={showNew}
         onClose={() => setShowNew(false)}
         onCreated={(id) => navigate(`/clientes/${id}`)}
+      />
+
+      <DeleteConfirmDialog
+        open={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        entidadeTipo="cliente"
+        entidadeId={deleteConfirm}
+        entidadeLabel={clienteToDelete ? `${clienteToDelete.nome} (${clienteToDelete.empresa})` : ''}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   )

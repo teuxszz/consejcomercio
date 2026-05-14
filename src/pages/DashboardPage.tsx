@@ -5,7 +5,7 @@ import { useIndicacoes } from '@/hooks/useIndicacoes'
 import { useOportunidades } from '@/hooks/useOportunidades'
 import { useReunioesSemanais } from '@/hooks/useReunioes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PIPELINE_STAGES, LEAD_SOURCE_LABELS, STAGE_COLORS } from '@/lib/constants'
+import { PIPELINE_STAGES, LEAD_SOURCE_LABELS, STAGE_COLORS, ACTIVE_LEAD_STAGES } from '@/lib/constants'
 import { formatCurrency, getDaysUntilExpiry, formatDate } from '@/lib/utils'
 import { differenceInDays } from 'date-fns'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
@@ -28,7 +28,7 @@ export function DashboardPage() {
   const { data: reunioesSemana = [] } = useReunioesSemanais()
 
   // KPIs
-  const activeLeads = leads?.filter(l => !['ganho_assessoria', 'ganho_consultoria', 'perdido', 'cancelado'].includes(l.status)).length || 0
+  const activeLeads = leads?.filter(l => ACTIVE_LEAD_STAGES.includes(l.status)).length || 0
   const activeClientes = clientes?.filter(c => c.status === 'ativo').length || 0
   const totalConversions = clientes?.length || 0
   const totalLeads = leads?.length || 0
@@ -354,7 +354,7 @@ export function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm">Origens dos Leads</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">Canais de Prospecção</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>

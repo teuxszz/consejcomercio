@@ -21,6 +21,13 @@ export const TERMINAL_LOST_STAGES = ['perdido', 'cancelado'] as const
 // All terminal stages (hidden in kanban by default)
 export const TERMINAL_STAGES = [...TERMINAL_WON_STAGES, ...TERMINAL_LOST_STAGES] as const
 
+// Active pipeline stages — leads in motion (excludes terminal AND stand_by).
+// Used for "Leads Ativos" KPI on the dashboard: leads ganhos, perdidos e em stand_by
+// não entram nesse cálculo (decisão da diretoria CONSEJ — 2026).
+export const ACTIVE_LEAD_STAGES = PIPELINE_STAGES
+  .filter(s => !(TERMINAL_STAGES as readonly string[]).includes(s.id) && s.id !== 'stand_by')
+  .map(s => s.id) as readonly string[]
+
 export const STAGE_COLORS: Record<string, string> = {
   classificacao:             'bg-sky-100 text-sky-700 border-sky-200',
   levantamento_oportunidade: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -209,6 +216,17 @@ export const ESTADOS_BR = [
   { uf: 'SP', nome: 'São Paulo' },
   { uf: 'SE', nome: 'Sergipe' },
   { uf: 'TO', nome: 'Tocantins' },
+]
+
+// Objection matrix categories
+export const OBJECAO_CATEGORIAS = [
+  { value: 'preco',         label: 'Preço',          color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  { value: 'tempo',         label: 'Tempo / Timing', color: 'bg-blue-100 text-blue-700 border-blue-200'    },
+  { value: 'autoridade',    label: 'Autoridade',     color: 'bg-violet-100 text-violet-700 border-violet-200' },
+  { value: 'concorrencia',  label: 'Concorrência',   color: 'bg-rose-100 text-rose-700 border-rose-200'    },
+  { value: 'necessidade',   label: 'Necessidade',    color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  { value: 'confianca',     label: 'Confiança',      color: 'bg-cyan-100 text-cyan-700 border-cyan-200'    },
+  { value: 'outro',         label: 'Outro',          color: 'bg-[rgba(255,255,255,0.06)] text-muted-foreground border-[rgba(255,255,255,0.10)]' },
 ]
 
 // Clusters (from existing consej-crm)

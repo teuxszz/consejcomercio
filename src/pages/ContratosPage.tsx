@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react'
 import { useContratos, useUpdateContrato, useDeleteContrato } from '@/hooks/useContratos'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { ScopeToggle, type Scope } from '@/components/shared/ScopeToggle'
+import { ResponsavelBadge } from '@/components/shared/ResponsavelBadge'
+import { DeleteConfirmDialog } from '@/components/shared/DeleteConfirmDialog'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -189,24 +191,9 @@ function ContratoModal({ contrato, onClose }: { contrato: Contrato; onClose: () 
                 <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm text-muted-foreground hover:bg-background">
                   <Pencil className="w-3.5 h-3.5" />Editar
                 </button>
-                {confirmDelete ? (
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => { deleteContrato.mutate({ id: contrato.id, clienteId: contrato.cliente_id }); onClose() }}
-                      disabled={deleteContrato.isPending}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700"
-                    >
-                      Confirmar exclusão
-                    </button>
-                    <button onClick={() => setConfirmDelete(false)} className="px-2 py-1.5 text-xs text-muted-foreground hover:text-[rgba(200,215,230,0.85)]">
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setConfirmDelete(true)} className="p-1.5 rounded-lg border border-transparent hover:border-red-500/30 text-fg4 hover:text-red-400 transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                <button onClick={() => setConfirmDelete(true)} className="p-1.5 rounded-lg border border-transparent hover:border-red-500/30 text-fg4 hover:text-red-400 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </>
             ) : (
               <button onClick={handleSave} disabled={update.isPending} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white font-medium" style={{ backgroundColor: '#0089ac' }}>
@@ -292,6 +279,18 @@ function ContratoModal({ contrato, onClose }: { contrato: Contrato; onClose: () 
     {showRelatorio && (
       <RelatorioContratoModal contrato={contrato} onClose={() => setShowRelatorio(false)} />
     )}
+    <DeleteConfirmDialog
+      open={confirmDelete}
+      onClose={() => setConfirmDelete(false)}
+      entidadeTipo="contrato"
+      entidadeId={contrato.id}
+      entidadeLabel={`Contrato — ${contrato.cliente?.nome ?? 'Cliente'} (${contrato.cliente?.empresa ?? ''})`}
+      onConfirm={async () => {
+        await deleteContrato.mutateAsync({ id: contrato.id, clienteId: contrato.cliente_id })
+        setConfirmDelete(false)
+        onClose()
+      }}
+    />
     </>
   )
 }
@@ -517,6 +516,9 @@ export function ContratosPage() {
                       <p className="text-sm text-muted-foreground">
                         {CONTRACT_TYPES.find(t => t.value === contrato.tipo)?.label} · {PRICING_MODELS.find(m => m.value === contrato.modelo_precificacao)?.label}
                       </p>
+                      <div className="mt-1.5">
+                        <ResponsavelBadge perfilId={contrato.responsavel_id} size={20} />
+                      </div>
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {contrato.areas_direito?.map(a => (
                           <span key={a} className="text-xs bg-[var(--alpha-bg-xs)] text-muted-foreground px-1.5 py-0.5 rounded">{a.replace(/_/g, ' ')}</span>

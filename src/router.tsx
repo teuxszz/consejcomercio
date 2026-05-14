@@ -19,6 +19,7 @@ import { ReunioesPage } from '@/pages/ReunioesPage'
 import { MeEspacoPage } from '@/pages/MeEspacoPage'
 import { MensagensPage } from '@/pages/MensagensPage'
 import { CadenciaPage } from '@/pages/CadenciaPage'
+import { ObjecoesPage } from '@/pages/ObjecoesPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { MapaPage } from '@/pages/MapaPage'
 import { ImportarPage } from '@/pages/ImportarPage'
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
       { path: 'reunioes', element: <ReunioesPage /> },
       { path: 'mensagens', element: <MensagensPage /> },
       { path: 'cadencia', element: <CadenciaPage /> },
+      { path: 'objecoes', element: <ObjecoesPage /> },
       { path: 'slack', element: <SlackPage /> },
       { path: 'auditoria', element: <AuditoriaPage /> },
       { path: 'configuracoes', element: <ConfiguracoesPage /> },

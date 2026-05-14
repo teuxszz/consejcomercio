@@ -230,6 +230,11 @@ export interface MensagensConfig {
   setores_ativos: string[]
   regras_voz: string
   overrides: Record<string, { body: string; subject?: string }>
+  blocos?: {
+    overrides: Record<string, { titulo?: string; texto?: string; setores?: string[] }>
+    custom: Array<{ id: string; categoria: string; titulo: string; texto: string; setores?: string[] }>
+    ocultos: string[]
+  }
 }
 
 export interface Configuracoes {
@@ -365,6 +370,28 @@ export interface Campanha {
   data_fim: string
   ativa: boolean
   destaque: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type ObjecaoCategoria =
+  | 'preco'
+  | 'tempo'
+  | 'autoridade'
+  | 'concorrencia'
+  | 'necessidade'
+  | 'confianca'
+  | 'outro'
+
+export interface Objecao {
+  id: string
+  categoria: ObjecaoCategoria | string
+  objecao: string
+  resposta_sugerida: string
+  tags?: string[]
+  origem_lead_id?: string | null
+  criado_por_id?: string | null
+  ativo: boolean
   created_at: string
   updated_at: string
 }

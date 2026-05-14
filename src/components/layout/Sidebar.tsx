@@ -3,7 +3,7 @@ import {
   LayoutDashboard, KanbanSquare, Stethoscope, Users, FileText,
   Inbox, Share2, Handshake, TrendingUp, ClipboardList, Settings,
   LogOut, MessageSquare, CalendarDays, Sparkles, Search, BarChart2, Map, Upload, GraduationCap,
-  Sun, Moon, Target, HelpCircle, Send, Coins, Gift,
+  Sun, Moon, Target, HelpCircle, Send, Coins, Gift, ShieldQuestion,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil } from '@/hooks/usePerfis'
@@ -24,9 +24,10 @@ const NAV_GROUPS: { label?: string; items: { to: string; label: string; icon: Re
   {
     label: 'PIPELINE',
     items: [
-      { to: '/leads',        label: 'Leads',        icon: KanbanSquare },
-      { to: '/prospeccao',   label: 'Prospecção',   icon: Target       },
-      { to: '/diagnosticos', label: 'Diagnósticos', icon: Stethoscope  },
+      { to: '/leads',        label: 'Leads',        icon: KanbanSquare    },
+      { to: '/prospeccao',   label: 'Prospecção',   icon: Target          },
+      { to: '/diagnosticos', label: 'Diagnósticos', icon: Stethoscope     },
+      { to: '/objecoes',     label: 'Objeções',     icon: ShieldQuestion  },
     ],
   },
   {

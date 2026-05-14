@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useLeads } from '@/hooks/useLeads'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { KanbanBoard } from '@/components/leads/KanbanBoard'
@@ -10,9 +11,16 @@ import { ScopeToggle, type Scope } from '@/components/shared/ScopeToggle'
 export function LeadsPage() {
   const { data: leads, isLoading } = useLeads()
   const { data: meuPerfil } = useMeuPerfil()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [scope, setScope]             = useState<Scope>('all')
   const [search, setSearch]           = useState('')
-  const [origemFilter, setOrigemFilter]     = useState('todos')
+  const origemFilter = searchParams.get('canal') ?? 'todos'
+  const setOrigemFilter = (value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (value === 'todos') next.delete('canal')
+    else next.set('canal', value)
+    setSearchParams(next, { replace: true })
+  }
   const [segmentoFilter, setSegmentoFilter] = useState('todos')
 
   const mineCount = useMemo(() => (meuPerfil?.id ? leads?.filter(l => l.responsavel_id === meuPerfil.id).length ?? 0 : 0), [leads, meuPerfil])
@@ -75,7 +83,7 @@ export function LeadsPage() {
             className="h-8 px-2.5 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-[rgba(0,137,172,0.40)]"
             style={selectStyle}
           >
-            <option value="todos">Todas as origens</option>
+            <option value="todos">Todos os canais</option>
             {LEAD_SOURCES.map(s => {
               const count = leads?.filter(l => l.origem === s.value).length ?? 0
               return <option key={s.value} value={s.value}>{s.label} ({count})</option>
