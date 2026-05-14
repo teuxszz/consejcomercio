@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
+export type RoleConsej = 'diretor' | 'gerente' | 'coordenador' | 'consultor'
+
 export interface Perfil {
   id: string
   nome: string
@@ -8,6 +10,9 @@ export interface Perfil {
   bio?: string
   foto_url?: string
   email?: string
+  role?: RoleConsej | null
+  gestor_id?: string | null
+  slack_user_id?: string | null
   created_at: string
 }
 

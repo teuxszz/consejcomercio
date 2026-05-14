@@ -3,6 +3,7 @@ import { useLeads } from '@/hooks/useLeads'
 import { useContratos } from '@/hooks/useContratos'
 import { useIndicacoes } from '@/hooks/useIndicacoes'
 import { useClientes } from '@/hooks/useClientes'
+import { usePerfis } from '@/hooks/usePerfis'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PIPELINE_STAGES, LEAD_SOURCE_LABELS, SEGMENTS } from '@/lib/constants'
 import { formatCurrency, getDaysUntilExpiry } from '@/lib/utils'
@@ -62,6 +63,7 @@ export function AnalyticsPage() {
   const { data: contratos = [] }  = useContratos()
   const { data: indicacoes = [] } = useIndicacoes()
   const { data: clientes = [] }   = useClientes()
+  const { data: perfis = [] }     = usePerfis()
   const [period, setPeriod] = useState<PeriodValue>({ year: getCurrentYear(), granularity: 'total' })
 
   const metrics = useMemo(() => {
@@ -157,6 +159,30 @@ export function AnalyticsPage() {
       .map(([name, v]) => ({ name, ...v, taxa: pct(v.won, v.total) }))
       .sort((a, b) => b.won - a.won)
 
+    // ── Ranking de indicações por membro CONSEJ ───────────────────────────
+    // Considera indicações no período (created_at) cujo indicante é um perfil
+    // interno (indicante_perfil_id). Conta total + convertidas.
+    const range = getPeriodRange(period)
+    const filteredIndicacoes = indicacoes.filter(i => isInRange(i.created_at, range))
+    const indicMap: Record<string, { total: number; convertidas: number }> = {}
+    for (const i of filteredIndicacoes) {
+      if (!i.indicante_perfil_id) continue
+      if (!indicMap[i.indicante_perfil_id]) indicMap[i.indicante_perfil_id] = { total: 0, convertidas: 0 }
+      indicMap[i.indicante_perfil_id].total++
+      if (i.status === 'convertido') indicMap[i.indicante_perfil_id].convertidas++
+    }
+    const byIndicantePerfil = Object.entries(indicMap)
+      .map(([perfilId, v]) => {
+        const p = perfis.find(x => x.id === perfilId)
+        return {
+          perfilId,
+          name: p?.nome ?? 'Membro desconhecido',
+          ...v,
+          taxa: pct(v.convertidas, v.total),
+        }
+      })
+      .sort((a, b) => b.convertidas - a.convertidas || b.total - a.total)
+
     // ── Stagnant leads ────────────────────────────────────────────────────
     const STAGNANT: Record<string, number> = {
       classificacao: 3, levantamento_oportunidade: 5, educar_lead: 7, proposta_comercial: 7, negociacao: 10, stand_by: 14,
@@ -225,12 +251,12 @@ export function AnalyticsPage() {
       funnelCounts, won, lost, closed, winRate, lossRate,
       avgCloseDays, avgTicket, mrr,
       leadsLast30, velocityDelta,
-      bySource, bySegment, byResponsavel,
+      bySource, bySegment, byResponsavel, byIndicantePerfil,
       stagnant, expiring60, winLossPie, byLossReason,
       ivm: ivmPct, ivmComponents,
       npsMedia, clientesComNpsCount: clientesComNps.length,
     }
-  }, [leads, contratos, indicacoes, clientes, period])
+  }, [leads, contratos, indicacoes, clientes, perfis, period])
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -527,6 +553,49 @@ export function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Ranking de Indicações por Membro CONSEJ ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-indigo-400" />
+            Ranking de Indicações por Membro
+            <span className="text-xs font-normal text-fg4 ml-1">— quem mais trouxe leads no período</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {metrics.byIndicantePerfil.length === 0 ? (
+            <p className="text-sm text-fg4 py-4 text-center">
+              Nenhuma indicação por membro CONSEJ no período. Preencha <code className="text-[10px]">indicante_perfil_id</code> ao criar indicações para popular este ranking.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {metrics.byIndicantePerfil.slice(0, 10).map((r, i) => (
+                <div
+                  key={r.perfilId}
+                  className="flex items-center gap-3 px-2 py-1.5 rounded-md hover:bg-[var(--alpha-bg-xs)] transition-colors"
+                >
+                  <span className={cn(
+                    'w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0',
+                    i === 0 ? 'bg-[rgba(245,158,11,0.15)] text-[#fbbf24]'
+                    : i === 1 ? 'bg-[rgba(150,165,180,0.15)] text-fg2'
+                    : i === 2 ? 'bg-[rgba(180,83,9,0.15)] text-amber-700'
+                    : 'bg-[var(--alpha-bg-xs)] text-muted-foreground'
+                  )}>{i + 1}</span>
+                  <span className="text-sm text-fg2 flex-1 truncate">{r.name}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {r.convertidas} convertida{r.convertidas === 1 ? '' : 's'} / {r.total}
+                  </span>
+                  <span className={cn(
+                    'text-xs font-bold w-12 text-right tabular-nums',
+                    r.taxa >= 50 ? 'text-emerald-400' : r.taxa >= 25 ? 'text-amber-400' : 'text-fg4'
+                  )}>{r.taxa}%</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* ── IVM — Índice de Vitalidade do Movimento ── */}
       <Card>

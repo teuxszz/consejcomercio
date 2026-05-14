@@ -146,6 +146,7 @@ export interface Indicacao {
   id: string
   indicante_cliente_id?: string | null
   indicante_parceiro_id?: string | null
+  indicante_perfil_id?: string | null
   indicado_nome: string
   indicado_telefone: string
   indicado_empresa?: string | null
