@@ -12,7 +12,8 @@
 | Smoke E2E | 30 rotas × 2 roles, pronto, pendente usuários QA |
 | Erros de ESLint no código existente | **67 erros + 4 warnings** |
 | Build (`tsc -b`) | ❌ **estava quebrado** → ✅ corrigido nesta sessão |
-| Achados catalogados | 4 críticos · 4 altos · 4 médios · 3 baixos |
+| Achados catalogados | 2 críticos · 4 altos · 5 médios · 3 baixos |
+| Já corrigidos nesta sessão | C1, C2, C4, A2, M4 (build compila + Error Boundary + validação de env) |
 
 ---
 
@@ -25,20 +26,15 @@
 - **Status:** ✅ corrigido nesta sessão (removida a redeclaração).
 - **Ação:** trocar o hábito de verificação para `npx tsc -b` ou `npm run build`.
 
-### C2 — Sem Error Boundary global
-- **Onde:** `src/main.tsx` / `src/App.tsx` — não há `<ErrorBoundary>`.
-- **Impacto:** um erro de render em qualquer componente derruba a tela inteira (tela branca). Já aconteceu nesta sessão com o `BlocoEditorModal` (bug de `null`).
-- **Ação:** adicionar um Error Boundary no topo da árvore, com fallback amigável e botão "recarregar". É a correção de maior retorno.
+### C2 — Sem Error Boundary global ✅ CORRIGIDO
+- **Onde:** `src/main.tsx` — não havia `<ErrorBoundary>`.
+- **Impacto:** um erro de render em qualquer componente derrubava a tela inteira (tela branca). Aconteceu nesta sessão com o `BlocoEditorModal` (bug de `null`).
+- **Status:** ✅ criado `src/components/ErrorBoundary.tsx` (fallback amigável + botão recarregar) e aplicado no topo da árvore em `main.tsx`. Coberto por teste.
 
-### C3 — `setState` síncrono dentro de `useEffect` (11 ocorrências)
-- **Onde:** 11 pontos sinalizados por `react-hooks/set-state-in-effect` — ex.: `src/pages/portal/PortalWalletPage.tsx:108`.
-- **Impacto:** renders em cascata; em alguns casos loop de render. Performance e risco de travamento.
-- **Ação:** revisar cada caso — mover o cálculo para fora do efeito, derivar em render, ou usar `useMemo`.
-
-### C4 — `src/lib/supabase.ts` não valida variáveis de ambiente
+### C4 — `src/lib/supabase.ts` não validava variáveis de ambiente ✅ CORRIGIDO
 - **Onde:** `supabaseUrl`/`supabaseAnonKey` com `as string` sem checagem.
-- **Impacto:** sem `.env`, o app sobe e quebra silenciosamente em runtime na primeira query, sem mensagem clara.
-- **Ação:** validar no boot (Zod ou checagem explícita) e falhar com mensagem legível.
+- **Impacto:** sem `.env`, o app subia e quebrava silenciosamente na primeira query.
+- **Status:** ✅ adicionada validação no boot — falha cedo com mensagem clara listando as variáveis ausentes.
 
 ---
 
@@ -77,6 +73,12 @@
 ### M2 — `react-refresh/only-export-components` (8×)
 - **Impacto:** arquivos que exportam componentes + não-componentes juntos quebram o Fast Refresh no dev (recarrega a página inteira ao salvar).
 - **Ação:** separar constantes/helpers em arquivos próprios.
+
+### M5 — `setState` dentro de `useEffect` (11×) — revisado, NÃO é crítico
+- **Onde:** `react-hooks/set-state-in-effect` em GlobalSearch, PerfilPanel, OnboardingWizard, NovaReuniaoModal, ClienteDetailPage, ConfiguracoesPage (×2), LeadDetailPage, PerfilPage, PortalWalletPage.
+- **Revisão:** os 11 casos foram inspecionados. Todos são padrões **benignos** — hidratação de formulário a partir de dados de query assíncrona, reset de estado quando um filtro muda, ou efeito one-shot guardado por `localStorage`. **Nenhum causa loop de render em cascata.**
+- **Avaliação:** a regra `set-state-in-effect` (nova no plugin React 19) é agressiva e sinaliza padrões legítimos. Foi listado como crítico no rascunho inicial deste relatório por engano — corrigido para médio.
+- **Ação:** baixa prioridade. Se quiser zerar o lint, tratar como refactor focado (form hydration → `key`-remount ou derivação), não urgente. Forçar as 11 mudanças agora traria mais risco de regressão do que benefício.
 
 ### M3 — Uso amplo de `as any` / non-null assertion `!`
 - **Onde:** espalhado (ex.: `DashboardPage` `(c as any).contratos`, `useGamification` `ALL_BADGES.find(...)!`).
@@ -154,11 +156,11 @@ npm run test:rls    # RLS (precisa de .env.test)
 
 ## Backlog de correção sugerido (ordem)
 
-1. **C2** — Error Boundary (1 componente, ~30 min, evita tela branca).
-2. **C3** — `setState` em efeito (11 casos, revisar um a um).
-3. **A1** — decidir/corrigir o escopo de RLS para registros órfãos.
-4. **C4** — validação de env vars no boot.
-5. **M1** — adicionar `lint` ao CI; **A3** — unificar `responsavel`/`responsavel_id`.
-6. Médios/baixos restantes — limpeza incremental (`eslint --fix` cobre boa parte).
+1. **A1** — decidir/corrigir o escopo de RLS para registros órfãos (decisão de produto).
+2. **A3** — unificar `responsavel`/`responsavel_id` (migração + ajuste de consumidores).
+3. **M1** — adicionar `npm run lint` ao CI/pre-commit; zerar os 67 erros incrementalmente.
+4. **M5** — `setState` em efeito: refactor focado, baixa prioridade (não é loop).
+5. **A4 / M2 / M3** — `exhaustive-deps`, Fast Refresh, redução de `as any`.
+6. Baixos — limpeza trivial (imports mortos, ternário-statement).
 
-> Já corrigidos nesta sessão: **C1**, **A2**, **M4** (build voltou a compilar).
+> Já corrigidos nesta sessão: **C1** (build), **C2** (Error Boundary), **C4** (validação de env), **A2** (DeleteConfirmDialog), **M4** (range duplicado).
