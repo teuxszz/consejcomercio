@@ -94,7 +94,29 @@ async function findPerfilName(perfilId: string | null): Promise<string> {
   return data?.nome ?? 'Alguém'
 }
 
-async function postDm(slackUserId: string, text: string, blocks: unknown[]): Promise<{ ok: boolean; error?: string }> {
+// Abre (ou recupera) o canal de DM com o usuário. Padrão recomendado pelo Slack
+// para garantir entrega — postar direto no U... pode falhar silenciosamente.
+async function openDmChannel(slackUserId: string): Promise<{ ok: boolean; channel?: string; error?: string }> {
+  const res = await fetch('https://slack.com/api/conversations.open', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify({ users: slackUserId }),
+  })
+  const body = await res.json() as { ok: boolean; channel?: { id: string }; error?: string }
+  if (!body.ok || !body.channel) return { ok: false, error: body.error ?? `HTTP ${res.status}` }
+  return { ok: true, channel: body.channel.id }
+}
+
+async function postDm(slackUserId: string, text: string, blocks: unknown[]): Promise<{ ok: boolean; ts?: string; error?: string }> {
+  // 1. Resolve o canal de DM (D...)
+  const dm = await openDmChannel(slackUserId)
+  if (!dm.ok || !dm.channel) {
+    return { ok: false, error: `conversations.open falhou: ${dm.error}` }
+  }
+  // 2. Posta no canal de DM
   for (let i = 0; i < 3; i++) {
     const res = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
@@ -102,14 +124,16 @@ async function postDm(slackUserId: string, text: string, blocks: unknown[]): Pro
         Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
         'Content-Type': 'application/json; charset=utf-8',
       },
-      body: JSON.stringify({ channel: slackUserId, text, blocks, unfurl_links: false }),
+      body: JSON.stringify({ channel: dm.channel, text, blocks, unfurl_links: false }),
     })
     if (res.status === 429 || res.status >= 500) {
       await new Promise(r => setTimeout(r, 500 * 2 ** i))
       continue
     }
-    const body = await res.json() as { ok: boolean; error?: string }
-    return body.ok ? { ok: true } : { ok: false, error: body.error ?? `HTTP ${res.status}` }
+    const body = await res.json() as { ok: boolean; ts?: string; error?: string }
+    return body.ok
+      ? { ok: true, ts: body.ts }
+      : { ok: false, error: body.error ?? `HTTP ${res.status}` }
   }
   return { ok: false, error: 'Slack indisponível após retries' }
 }
