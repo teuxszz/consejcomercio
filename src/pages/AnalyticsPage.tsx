@@ -162,7 +162,7 @@ export function AnalyticsPage() {
     // ── Ranking de indicações por membro CONSEJ ───────────────────────────
     // Considera indicações no período (created_at) cujo indicante é um perfil
     // interno (indicante_perfil_id). Conta total + convertidas.
-    const range = getPeriodRange(period)
+    // Reutiliza `range` já calculado acima.
     const filteredIndicacoes = indicacoes.filter(i => isInRange(i.created_at, range))
     const indicMap: Record<string, { total: number; convertidas: number }> = {}
     for (const i of filteredIndicacoes) {

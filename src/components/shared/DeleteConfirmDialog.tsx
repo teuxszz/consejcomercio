@@ -50,13 +50,15 @@ export function DeleteConfirmDialog({
     }
     setLoading(true)
     setErro(null)
-    supabase
-      .rpc('inspecionar_exclusao', { p_entidade_tipo: entidadeTipo, p_id: entidadeId })
-      .then(({ data, error }) => {
-        if (error) setErro(error.message)
-        else setImpacto(data as Record<string, number>)
-      })
-      .finally(() => setLoading(false))
+    // `await` em vez de .finally — o builder do Supabase é PromiseLike,
+    // não Promise completa (não garante .finally).
+    void (async () => {
+      const { data, error } = await supabase
+        .rpc('inspecionar_exclusao', { p_entidade_tipo: entidadeTipo, p_id: entidadeId })
+      if (error) setErro(error.message)
+      else setImpacto(data as Record<string, number>)
+      setLoading(false)
+    })()
   }, [open, entidadeId, entidadeTipo])
 
   const bloqueado = (impacto?.indicacoes_bloqueadoras ?? 0) > 0

@@ -27,5 +27,13 @@ dist-ssr
 scripts/data/*.csv
 .env.migration
 
+# Test artifacts & credentials
+.env.test
+tests/e2e/.auth/
+playwright-report/
+test-results/
+coverage/
+supabase/.temp/
+
 # Claude Code local state
 .superpowers/
