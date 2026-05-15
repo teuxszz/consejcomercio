@@ -40,11 +40,13 @@
 
 ## ACHADOS — Altos
 
-### A1 — Vazamento de escopo na RLS: registros órfãos visíveis a todos
-- **Onde:** `supabase/migrations/029_rls_role_aware.sql` — função `can_see_responsavel(NULL)` retorna `true`.
-- **Impacto:** leads/clientes/contratos **sem `responsavel_id`** ficam visíveis a **todos** os internos, inclusive consultores. Quem deveria ver só os próprios dados vê todos os registros não atribuídos.
-- **Ação:** decidir se é intencional. Se não: mudar a policy para que NULL só seja visível a gerentes+/diretor, OU rodar um backfill atribuindo responsável a todos os registros órfãos.
-- **Verificação:** os testes em `tests/rls/rls-role-aware.test.ts` documentam esse comportamento (rodar após criar usuários QA).
+### A1 — RLS role-aware praticamente sem efeito hoje (97-100% dos dados sem dono) — DECIDIDO
+- **Onde:** `supabase/migrations/029_rls_role_aware.sql` — `can_see_responsavel(NULL)` retorna `true`.
+- **Medição (2026-05-15):** leads 153/158 sem responsável · clientes 69/69 · contratos 48/48.
+- **Consequência:** como órfão é visível a todos e quase tudo é órfão, a RLS role-aware **não escopa nada na prática** — todos os internos veem tudo. O backfill da migração 028 (casar por nome) não pegou porque o campo `responsavel` legado também estava vazio.
+- **Decisão do stakeholder:** **manter órfão visível a todos.** Não cega os consultores. O escopo por consultor passa a valer organicamente conforme os registros recebem `responsavel_id`.
+- **Recomendação de longo prazo:** atribuir responsável aos leads/clientes/contratos (no fluxo normal de trabalho ou num mutirão) — só então a separação diretor/gerente/consultor produz efeito real.
+- **Verificação:** `tests/rls/rls-role-aware.test.ts` documenta o comportamento (rodar após criar usuários QA).
 
 ### A2 — `DeleteConfirmDialog` usava `.finally()` em PromiseLike do Supabase
 - **Onde:** `src/components/shared/DeleteConfirmDialog.tsx`.
@@ -156,7 +158,7 @@ npm run test:rls    # RLS (precisa de .env.test)
 
 ## Backlog de correção sugerido (ordem)
 
-1. **A1** — decidir/corrigir o escopo de RLS para registros órfãos (decisão de produto).
+1. **A1** — ✅ decidido (manter órfão visível). Recomendação aberta: atribuir responsável aos registros para a RLS ter efeito real.
 2. **A3** — unificar `responsavel`/`responsavel_id` (migração + ajuste de consumidores).
 3. **M1** — adicionar `npm run lint` ao CI/pre-commit; zerar os 67 erros incrementalmente.
 4. **M5** — `setState` em efeito: refactor focado, baixa prioridade (não é loop).
