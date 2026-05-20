@@ -3,13 +3,18 @@ import {
   LayoutDashboard, KanbanSquare, Stethoscope, Users, FileText,
   Inbox, Share2, Handshake, TrendingUp, ClipboardList, Settings,
   LogOut, MessageSquare, CalendarDays, Sparkles, Search, BarChart2, Map, Upload, GraduationCap,
-  Sun, Moon, Target, HelpCircle, Send, Coins, Gift, ShieldQuestion, Crosshair,
+  Sun, Moon, Target, HelpCircle, Coins, Gift, ShieldQuestion, Crosshair,
+  ChevronsUpDown, UserCircle2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { useTheme } from '@/contexts/ThemeContext'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
 
@@ -48,7 +53,6 @@ const NAV_GROUPS: { label?: string; items: { to: string; label: string; icon: Re
       { to: '/parceiros',     label: 'Parceiros',     icon: Handshake      },
       { to: '/pos-juniors',   label: 'Pós-Juniors',   icon: GraduationCap  },
       { to: '/portal-admin',  label: 'Portal Tokens', icon: Coins          },
-      { to: '/portal',        label: 'Meu Portal',    icon: Gift           },
     ],
   },
   {
@@ -152,24 +156,52 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* Profile + Theme + Logout */}
+      {/* Profile switcher + Theme */}
       <div className="p-2 space-y-1" style={{ borderTop: '1px solid #000d32' }}>
-        <NavLink
-          to="/me"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm w-full transition-colors"
-          style={({ isActive }) => isActive ? { backgroundColor: ACTIVE_BG, color: '#fff' } : { color: '#6bd0e7' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = HOVER_BG }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
-        >
-          {perfil?.foto_url ? (
-            <img src={perfil.foto_url} alt={perfil.nome} className="w-5 h-5 rounded-full object-cover shrink-0" />
-          ) : (
-            <div className="w-5 h-5 rounded-full bg-cyan-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-              {initials}
-            </div>
-          )}
-          <span className="truncate">{perfil?.nome ? `${perfil.nome} — Meu Espaço` : 'Meu Espaço'}</span>
-        </NavLink>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm w-full transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-600"
+              style={{ color: '#6bd0e7' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = HOVER_BG }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
+            >
+              {perfil?.foto_url ? (
+                <img src={perfil.foto_url} alt={perfil.nome} className="w-5 h-5 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-cyan-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                  {initials}
+                </div>
+              )}
+              <span className="truncate flex-1 text-left">{perfil?.nome ?? 'Meu Espaço'}</span>
+              <ChevronsUpDown className="w-3.5 h-3.5 shrink-0 opacity-60" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium truncate">{perfil?.nome ?? 'Usuário'}</span>
+                {perfil?.email && (
+                  <span className="text-xs text-muted-foreground truncate">{perfil.email}</span>
+                )}
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => navigate('/me')}>
+              <UserCircle2 className="w-4 h-4" />
+              Meu Espaço
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => navigate('/portal')}>
+              <Gift className="w-4 h-4" />
+              Portal de Indicações
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleLogout}>
+              <LogOut className="w-4 h-4" />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Theme toggle */}
         <button
@@ -185,17 +217,6 @@ export function Sidebar() {
             : <Moon className="w-4 h-4 shrink-0" />
           }
           {theme === 'dark' ? 'Tema Claro' : 'Tema Escuro'}
-        </button>
-
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm w-full transition-colors"
-          style={{ color: '#6bd0e7' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = HOVER_BG; (e.currentTarget as HTMLElement).style.color = '#fff' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; (e.currentTarget as HTMLElement).style.color = '#6bd0e7' }}
-        >
-          <LogOut className="w-4 h-4" />
-          Sair
         </button>
       </div>
     </div>

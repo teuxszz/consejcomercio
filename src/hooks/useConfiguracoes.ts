@@ -149,6 +149,7 @@ export const DEFAULT_MENSAGENS_CONFIG: MensagensConfig = {
   setores_ativos: ['geral', 'societario', 'contratual', 'digital_lgpd', 'trabalhista', 'marca_pi'],
   regras_voz: '',
   overrides: {},
+  blocos: { overrides: {}, custom: [], ocultos: [] },
 }
 
 const DEFAULT_CONFIGURACOES: Configuracoes = {
@@ -183,6 +184,13 @@ export function useConfiguracoes() {
           ...(data.mensagens ?? {}),
           defaults: { ...DEFAULT_MENSAGENS_CONFIG.defaults, ...(data.mensagens?.defaults ?? {}) },
           overrides: data.mensagens?.overrides ?? {},
+          blocos: {
+            ...DEFAULT_MENSAGENS_CONFIG.blocos!,
+            ...(data.mensagens?.blocos ?? {}),
+            overrides: data.mensagens?.blocos?.overrides ?? {},
+            custom: data.mensagens?.blocos?.custom ?? [],
+            ocultos: data.mensagens?.blocos?.ocultos ?? [],
+          },
         }
         return { ...data, servicos: DEFAULT_SERVICOS, mensagens: mensagensEarly } as Configuracoes
       }

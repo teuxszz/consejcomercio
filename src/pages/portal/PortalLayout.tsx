@@ -4,8 +4,12 @@ import { supabase } from '@/lib/supabase'
 import { usePortalPerfil } from '@/hooks/usePortal'
 import { calcularNivel, NIVEL_CONFIG } from '@/types'
 import { Toaster, toast } from 'sonner'
-import { Wallet, UserPlus, Gift, ClipboardList, LogOut, Coins } from 'lucide-react'
+import { Wallet, UserPlus, Gift, ClipboardList, LogOut, Coins, LayoutDashboard, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 
 const NAV = [
   { to: '/portal',           label: 'Carteira',  icon: Wallet,        end: true },
@@ -90,29 +94,53 @@ export function PortalLayout() {
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              {perfil?.foto_url ? (
-                <img src={perfil.foto_url} alt={perfil.nome} className="w-7 h-7 rounded-full object-cover" />
-              ) : (
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
-                  style={{ backgroundColor: '#0089ac' }}>
-                  {initials}
-                </div>
-              )}
-              <span style={{ fontSize: 13, color: 'rgba(107,208,231,0.8)' }} className="hidden sm:block">
-                {perfil?.nome?.split(' ')[0] ?? ''}
-              </span>
-            </div>
-            <button
-              onClick={handleLogout}
-              aria-label="Sair"
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: 'rgba(107,208,231,0.5)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#6bd0e7')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(107,208,231,0.5)')}
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 px-1.5 py-1 rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan-600"
+                  style={{ color: 'rgba(107,208,231,0.8)' }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(0,137,172,0.1)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  {perfil?.foto_url ? (
+                    <img src={perfil.foto_url} alt={perfil.nome} className="w-7 h-7 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                      style={{ backgroundColor: '#0089ac' }}>
+                      {initials}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 13 }} className="hidden sm:block">
+                    {perfil?.nome?.split(' ')[0] ?? ''}
+                  </span>
+                  <ChevronsUpDown className="w-3.5 h-3.5 opacity-60" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium truncate">{perfil?.nome ?? 'Usuário'}</span>
+                    {perfil?.email && (
+                      <span className="text-xs text-muted-foreground truncate">{perfil.email}</span>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {perfil?.tipo === 'interno' && (
+                  <>
+                    <DropdownMenuItem onSelect={() => navigate('/dashboard')}>
+                      <LayoutDashboard className="w-4 h-4" />
+                      Ir para o CRM
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem onSelect={handleLogout}>
+                  <LogOut className="w-4 h-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

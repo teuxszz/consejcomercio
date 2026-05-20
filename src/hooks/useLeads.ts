@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { QUERY_KEYS } from '@/lib/query-keys'
-import type { Lead } from '@/types'
+import type { Lead, LeadLixeira } from '@/types'
 import { toast } from 'sonner'
 
 export function useLeads() {
@@ -119,12 +119,49 @@ export function useDeleteLead() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('leads').delete().eq('id', id)
+      const { error } = await supabase.rpc('excluir_lead', { p_id: id })
       if (error) throw error
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.leads.all })
-      toast.success('Lead removido.')
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit_logs.all })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.leads_lixeira.all })
+      toast.success('Lead removido e enviado para a lixeira.')
     },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : 'Erro ao remover lead'),
+  })
+}
+
+export function useLeadsLixeira() {
+  return useQuery({
+    queryKey: QUERY_KEYS.leads_lixeira.all,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leads_lixeira')
+        .select('*')
+        .is('restaurado_em', null)
+        .order('excluido_em', { ascending: false })
+      if (error) throw error
+      return data as LeadLixeira[]
+    },
+  })
+}
+
+export function useRestaurarLead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (lixeiraId: string) => {
+      const { error } = await supabase.rpc('restaurar_lead', { p_lixeira_id: lixeiraId })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.leads.all })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit_logs.all })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.leads_lixeira.all })
+      toast.success('Lead restaurado.')
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : 'Erro ao restaurar lead'),
   })
 }

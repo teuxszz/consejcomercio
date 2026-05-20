@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Copy, Check, Smartphone, Mail, Linkedin, RefreshCw, Sparkles, Search, Phone, X, MessageSquare, BookOpen, Pencil, Eye, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react'
+import { Copy, Check, Smartphone, Mail, Linkedin, RefreshCw, Sparkles, Search, Phone, X, MessageSquare, BookOpen, Pencil, Eye, RotateCcw, ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +12,15 @@ import { useConfiguracoes, DEFAULT_MENSAGENS_CONFIG } from '@/hooks/useConfigura
 import type { MensagensConfig } from '@/types'
 import { ConfirmSendModal } from '@/components/leads/ConfirmSendModal'
 import {
-  BLOCOS,
   BLOCO_CATEGORIAS,
-  blocosPorCategoria,
+  blocosEfetivosPorCategoria,
+  getBlocosEfetivos,
+  isBlocoBase,
   montarMensagem,
+  type Bloco,
   type BlocoCategoria,
 } from '@/lib/blocos-mensagem'
+import { BlocoEditorModal } from '@/components/mensagens/BlocoEditorModal'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -643,10 +646,23 @@ export function MensagensPage() {
     setSlots({})
   }
 
+  // Conjunto efetivo de blocos (default + custom, com overrides aplicados)
+  const blocosEfetivos = useMemo(
+    () => getBlocosEfetivos(mensagensConfig.blocos),
+    [mensagensConfig.blocos]
+  )
+
+  // Estado do modal de editor de bloco
+  const [editorBloco, setEditorBloco] = useState<
+    | { kind: 'edit'; bloco: Bloco }
+    | { kind: 'add'; categoria: BlocoCategoria }
+    | null
+  >(null)
+
   // Mensagem composta em tempo real a partir dos slots, na ordem canônica.
   const composedBody = useMemo(
-    () => montarMensagem(slots, tpl => fill(tpl, ctx)),
-    [slots, ctx]
+    () => montarMensagem(slots, tpl => fill(tpl, ctx), blocosEfetivos),
+    [slots, ctx, blocosEfetivos]
   )
 
   const slotsPreenchidos = useMemo(
@@ -1136,10 +1152,10 @@ export function MensagensPage() {
             {composerOpen && (
               <div className="border-t divide-y" style={{ borderColor: 'var(--alpha-border)' }}>
                 {BLOCO_CATEGORIAS.map(categoria => {
-                  const disponiveis = blocosPorCategoria(categoria, sector)
-                  if (disponiveis.length === 0) return null
+                  const disponiveis = blocosEfetivosPorCategoria(categoria, sector, mensagensConfig.blocos)
                   const selecionadoId = slots[categoria] ?? null
-                  const selecionado = selecionadoId ? BLOCOS.find(b => b.id === selecionadoId) : null
+                  const selecionado = selecionadoId ? blocosEfetivos.find(b => b.id === selecionadoId) : null
+                  const overrides = mensagensConfig.blocos?.overrides ?? {}
 
                   return (
                     <div key={categoria} className="px-4 py-3">
@@ -1160,25 +1176,51 @@ export function MensagensPage() {
                         <div className="flex-1 flex flex-wrap gap-1.5">
                           {disponiveis.map(b => {
                             const ativo = selecionadoId === b.id
+                            const base = isBlocoBase(b.id)
+                            const editado = base && !!overrides[b.id]
                             return (
-                              <button
-                                key={b.id}
-                                type="button"
-                                onClick={() => toggleSlot(categoria, b.id)}
-                                title={fill(b.texto, ctx)}
-                                className={cn(
-                                  'text-left px-2.5 py-1.5 rounded-md border text-[11px] font-medium transition-all max-w-full',
-                                )}
-                                style={ativo
-                                  ? { background: 'rgba(0,137,172,0.15)', borderColor: 'rgba(0,137,172,0.55)', color: 'var(--cyan-hi)' }
-                                  : { background: 'var(--alpha-bg-xs)', borderColor: 'var(--alpha-border)', color: 'var(--text-soft-a)' }
-                                }
-                              >
-                                {ativo && <Check className="w-3 h-3 inline mr-1 -mt-0.5" />}
-                                {b.titulo}
-                              </button>
+                              <div key={b.id} className="group relative inline-flex">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleSlot(categoria, b.id)}
+                                  title={fill(b.texto, ctx)}
+                                  className={cn(
+                                    'text-left pl-2.5 pr-7 py-1.5 rounded-md border text-[11px] font-medium transition-all max-w-full',
+                                  )}
+                                  style={ativo
+                                    ? { background: 'rgba(0,137,172,0.15)', borderColor: 'rgba(0,137,172,0.55)', color: 'var(--cyan-hi)' }
+                                    : { background: 'var(--alpha-bg-xs)', borderColor: 'var(--alpha-border)', color: 'var(--text-soft-a)' }
+                                  }
+                                >
+                                  {ativo && <Check className="w-3 h-3 inline mr-1 -mt-0.5" />}
+                                  {b.titulo}
+                                  {!base && (
+                                    <span className="ml-1 text-[9px] uppercase tracking-wider opacity-60">custom</span>
+                                  )}
+                                  {editado && (
+                                    <span className="ml-1 text-[9px] uppercase tracking-wider opacity-60">edit</span>
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={e => { e.stopPropagation(); setEditorBloco({ kind: 'edit', bloco: b }) }}
+                                  title="Editar bloco"
+                                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-[var(--alpha-bg-md)] transition-opacity"
+                                >
+                                  <Pencil className="w-3 h-3 text-muted-foreground" />
+                                </button>
+                              </div>
                             )
                           })}
+                          <button
+                            type="button"
+                            onClick={() => setEditorBloco({ kind: 'add', categoria })}
+                            title={`Adicionar novo bloco em ${categoria}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border text-[11px] font-medium border-dashed text-muted-foreground hover:text-fg2 hover:border-[rgba(0,137,172,0.55)] hover:bg-[var(--alpha-bg-xs)] transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Adicionar
+                          </button>
                         </div>
                       </div>
                       {selecionado && (
@@ -1288,6 +1330,12 @@ export function MensagensPage() {
         externalUrl={confirmMode === 'send' && channel === 'whatsapp'
           ? buildWhatsAppUrl(telefone, effectiveBody)
           : undefined}
+      />
+
+      <BlocoEditorModal
+        open={!!editorBloco}
+        onClose={() => setEditorBloco(null)}
+        mode={editorBloco}
       />
     </div>
   )

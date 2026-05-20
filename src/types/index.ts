@@ -311,6 +311,19 @@ export interface AuditLog {
   created_at: string
 }
 
+export interface LeadLixeira {
+  id: string
+  lead_id: string
+  lead_nome?: string | null
+  lead_empresa?: string | null
+  snapshot: Record<string, unknown>
+  excluido_por?: string | null
+  excluido_por_nome?: string | null
+  excluido_em: string
+  restaurado_em?: string | null
+  restaurado_por?: string | null
+}
+
 // ─── Portal de Indicações — Tokens ───────────────────────────────────────────
 
 export interface TokenTransacao {

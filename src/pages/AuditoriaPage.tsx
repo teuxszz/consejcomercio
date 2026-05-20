@@ -1,7 +1,10 @@
 import { useAuditLogs } from '@/hooks/useAuditLog'
+import { useLeadsLixeira, useRestaurarLead } from '@/hooks/useLeads'
+import { useCurrentRole } from '@/hooks/useCurrentRole'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { formatDate } from '@/lib/utils'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, RotateCcw, Trash2 } from 'lucide-react'
 
 const ACAO_COLORS: Record<string, { bg: string; color: string }> = {
   criado:              { bg: 'rgba(16,185,129,0.15)',  color: '#34d399' },
@@ -10,14 +13,57 @@ const ACAO_COLORS: Record<string, { bg: string; color: string }> = {
   status_alterado:     { bg: 'rgba(245,158,11,0.15)',  color: '#fbbf24' },
   convertido:          { bg: 'rgba(0,137,172,0.15)',   color: '#6bd0e7' },
   recompensa_entregue: { bg: 'rgba(139,92,246,0.15)',  color: '#a78bfa' },
+  restaurado:          { bg: 'rgba(16,185,129,0.15)',  color: '#34d399' },
 }
 
 export function AuditoriaPage() {
   const { data: logs, isLoading } = useAuditLogs()
+  const { data: lixeira } = useLeadsLixeira()
+  const restaurar = useRestaurarLead()
+  const { isCoordenadorOrAcima } = useCurrentRole()
+  const pendentes = lixeira ?? []
 
   return (
     <div>
       <h1 className="text-xl font-bold text-foreground mb-6">Auditoria</h1>
+
+      {pendentes.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Trash2 className="w-4 h-4" />
+              Lixeira de leads ({pendentes.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {pendentes.map(item => (
+                <div key={item.id} className="flex items-center gap-4 px-5 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-fg2 font-medium truncate">
+                      {item.lead_nome ?? '—'}
+                      {item.lead_empresa && <span className="text-fg4"> · {item.lead_empresa}</span>}
+                    </p>
+                    <p className="text-xs text-fg4">
+                      excluído por {item.excluido_por_nome ?? '—'} · {formatDate(item.excluido_em)}
+                    </p>
+                  </div>
+                  {isCoordenadorOrAcima && (
+                    <Button
+                      variant="ghost"
+                      className="gap-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                      disabled={restaurar.isPending}
+                      onClick={() => restaurar.mutate(item.id)}
+                    >
+                      <RotateCcw className="w-4 h-4" /> Restaurar
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading ? <div className="text-center text-muted-foreground py-8">Carregando...</div> : (
         <Card>

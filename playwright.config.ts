@@ -1,6 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// ESM: __dirname não existe — derivar da URL do módulo
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = resolve(__filename, '..')
 
 // Carrega .env.test (não commitado) sem dependência externa.
 const envPath = resolve(__dirname, '.env.test')

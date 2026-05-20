@@ -95,16 +95,87 @@ export function blocosPorCategoria(categoria: BlocoCategoria, setor: string): Bl
   })
 }
 
-/** Monta a mensagem final a partir dos slots selecionados, na ordem canônica. */
+/** Config persistido em Supabase para edits/customs/oculto. */
+export interface BlocosConfig {
+  overrides: Record<string, { titulo?: string; texto?: string; setores?: string[] }>
+  custom: Array<{ id: string; categoria: string; titulo: string; texto: string; setores?: string[] }>
+  ocultos: string[]
+}
+
+export const DEFAULT_BLOCOS_CONFIG: BlocosConfig = {
+  overrides: {},
+  custom: [],
+  ocultos: [],
+}
+
+function isCategoriaValida(c: string): c is BlocoCategoria {
+  return (BLOCO_CATEGORIAS as readonly string[]).includes(c)
+}
+
+/**
+ * Combina os blocos base com customs e aplica overrides; remove os ocultos.
+ * Custom blocks com categoria inválida são ignorados (defensivo).
+ */
+export function getBlocosEfetivos(config?: BlocosConfig | null): Bloco[] {
+  const cfg = config ?? DEFAULT_BLOCOS_CONFIG
+  const ocultos = new Set(cfg.ocultos ?? [])
+
+  const base = BLOCOS.filter(b => !ocultos.has(b.id)).map(b => {
+    const ov = cfg.overrides?.[b.id]
+    if (!ov) return b
+    return {
+      ...b,
+      titulo: ov.titulo ?? b.titulo,
+      texto: ov.texto ?? b.texto,
+      setores: ov.setores ?? b.setores,
+    }
+  })
+
+  const customs: Bloco[] = (cfg.custom ?? [])
+    .filter(c => isCategoriaValida(c.categoria) && !ocultos.has(c.id))
+    .map(c => ({
+      id: c.id,
+      categoria: c.categoria as BlocoCategoria,
+      titulo: c.titulo,
+      texto: c.texto,
+      setores: c.setores,
+    }))
+
+  return [...base, ...customs]
+}
+
+/** Versão filtrada por categoria + setor, sobre o conjunto efetivo. */
+export function blocosEfetivosPorCategoria(
+  categoria: BlocoCategoria,
+  setor: string,
+  config?: BlocosConfig | null,
+): Bloco[] {
+  return getBlocosEfetivos(config).filter(b => {
+    if (b.categoria !== categoria) return false
+    if (!b.setores || b.setores.length === 0) return true
+    if (setor === 'geral') return false
+    return b.setores.includes(setor)
+  })
+}
+
+/** True se o id é um bloco "base" (vem de BLOCOS estático). */
+export function isBlocoBase(id: string): boolean {
+  return BLOCOS.some(b => b.id === id)
+}
+
+/** Monta a mensagem final a partir dos slots selecionados, na ordem canônica.
+ *  Aceita um pool de blocos opcional (efetivos com overrides/custom). */
 export function montarMensagem(
   slots: Record<string, string | null | undefined>,
   fill: (tpl: string) => string,
+  pool?: Bloco[],
 ): string {
+  const blocosPool = pool ?? BLOCOS
   const partes: string[] = []
   for (const cat of BLOCO_CATEGORIAS) {
     const blocoId = slots[cat]
     if (!blocoId) continue
-    const bloco = BLOCOS.find(b => b.id === blocoId)
+    const bloco = blocosPool.find(b => b.id === blocoId)
     if (!bloco) continue
     partes.push(fill(bloco.texto))
   }

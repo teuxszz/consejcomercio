@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useLeads, useUpdateLead } from '@/hooks/useLeads'
+import { useLeads, useUpdateLead, useDeleteLead } from '@/hooks/useLeads'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,24 +11,27 @@ import { STAGE_COLORS, LEAD_SOURCE_LABELS, SEGMENTS, PIPELINE_STAGES, ESTADOS_BR
 import { usePerfis } from '@/hooks/usePerfis'
 import { useConfiguracoes } from '@/hooks/useConfiguracoes'
 import { formatDate, getUFFromPhone } from '@/lib/utils'
-import { ArrowLeft, Stethoscope } from 'lucide-react'
+import { ArrowLeft, Stethoscope, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { Lead } from '@/types'
 import { cn } from '@/lib/utils'
 import { DiagnosticForm } from '@/components/diagnostico/DiagnosticForm'
 import { DiagnosticPreview } from '@/components/diagnostico/DiagnosticPreview'
 import { ActivityTimeline } from '@/components/shared/ActivityTimeline'
+import { DeleteConfirmDialog } from '@/components/shared/DeleteConfirmDialog'
 
 export function LeadDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: leads } = useLeads()
   const updateLead = useUpdateLead()
+  const deleteLead = useDeleteLead()
   const { data: perfis = [] } = usePerfis()
   const { data: config } = useConfiguracoes()
   const lead = leads?.find(l => l.id === id)
 
   const [editing, setEditing] = useState<Partial<Lead>>({})
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   useEffect(() => {
     if (lead) setEditing(lead)
@@ -41,6 +44,16 @@ export function LeadDetailPage() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { diagnostico, id: _id, ...fields } = editing as Lead
     updateLead.mutate({ id: lead.id, ...fields })
+  }
+
+  async function handleConfirmDelete() {
+    if (!lead) return
+    try {
+      await deleteLead.mutateAsync(lead.id)
+      navigate('/leads')
+    } catch {
+      // erro já exibido via toast pelo hook; mantém o usuário na página
+    }
   }
 
   return (
@@ -62,6 +75,13 @@ export function LeadDetailPage() {
         <span className={cn('ml-auto text-xs font-medium px-2.5 py-1 rounded-full border', STAGE_COLORS[lead.status])}>
           {PIPELINE_STAGES.find(s => s.id === lead.status)?.label}
         </span>
+        <Button
+          variant="ghost"
+          onClick={() => setDeleteOpen(true)}
+          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 gap-1.5"
+        >
+          <Trash2 className="w-4 h-4" /> Excluir lead
+        </Button>
       </div>
 
       <Tabs defaultValue="info">
@@ -244,6 +264,15 @@ export function LeadDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        entidadeTipo="lead"
+        entidadeId={lead?.id ?? null}
+        entidadeLabel={lead ? `${lead.nome} (${lead.empresa})` : ''}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }
