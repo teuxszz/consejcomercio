@@ -8,28 +8,30 @@ import {
 import type { PeriodValue } from '../periods'
 
 const PERIODO_2025: PeriodValue = { year: 2025, granularity: 'total' }
+const SVC = 'assessoria_societaria'
 
 function lead(
   status: string,
   segmento: string,
   investimento: string,
-  servicos: string[] = [],
+  servicos: string[] = [SVC],
   updated_at = '2025-06-15T12:00:00Z',
 ) {
   return { status, updated_at, segmento, investimento_estimado: investimento, servicos_interesse: servicos }
 }
 
-const ganho = (seg: string, inv: string, servicos: string[] = []) =>
+const ganho = (seg: string, inv: string, servicos: string[] = [SVC]) =>
   lead('ganho_assessoria', seg, inv, servicos)
-const perda = (seg: string, inv: string, servicos: string[] = []) =>
+const perda = (seg: string, inv: string, servicos: string[] = [SVC]) =>
   lead('perdido', seg, inv, servicos)
 
 describe('calcularIcpDinamico', () => {
   it('lista vazia → serviço com total 0 e convicção insuficiente', () => {
-    const r = calcularIcpDinamico([], PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico([], PERIODO_2025, [SVC])
     expect(r).toHaveLength(1)
     expect(r[0].total).toBe(0)
     expect(r[0].total_funil).toBe(0)
+    expect(r[0].total_atribuivel).toBe(0)
     expect(r[0].conviccao).toBe('insuficiente')
     expect(r[0].segmentos).toEqual([])
     expect(r[0].segmentos_full).toEqual([])
@@ -37,7 +39,7 @@ describe('calcularIcpDinamico', () => {
 
   it('ignora leads fora do período', () => {
     const leads = [{ ...ganho('startup', '2k_5k'), updated_at: '2024-06-15T12:00:00Z' }]
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     expect(r[0].total).toBe(0)
   })
 
@@ -47,7 +49,7 @@ describe('calcularIcpDinamico', () => {
       perda('startup', '2k_5k'),
       perda('startup', '2k_5k'),
     ]
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     expect(r[0].total).toBe(1)
     expect(r[0].total_funil).toBe(3)
     // startup: 1 ganho de 3 terminais = 33%
@@ -59,29 +61,29 @@ describe('calcularIcpDinamico', () => {
   it('ignora leads em andamento (não terminais)', () => {
     const leads = [
       ganho('startup', '2k_5k'),
-      lead('classificacao',   'startup', '2k_5k'),
+      lead('classificacao',     'startup', '2k_5k'),
       lead('proposta_comercial','startup', '2k_5k'),
     ]
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     expect(r[0].total).toBe(1)
     expect(r[0].total_funil).toBe(1)
   })
 
-  it('convicção: alta com >= 10 ganhos', () => {
+  it('convicção: alta com >= 10 ganhos diretos', () => {
     const leads = Array.from({ length: 10 }, () => ganho('startup', '2k_5k'))
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     expect(r[0].conviccao).toBe('alta')
   })
 
   it('convicção: preliminar entre 3 e 9', () => {
     const leads = Array.from({ length: 5 }, () => ganho('startup', '2k_5k'))
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     expect(r[0].conviccao).toBe('preliminar')
   })
 
   it('convicção: insuficiente com < 3', () => {
     const leads = [ganho('startup', '2k_5k'), ganho('startup', '2k_5k')]
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     expect(r[0].conviccao).toBe('insuficiente')
   })
 
@@ -93,12 +95,11 @@ describe('calcularIcpDinamico', () => {
       ganho('startup', '2k_5k'),
       ganho('empresa_junior', '500_2k'), // count 1 → fora do topN (minCount 2)
     ]
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     const top = r[0].segmentos
     expect(top.find(s => s.value === 'startup')?.count).toBe(4)
     expect(top.find(s => s.value === 'empresa_junior')).toBeUndefined()
-    expect(top.find(s => s.value === 'startup')?.pct).toBe(80) // 4 de 5 ganhos
-    // full inclui empresa_junior também
+    expect(top.find(s => s.value === 'startup')?.pct).toBe(80)
     expect(r[0].segmentos_full.find(s => s.value === 'empresa_junior')?.count).toBe(1)
   })
 
@@ -108,25 +109,40 @@ describe('calcularIcpDinamico', () => {
       ganho('startup', '2k_5k'),
       perda('empresa_design', '500_2k'),
     ]
-    const r = calcularIcpDinamico(leads, PERIODO_2025, ['assessoria_societaria'])
+    const r = calcularIcpDinamico(leads, PERIODO_2025, [SVC])
     const design = r[0].segmentos_full.find(s => s.value === 'empresa_design')
     expect(design?.count).toBe(0)
     expect(design?.total_funil).toBe(1)
     expect(design?.taxa_conversao).toBe(0)
   })
 
-  it('lead sem servicos_interesse entra em qualquer serviço', () => {
-    const leads = Array.from({ length: 3 }, () => ganho('startup', '2k_5k', []))
+  it('lead SEM servicos_interesse não entra na distribuição, mas conta em total_atribuivel', () => {
+    const leads = Array.from({ length: 3 }, () => ganho('startup', '2k_5k', [])) // tag vazia
     const r = calcularIcpDinamico(leads, PERIODO_2025, ['servico_a', 'servico_b'])
-    expect(r[0].total).toBe(3)
-    expect(r[1].total).toBe(3)
+    // Nenhum serviço recebe esses leads na distribuição
+    expect(r[0].total).toBe(0)
+    expect(r[1].total).toBe(0)
+    expect(r[0].segmentos).toEqual([])
+    expect(r[1].segmentos).toEqual([])
+    // Ambos enxergam os 3 ganhos como atribuíveis
+    expect(r[0].total_atribuivel).toBe(3)
+    expect(r[1].total_atribuivel).toBe(3)
   })
 
-  it('lead com servicos_interesse só conta no serviço correspondente', () => {
-    const leads = Array.from({ length: 3 }, () => ganho('startup', '2k_5k', ['servico_a']))
+  it('serviços distintos não compartilham distribuição quando há tag explícita', () => {
+    const leads = [
+      ...Array.from({ length: 3 }, () => ganho('startup',        '2k_5k', ['servico_a'])),
+      ...Array.from({ length: 3 }, () => ganho('empresa_junior', '500_2k', ['servico_b'])),
+    ]
     const r = calcularIcpDinamico(leads, PERIODO_2025, ['servico_a', 'servico_b'])
-    expect(r.find(x => x.servicoId === 'servico_a')?.total).toBe(3)
-    expect(r.find(x => x.servicoId === 'servico_b')?.total).toBe(0)
+    const a = r.find(x => x.servicoId === 'servico_a')!
+    const b = r.find(x => x.servicoId === 'servico_b')!
+    expect(a.total).toBe(3)
+    expect(b.total).toBe(3)
+    expect(a.segmentos.find(s => s.value === 'startup')?.count).toBe(3)
+    expect(b.segmentos.find(s => s.value === 'empresa_junior')?.count).toBe(3)
+    // não há leakage: startup não aparece no serviço_b
+    expect(b.segmentos_full.find(s => s.value === 'startup')).toBeUndefined()
   })
 })
 
@@ -136,6 +152,7 @@ describe('buildIcpFitContext + isLeadIcpFit', () => {
       servicoId: 'svc',
       total: 0,
       total_funil: 0,
+      total_atribuivel: 0,
       conviccao: 'insuficiente',
       segmentos: [],
       investimentos: [],
@@ -194,10 +211,8 @@ describe('buildIcpFitContext + isLeadIcpFit', () => {
       { id: 'a', segmentos_icp: [], investimento_icp: [] },
       { id: 'b', segmentos_icp: [], investimento_icp: [] },
     ])
-    // Pares fit (um por serviço): startup×5k_10k e ej×500_2k.
     expect(isLeadIcpFit({ segmento: 'startup',        investimento_estimado: '5k_10k' }, ctx)).toBe(true)
     expect(isLeadIcpFit({ segmento: 'empresa_junior', investimento_estimado: '500_2k' }, ctx)).toBe(true)
-    // Cruzamentos entre serviços NÃO formam fit.
     expect(isLeadIcpFit({ segmento: 'startup',        investimento_estimado: '500_2k' }, ctx)).toBe(false)
     expect(isLeadIcpFit({ segmento: 'empresa_junior', investimento_estimado: '5k_10k' }, ctx)).toBe(false)
   })

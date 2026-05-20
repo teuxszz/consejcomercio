@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Target, TrendingUp, History, Info, AlertCircle, Plus, Check } from 'lucide-react'
+import {
+  Target, TrendingUp, History, Info, AlertCircle, Plus, Check,
+  Settings2, Activity, TriangleAlert,
+} from 'lucide-react'
 import { useLeads } from '@/hooks/useLeads'
 import { useConfiguracoes, useUpdateConfiguracoes } from '@/hooks/useConfiguracoes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -100,7 +103,7 @@ export function IcpDinamicoPage() {
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Perfil de cliente observado nos ganhos do período, comparado com o ICP configurado por serviço. Win rate = ganhos / leads que fecharam (ganho + perdido + cancelado).
+            Compara o ICP <strong className="text-fg2">teórico</strong> (configurado pela CONSEJ) com o <strong className="text-fg2">observado</strong> (extraído dos ganhos do período). Convicção e distribuição usam apenas leads com <code className="text-[11px] px-1 py-0.5 rounded bg-[var(--alpha-bg-sm)]">servicos_interesse</code> identificado.
           </p>
         </div>
         <PeriodSelector value={period} onChange={setPeriod} derivedYearsFrom={leads ?? []} />
@@ -134,6 +137,8 @@ export function IcpDinamicoPage() {
             const winRateGlobal = obs.total_funil
               ? Math.round((obs.total / obs.total_funil) * 100)
               : 0
+            // Aviso quando há mais ganhos "atribuíveis" (sem tag) do que diretos
+            const muitosAtribuiveis = obs.total_atribuivel > 0 && obs.total_atribuivel >= obs.total
             return (
               <Card key={obs.servicoId}>
                 <CardHeader className="pb-2">
@@ -147,7 +152,7 @@ export function IcpDinamicoPage() {
                     </div>
                     <div className="flex items-center gap-3 text-xs font-normal text-muted-foreground">
                       {obs.total_funil > 0 && (
-                        <span title="Win rate global: ganhos / leads que fecharam (ganho + perdido + cancelado)">
+                        <span title="Win rate global: ganhos diretos / leads diretos que fecharam">
                           <strong className="text-foreground tabular-nums">{winRateGlobal}%</strong> win rate
                         </span>
                       )}
@@ -156,22 +161,39 @@ export function IcpDinamicoPage() {
                         onClick={e => { e.stopPropagation(); drillDownGanhos(obs.servicoId) }}
                         className="underline-offset-2 hover:underline hover:text-[#0089ac] disabled:no-underline disabled:cursor-default"
                         disabled={obs.total === 0}
-                        title={obs.total === 0 ? 'Nenhum ganho no período' : `Ver ${obs.total} lead(s) ganho(s)`}
+                        title={obs.total === 0 ? 'Nenhum ganho com serviço identificado' : `Ver ${obs.total} lead(s) ganho(s)`}
                       >
                         {obs.total} ganho{obs.total === 1 ? '' : 's'} / {obs.total_funil} fechado{obs.total_funil === 1 ? '' : 's'}
                       </button>
+                      {obs.total_atribuivel > 0 && (
+                        <span
+                          className="text-amber-400/90 tabular-nums"
+                          title={`${obs.total_atribuivel} ganho(s) sem servicos_interesse — atribuíveis a qualquer serviço, não entram na distribuição`}
+                        >
+                          + {obs.total_atribuivel} sem tag
+                        </span>
+                      )}
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {obs.conviccao === 'insuficiente' ? (
+                  {obs.conviccao === 'insuficiente' && (
                     <div className="flex items-start gap-2 text-xs text-muted-foreground p-3 rounded-lg" style={{ background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-border-md)' }}>
                       <Info className="w-4 h-4 shrink-0 mt-0.5" />
                       <p>
-                        Menos de 3 ganhos neste período — exibindo apenas o ICP configurado abaixo.
+                        Menos de 3 ganhos identificados para este serviço — exibindo apenas o ICP teórico.
                       </p>
                     </div>
-                  ) : null}
+                  )}
+
+                  {muitosAtribuiveis && (
+                    <div className="flex items-start gap-2 text-xs p-3 rounded-lg" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.30)', color: '#fbbf24' }}>
+                      <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                      <p>
+                        {obs.total_atribuivel} de {obs.total + obs.total_atribuivel} ganhos não têm <code className="text-[11px] px-1 py-0.5 rounded bg-amber-500/15">servicos_interesse</code> preenchido. A estatística está imprecisa — peça ao time pra taggear os leads no fechamento.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Segmentos */}
                   <DimensionSection
@@ -210,7 +232,7 @@ export function IcpDinamicoPage() {
       <div className="flex items-start gap-2 text-xs text-muted-foreground p-3 rounded-lg" style={{ background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-border-md)' }}>
         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
         <p>
-          Convicção: <strong>alta</strong> = 10+ ganhos · <strong>preliminar</strong> = 3-9 ganhos · <strong>insuficiente</strong> = &lt; 3 ganhos.
+          Convicção: <strong>alta</strong> = 10+ ganhos identificados · <strong>preliminar</strong> = 3-9 · <strong>insuficiente</strong> = &lt; 3.
           Para ajustar manualmente o ICP, edite os serviços em <span className="text-[#0089ac]">Configurações → Serviços</span>.
         </p>
       </div>
@@ -233,6 +255,10 @@ interface DimensionSectionProps {
   isPromoting: boolean
 }
 
+// Estilos contrastantes — esquerda = TEORIA (neutro), direita = PRÁTICA (teal)
+const TEORIA_STYLE  = { background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-border-md)' }
+const PRATICA_STYLE = { background: 'rgba(0,137,172,0.07)', border: '1px solid rgba(0,137,172,0.30)' }
+
 function DimensionSection({
   titulo, dim, servicoId, configurados,
   observadosTop, observadosFull, resolve,
@@ -248,9 +274,15 @@ function DimensionSection({
     <div>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-fg4 mb-2">{titulo}</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Configurado — com performance anotada */}
-        <div className="rounded-lg p-3" style={{ background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-border-md)' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-fg4 mb-2">ICP configurado</p>
+        {/* ─── TEORIA — configurado ─── */}
+        <div className="rounded-lg p-3" style={TEORIA_STYLE}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <Settings2 className="w-3 h-3 text-muted-foreground" />
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Teoria · ICP configurado</p>
+            </div>
+            <span className="text-[9px] uppercase tracking-wider text-fg4">O que esperamos</span>
+          </div>
           {configurados.length === 0 ? (
             <p className="text-xs text-muted-foreground italic">—</p>
           ) : (
@@ -260,8 +292,8 @@ function DimensionSection({
                 const status: 'sem_dado' | 'zero' | 'positivo' =
                   !perf ? 'sem_dado' : perf.count === 0 ? 'zero' : 'positivo'
                 const tooltip =
-                  status === 'sem_dado' ? 'Nenhum lead deste perfil fechou no período'
-                  : status === 'zero'   ? `${perf!.total_funil} lead(s) deste perfil, 0 ganhos`
+                  status === 'sem_dado' ? 'Nenhum lead identificado para este perfil fechou no período'
+                  : status === 'zero'   ? `${perf!.total_funil} lead(s) identificado(s) deste perfil, 0 ganhos`
                   : `${perf!.count} ganho(s) de ${perf!.total_funil} fechado(s) — ${perf!.taxa_conversao}% win rate`
                 return (
                   <div key={v} className="flex items-center gap-2 text-xs" title={tooltip}>
@@ -290,11 +322,17 @@ function DimensionSection({
           )}
         </div>
 
-        {/* Observado — com botão "Adicionar ao ICP" pros que não batem */}
-        <div className="rounded-lg p-3" style={{ background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-border-md)' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-fg4 mb-2">ICP observado</p>
+        {/* ─── PRÁTICA — observado ─── */}
+        <div className="rounded-lg p-3" style={PRATICA_STYLE}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <Activity className="w-3 h-3 text-[#6bd0e7]" />
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#6bd0e7]">Prática · ICP observado</p>
+            </div>
+            <span className="text-[9px] uppercase tracking-wider text-[#6bd0e7]/70">O que fechou</span>
+          </div>
           {observadosTop.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">—</p>
+            <p className="text-xs text-muted-foreground italic">— Nenhum ganho com tag no período</p>
           ) : (
             <div className="space-y-1">
               {observadosTop.map(item => {
@@ -304,7 +342,7 @@ function DimensionSection({
                     <span className={cn(
                       'inline-block w-2 h-2 rounded-full shrink-0',
                       jaConfigurado ? 'bg-emerald-400' : 'bg-amber-400',
-                    )} title={jaConfigurado ? 'Já está no ICP configurado' : 'Divergente do ICP configurado'} />
+                    )} title={jaConfigurado ? 'Já está no ICP teórico' : 'Divergente do ICP teórico — considere promover'} />
                     <span className="flex-1 truncate text-fg2">{resolve[item.value] ?? item.value}</span>
                     <button
                       type="button"
@@ -322,7 +360,7 @@ function DimensionSection({
                         onClick={() => onPromover(servicoId, dim, item.value)}
                         disabled={isPromoting}
                         className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded border border-[#0089ac]/40 text-[#0089ac] hover:bg-[#0089ac]/10 disabled:opacity-50"
-                        title="Adicionar este perfil ao ICP configurado"
+                        title="Promover este perfil ao ICP teórico"
                       >
                         <Plus className="w-2.5 h-2.5" /> ICP
                       </button>

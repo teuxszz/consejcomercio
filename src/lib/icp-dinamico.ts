@@ -5,16 +5,22 @@
 // (segmentos_icp / investimento_icp) — para a CONSEJ ver se a teoria bate com
 // a prática naquele ciclo.
 //
+// Convicção e distribuição usam APENAS leads "diretos" (com servicos_interesse
+// que inclui explicitamente o serviço). Leads sem tag de serviço aparecem
+// como `total_atribuivel` no header, mas não distorcem a estatística — assim
+// dois serviços diferentes não mostram dados idênticos quando o time esquece
+// de tagear servicos_interesse no lead.
+//
 // Convicção:
-//   - alta:        n >= 10 ganhos no período
+//   - alta:        n >= 10 ganhos diretos no período
 //   - preliminar:  3 <= n < 10
 //   - insuficiente: n < 3 (UI deve mostrar fallback ao ICP estático)
 //
 // Taxa de conversão (win rate) por perfil:
-//   numerador  = ganhos do perfil no período
-//   denominador = leads do mesmo perfil que fecharam (ganho/perdido/cancelado)
-//                 no período — leads em andamento ainda não contam, pois ainda
-//                 podem virar ganho.
+//   numerador  = ganhos diretos do perfil no período
+//   denominador = leads diretos do mesmo perfil que fecharam
+//                 (ganho/perdido/cancelado) no período. Leads em andamento
+//                 ainda não contam, pois ainda podem virar ganho.
 
 import type { PeriodValue } from './periods'
 import { getPeriodRange, isInRange } from './periods'
@@ -34,8 +40,13 @@ export interface IcpDistribItem {
 
 export interface IcpObservadoServico {
   servicoId: string
-  total: number                       // # ganhos
-  total_funil: number                 // # terminais (denominador do win rate)
+  /** # ganhos diretos (lead com servicos_interesse explícito incluindo este serviço) */
+  total: number
+  /** # terminais diretos — denominador do win rate */
+  total_funil: number
+  /** # ganhos sem tag de servicos_interesse — atribuíveis a qualquer serviço.
+   *  Mostrado no header como disclosure; não entra na distribuição. */
+  total_atribuivel: number
   conviccao: Conviccao
   segmentos: IcpDistribItem[]         // topN (UI principal)
   investimentos: IcpDistribItem[]     // topN
@@ -102,9 +113,14 @@ function classificarConviccao(n: number): Conviccao {
   return 'insuficiente'
 }
 
-function leadCasaServico(servicoId: string, interesse: string[] | null | undefined): boolean {
+function temServicoExplicito(interesse: string[] | null | undefined, servicoId: string): boolean {
   const list = interesse ?? []
-  return list.length === 0 || list.includes(servicoId)
+  return list.includes(servicoId)
+}
+
+function semTagServico(interesse: string[] | null | undefined): boolean {
+  const list = interesse ?? []
+  return list.length === 0
 }
 
 export function calcularIcpDinamico(
@@ -121,17 +137,26 @@ export function calcularIcpDinamico(
   )
 
   return servicoIds.map(servicoId => {
-    const terminais = terminaisGlobal.filter(l => leadCasaServico(servicoId, l.servicos_interesse))
-    const ganhos    = terminais.filter(l => WON_STATUSES.includes(l.status))
+    // Diretos: leads com tag explícita pro serviço — alimentam a distribuição.
+    const terminaisDiretos = terminaisGlobal.filter(l => temServicoExplicito(l.servicos_interesse, servicoId))
+    const ganhosDiretos    = terminaisDiretos.filter(l => WON_STATUSES.includes(l.status))
 
-    const segmentosAll = distribComTaxa(ganhos, terminais, l => l.segmento)
-    const investAll    = distribComTaxa(ganhos, terminais, l => l.investimento_estimado)
+    // Atribuíveis: ganhos sem tag — apenas contagem (informativa). Não entram
+    // no numerador/denominador para evitar que serviços distintos fiquem com
+    // distribuições idênticas quando a tag está vazia.
+    const atribuiveis = terminaisGlobal.filter(
+      l => semTagServico(l.servicos_interesse) && WON_STATUSES.includes(l.status)
+    ).length
+
+    const segmentosAll = distribComTaxa(ganhosDiretos, terminaisDiretos, l => l.segmento)
+    const investAll    = distribComTaxa(ganhosDiretos, terminaisDiretos, l => l.investimento_estimado)
 
     return {
       servicoId,
-      total: ganhos.length,
-      total_funil: terminais.length,
-      conviccao: classificarConviccao(ganhos.length),
+      total: ganhosDiretos.length,
+      total_funil: terminaisDiretos.length,
+      total_atribuivel: atribuiveis,
+      conviccao: classificarConviccao(ganhosDiretos.length),
       segmentos:     topN(segmentosAll, 5, 2),
       investimentos: topN(investAll,    3, 2),
       segmentos_full:     segmentosAll,
