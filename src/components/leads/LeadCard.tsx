@@ -8,9 +8,10 @@ import type { Perfil } from '@/hooks/usePerfis'
 import { LEAD_SOURCE_LABELS } from '@/lib/constants'
 import { formatRelative } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import { Calendar, MessageCircle, Clock, UserRoundPlus, Check, Send } from 'lucide-react'
+import { Calendar, MessageCircle, Clock, UserRoundPlus, Check, Send, Target } from 'lucide-react'
 import { useUpdateLead } from '@/hooks/useLeads'
 import { useInteracoes } from '@/hooks/useInteracoes'
+import { useIcpFit } from '@/hooks/useIcpFit'
 import { getCadenciaDueToday } from '@/lib/cadencia'
 
 const SEGMENT_COLORS: Record<string, { bg: string; color: string }> = {
@@ -126,6 +127,8 @@ export function LeadCard({ lead, isDragging = false, stageId, perfis = [] }: Pro
   const navigate    = useNavigate()
   const updateLead  = useUpdateLead()
   const { data: allInteracoes = [] } = useInteracoes()
+  const { isFit }   = useIcpFit()
+  const icpFit      = isFit(lead)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortDragging } =
     useSortable({ id: lead.id })
@@ -343,6 +346,20 @@ export function LeadCard({ lead, isDragging = false, stageId, perfis = [] }: Pro
         >
           {lead.segmento.replace(/_/g, ' ')}
         </span>
+        {icpFit && (
+          <span
+            title="Perfil bate com o ICP observado / configurado — alta probabilidade de fechar"
+            className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-semibold border"
+            style={{
+              background: 'rgba(34,197,94,0.12)',
+              borderColor: 'rgba(34,197,94,0.35)',
+              color: '#4ade80',
+            }}
+          >
+            <Target className="w-2.5 h-2.5" />
+            ICP
+          </span>
+        )}
         <span className="text-xs text-fg4">
           {LEAD_SOURCE_LABELS[lead.origem] || lead.origem}
         </span>
