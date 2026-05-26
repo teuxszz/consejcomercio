@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { AdocaoCard } from '@/components/adocao/AdocaoCard'
+import { RequireRole } from '@/components/shared/RequireRole'
 import { useLeads } from '@/hooks/useLeads'
 import { useClientes } from '@/hooks/useClientes'
 import { useContratos } from '@/hooks/useContratos'
@@ -264,6 +266,10 @@ export function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      <RequireRole atLeast="coordenador" fallback={null}>
+        <AdocaoCard />
+      </RequireRole>
 
       {/* Secondary KPIs */}
       <div className="grid grid-cols-3 gap-4">

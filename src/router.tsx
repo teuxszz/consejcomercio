@@ -31,6 +31,7 @@ import { ProspeccaoPage } from '@/pages/ProspeccaoPage'
 import { AjudaPage } from '@/pages/AjudaPage'
 import { RankingPage } from '@/pages/RankingPage'
 import { TarefasPage } from '@/pages/TarefasPage'
+import { AdocaoPage } from '@/pages/AdocaoPage'
 import { PortalAdminPage } from '@/pages/PortalAdminPage'
 import { PortalLayout } from '@/pages/portal/PortalLayout'
 import { PortalWalletPage } from '@/pages/portal/PortalWalletPage'
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
       { path: 'ranking', element: <RankingPage /> },
       { path: 'portal-admin', element: <PortalAdminPage /> },
       { path: 'tarefas', element: <TarefasPage /> },
+      { path: 'adocao', element: <AdocaoPage /> },
     ],
   },
   {

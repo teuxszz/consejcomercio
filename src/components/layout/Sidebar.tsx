@@ -4,10 +4,12 @@ import {
   Inbox, Share2, Handshake, TrendingUp, ClipboardList, Settings,
   LogOut, MessageSquare, CalendarDays, Sparkles, Search, BarChart2, Map, Upload, GraduationCap,
   Sun, Moon, Target, HelpCircle, Coins, Gift, ShieldQuestion, Crosshair,
-  ChevronsUpDown, UserCircle2,
+  ChevronsUpDown, UserCircle2, CheckSquare, Activity,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil } from '@/hooks/usePerfis'
+import { useCurrentRole } from '@/hooks/useCurrentRole'
+import { useTarefasBadgeCount } from '@/hooks/useTarefasBadgeCount'
 import { useTheme } from '@/contexts/ThemeContext'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -76,7 +78,7 @@ const UTILITY_ITEMS = [
 const ACTIVE_BG = '#006d88'
 const HOVER_BG  = '#00263a'
 
-function NavItem({ to, label, icon: Icon }: { to: string; label: string; icon: React.FC<{ className?: string }> }) {
+function NavItem({ to, label, icon: Icon, badge }: { to: string; label: string; icon: React.FC<{ className?: string }>; badge?: number }) {
   return (
     <NavLink
       to={to}
@@ -89,6 +91,15 @@ function NavItem({ to, label, icon: Icon }: { to: string; label: string; icon: R
     >
       <Icon className="w-4 h-4 shrink-0" />
       {label}
+      {badge != null && badge > 0 && (
+        <span
+          className="ml-auto text-[10px] font-bold bg-cyan-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] text-center transition-all duration-200"
+          aria-label={`${badge} tarefas abertas`}
+          title={`${badge} tarefas abertas`}
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </NavLink>
   )
 }
@@ -99,6 +110,8 @@ export function Sidebar() {
   const navigate = useNavigate()
   const { data: perfil } = useMeuPerfil()
   const { theme, toggleTheme } = useTheme()
+  const badgeCount = useTarefasBadgeCount(perfil?.id)
+  const { isCoordenadorOrAcima } = useCurrentRole()
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -147,6 +160,8 @@ export function Sidebar() {
               </p>
             )}
             {group.items.map(item => <NavItem key={item.to} {...item} />)}
+            {group.label === 'PIPELINE' && <NavItem to="/tarefas" label="Tarefas" icon={CheckSquare} badge={badgeCount} />}
+            {group.label === 'CRESCIMENTO' && isCoordenadorOrAcima && <NavItem to="/adocao" label="Adoção" icon={Activity} />}
           </div>
         ))}
 
