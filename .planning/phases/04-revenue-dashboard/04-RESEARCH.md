@@ -696,27 +696,33 @@ import { ReceitaPage } from '@/pages/ReceitaPage'
 | A6 | `RequireRole atLeast="coordenador"` continua sendo o gate correto para "ver receita" | Locked (CONTEXT.md) | Locked. Implementação trivial. |
 | A7 | Nenhum teste novo é obrigatório por gate de CI (`workflow.nyquist_validation` ativo mas projeto não tem CI gate hoje) | Validation Architecture | Verificado em `.planning/codebase/TESTING.md` (linha 287-291): "No CI gate today". Testes recomendados mas não bloqueantes. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Todas as 4 questões foram resolvidas em 2026-05-26 pelo usuário durante o ciclo de revisão do plano (plan-checker BLOCKER 2). As resoluções são vinculantes para a Phase 4.
 
 1. **Como o time CONSEJ processa renovação na prática?**
    - O que sabemos: schema tem `status='em_renovacao'` em `clientes` (`migration 001:77`), mas em `contratos` só `ativo|encerrado|suspenso`. Migration `026_renovacao_notif.sql` cria tabela `notificacoes_renovacao` (cron envia DM Slack 30/14/7d antes). Mas não há campo `renovado_de` ou `contrato_renovacao_id`.
    - O que não está claro: quando renovam, criam novo contrato + encerram o velho? Ou apenas atualizam `data_fim` no contrato existente? A decisão CONTEXT.md §3 assume o segundo ("UPDATE em `data_fim`").
    - Recomendação: planner adicionar uma checkpoint humana antes da Wave 2 para confirmar com o usuário. Se forem novos contratos, a fórmula de forecast precisa ajustar (procurar contratos novos do mesmo cliente, não só estender data_fim).
+   - **RESOLVED:** UPDATE em `data_fim` do contrato existente (locked by user 2026-05-26). Forecast detecta "renovado" comparando `data_fim` atual vs cacheado. Sem mudança de schema.
 
 2. **`PeriodSelector` no header — afeta o quê?**
    - O que sabemos: layout pede `PeriodSelector` no header (CONTEXT.md §7), mas o gráfico é "últimos 6 meses" e o forecast é "próximos 3 meses" — ambos relativos a HOJE.
    - O que não está claro: o `PeriodSelector` filtra "Receita pontual no período" (Row 2)? Ou filtra o histórico do gráfico?
    - Recomendação: planner especificar no PLAN. Default sugerido: `PeriodSelector` filtra apenas "Receita pontual no período" (cálculo de valor_total de contratos `tipo='consultoria'` com `data_inicio` no range). Gráfico de MRR sempre últimos 6m. Forecast sempre próximos 3m a partir de hoje. Documentar no help text.
+   - **RESOLVED:** PeriodSelector filtra APENAS a "Receita pontual no período" (Row 2 breakdown). Gráfico (Row 3) é fixo 6m histórico + 3m forecast — não responde ao seletor. Documentar via help text inline ("Período aplica-se apenas à receita pontual do período").
 
 3. **Quantos contratos hoje em produção?**
    - O que sabemos: zero `INSERT INTO contratos` em migrations (não vem por seed). Vem de uso real + importação Pipefy (`scripts/migrate-contratos-pipefy.mjs`).
    - O que não está claro: 50? 200? 500?
    - Recomendação: planner adicionar tarefa "smoke check de produção" que pede ao operador rodar `SELECT count(*) FROM contratos WHERE status='ativo'` antes de o entregar. Se >500, considerar otimização (memoização agressiva, ou paginação no histórico).
+   - **RESOLVED:** Assumir <500 para o MVP — sem otimização agressiva. Smoke check empírico após deploy (registrar count em SUMMARY.md). Se >500, abrir issue para memoização agressiva (deferred).
 
 4. **Atualizar `DashboardPage`/`AnalyticsPage` para usar `calcularMrr`?**
    - O que sabemos: ambos calculam MRR só sobre `valor_mensal` (`DashboardPage.tsx:74-75`, `AnalyticsPage.tsx:105-107`). Diferente da nova fórmula pro-rata.
    - O que não está claro: se mantém divergência (decisão do user CONTEXT.md §1 só fala da nova página) ou consolida.
    - Recomendação: **deixar como está nesta fase** (escopo creep) e abrir issue/checkpoint para fase futura de consolidação. Documentar a divergência no help text de `/receita`.
+   - **RESOLVED:** NÃO nesta fase (scope creep). Documentar divergência em CONTEXT.md (Deferred Ideas) e abrir TODO "Consolidar fórmula MRR cross-page" para Milestone 3.
 
 ## Environment Availability
 
