@@ -115,7 +115,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Tasks + Adoption Signal | 0/4 | Not started | - |
 | 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
-| 3. Pull-back Notifications | 0/2 | Planned | - |
+| 3. Pull-back Notifications | 1/2 | In progress (03-02 checkpoint) | - |
 | 4. Revenue Dashboard | 0/? | Not started | - |
 
 ---

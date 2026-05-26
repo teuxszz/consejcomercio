@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 03
-current_plan: 1
+current_plan: 2
 status: in_progress
-last_updated: "2026-05-26T18:55:30.569Z"
+last_updated: "2026-05-26T20:45:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
@@ -31,8 +31,8 @@ progress:
 
 ## Current Position
 
-Phase: 03 (pull-back-notifications) — next
-Plan: 1 of TBD
+Phase: 03 (pull-back-notifications) — EXECUTING
+Plan: 1 of 2
 **Current phase:** 03
 **Current plan:** 1
 **Phase status:** Ready to execute (2 plans)
@@ -61,6 +61,8 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 |----------|-----------|-------|
 | SEC-01 (RLS fix) deve preceder qualquer feature TASK em produção | Clientes do tipo `cliente` não podem ler tarefas internas | Phase 1 |
 | Notificações via Slack edge functions existentes | Zero custo incremental; extensão do que já existe | Phase 3 |
+| `stand_by` incluído no NOT IN do cron 034 | Leads pausados não devem ser cobrados na cadência; alinhado com ACTIVE_LEAD_STAGES | Phase 3 |
+| DM consolidada (não por evento) com cron + edge function | Um único code path para NOTIF-02 + NOTIF-03; evita N DMs por dia | Phase 3 |
 | WhatsApp via wa.me links (sem API) | Meta Business API exigiria numero dedicado + custo fixo | Phase 2 |
 | Revenue dashboard bloqueado até time usar CRM diariamente | Dados incompletos tornam analytics inútil | Phase 4 |
 | Próxima migration: 033 | Fecha RLS de tarefas + coluna `notificar`; migration 034 = pg_cron diário | Phase 1/3 |
@@ -105,9 +107,9 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 
 ## Session Continuity
 
-**Last action:** Phase 3 planejada (2026-05-26) — Pull-back Notifications: 2 planos (03-01 webhook NOTIF-01, 03-02 pg_cron + edge function NOTIF-02/03), verification passed em 2 iterações.
-**Next action:** `/gsd-execute-phase 3` — executar Phase 3 (Wave 1 paralela: 03-01 e 03-02)
-**Open questions:** verificar status `stand_by` em produção antes de escrever migration 034 (tarefa Wave 0 do 03-02)
+**Last action:** 03-02 Tasks 1-2 executadas (2026-05-26) — edge function notify-resumo-diario + migration 034 criadas e commitadas. Task 3 aguarda checkpoint humano (deploy + smoke test).
+**Next action:** Checkpoint Task 3 — operador deve: (1) criar secret Vault, (2) configurar edge function secrets, (3) supabase db push, (4) supabase functions deploy, (5) smoke tests
+**Open questions:** smoke test curl + cron manual pendentes após deploy da edge function
 
 ---
 
