@@ -535,17 +535,17 @@ function abordar(row: DueRow) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`buildWhatsAppUrl` deve ser extraída para `src/lib/utils.ts`?**
    - What we know: Atualmente é uma função local em MensagensPage (não exportada). LeadDetailPage vai precisar do mesmo comportamento para montar a URL de navegação — mas não chamará `buildWhatsAppUrl` diretamente, apenas passará o telefone como URL param.
    - What's unclear: Se a sugestão contextual em LeadDetailPage precisará gerar um wa.me direto (sem passar pelo composer), o que contraria D-09.
-   - Recommendation: Manter em MensagensPage. LeadDetailPage apenas navega com `&telefone=encodeURIComponent(lead.telefone ?? '')`. O wa.me é gerado DENTRO do MensagensPage.
+   - RESOLVED: Manter em MensagensPage. LeadDetailPage apenas navega com `&telefone=encodeURIComponent(lead.telefone ?? '')`. O wa.me é gerado DENTRO do MensagensPage. (D-09 locked)
 
 2. **`daysUntil` negativo — exibir no badge do kanban?**
    - What we know: D-04 define cores por `daysUntil <= 0` (vermelho), `=== 1` (amber), `>= 2` (verde). Badge deve mostrar urgência.
    - What's unclear: Se mostrar `"D3 · 2d atraso"` ou apenas `"D3 · hoje"` para negativos.
-   - Recommendation: Usar `"D3 · hoje"` para `daysUntil <= 0` (simplifica o badge; atraso implica urgência pelo vermelho). Reservado à discretion do planner/implementador.
+   - RESOLVED: Usar `"D3 · hoje"` para `daysUntil <= 0` (simplifica o badge; atraso implica urgência pelo vermelho). UI-SPEC copywriting contract adota este padrão.
 
 ---
 
