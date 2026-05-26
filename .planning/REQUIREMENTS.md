@@ -76,16 +76,33 @@
 
 ## Traceability
 
-| REQ-ID | Phase |
-|--------|-------|
-| SEC-01, SEC-02 | Phase 1 |
-| TASK-01, TASK-02, TASK-03, TASK-04 | Phase 1 |
-| NOTIF-04 | Phase 1 |
-| ADOPT-01, ADOPT-02, ADOPT-03 | Phase 1 |
-| CAD-01, CAD-02, CAD-03, CAD-04 | Phase 2 |
-| WA-01, WA-02, WA-03 | Phase 2 |
-| NOTIF-01, NOTIF-02, NOTIF-03 | Phase 3 |
-| REV-01, REV-02, REV-03 | Phase 4 |
+| REQ-ID | Phase | Phase Name | Status |
+|--------|-------|------------|--------|
+| SEC-01 | Phase 1 | Tasks + Adoption Signal | Pending |
+| SEC-02 | Phase 1 | Tasks + Adoption Signal | Pending |
+| TASK-01 | Phase 1 | Tasks + Adoption Signal | Pending |
+| TASK-02 | Phase 1 | Tasks + Adoption Signal | Pending |
+| TASK-03 | Phase 1 | Tasks + Adoption Signal | Pending |
+| TASK-04 | Phase 1 | Tasks + Adoption Signal | Pending |
+| NOTIF-04 | Phase 1 | Tasks + Adoption Signal | Pending |
+| ADOPT-01 | Phase 1 | Tasks + Adoption Signal | Pending |
+| ADOPT-02 | Phase 1 | Tasks + Adoption Signal | Pending |
+| ADOPT-03 | Phase 1 | Tasks + Adoption Signal | Pending |
+| CAD-01 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| CAD-02 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| CAD-03 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| CAD-04 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| WA-01 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| WA-02 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| WA-03 | Phase 2 | Cadence Guide + WhatsApp Quick Actions | Pending |
+| NOTIF-01 | Phase 3 | Pull-back Notifications | Pending |
+| NOTIF-02 | Phase 3 | Pull-back Notifications | Pending |
+| NOTIF-03 | Phase 3 | Pull-back Notifications | Pending |
+| REV-01 | Phase 4 | Revenue Dashboard | Pending |
+| REV-02 | Phase 4 | Revenue Dashboard | Pending |
+| REV-03 | Phase 4 | Revenue Dashboard | Pending |
+
+**Coverage: 23/23 requirements mapped**
 
 ---
 
