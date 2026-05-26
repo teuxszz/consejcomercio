@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1 — Tasks + Adoption Signal
+current_phase: 2 — Cadence Guide + WhatsApp Quick Actions
 current_plan: None (not started)
-status: unknown
-last_updated: "2026-05-26T14:03:48.994Z"
+status: in_progress
+last_updated: "2026-05-26T15:03:59.943Z"
 progress:
   total_phases: 4
   completed_phases: 0
@@ -31,13 +31,13 @@ progress:
 
 ## Current Position
 
-**Current phase:** 1 — Tasks + Adoption Signal
+**Current phase:** 2 — Cadence Guide + WhatsApp Quick Actions
 **Current plan:** None (not started)
 **Phase status:** Not started
-**Milestone status:** Not started
+**Milestone status:** In progress
 
 ```
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases complete)
+Progress: [█████░░░░░░░░░░░░░░░] 25% (1/4 phases complete)
 ```
 
 ---
@@ -46,7 +46,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 1 | Tasks + Adoption Signal | SEC-01, SEC-02, TASK-01-04, NOTIF-04, ADOPT-01-03 | Not started |
+| 1 | Tasks + Adoption Signal | SEC-01, SEC-02, TASK-01-04, NOTIF-04, ADOPT-01-03 | ✅ Complete |
 | 2 | Cadence Guide + WhatsApp Quick Actions | CAD-01-04, WA-01-03 | Not started |
 | 3 | Pull-back Notifications | NOTIF-01, NOTIF-02, NOTIF-03 | Not started |
 | 4 | Revenue Dashboard | REV-01, REV-02, REV-03 | Not started |
@@ -103,8 +103,8 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 
 ## Session Continuity
 
-**Last action:** Roadmap criado (2026-05-26)
-**Next action:** `/gsd-plan-phase 1` — planejar Phase 1: Tasks + Adoption Signal
+**Last action:** Phase 1 concluída (2026-05-26) — migration 033 aplicada em cloud, edge function notify-tarefa redeployada
+**Next action:** `/gsd-plan-phase 2` — planejar Phase 2: Cadence Guide + WhatsApp Quick Actions
 **Open questions:** nenhuma no momento
 
 ---
