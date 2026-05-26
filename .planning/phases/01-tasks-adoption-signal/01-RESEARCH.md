@@ -524,7 +524,7 @@ Esta fase nao e de rename/refactor/migration de dados — e de adicao de feature
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Inbox de tarefas: pagina nova `/tarefas` ou aba em `/me`?**
    - O que sabemos: `/me` e `MeEspacoPage` ja existe com abas; adicionar aba de tarefas e mais rapido. Pagina nova `/tarefas` e mais expansivel para o futuro (CAD-02 vai precisar de inbox de cadencia).

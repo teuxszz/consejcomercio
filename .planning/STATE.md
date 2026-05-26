@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 1 — Tasks + Adoption Signal
+current_plan: None (not started)
+status: unknown
+last_updated: "2026-05-26T14:03:48.994Z"
+progress:
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 0
+  percent: 0
+---
+
 # STATE — CONSEJ CRM v2 Milestone 2
 
 *Single source of truth for current project position. Updated at each phase transition.*
@@ -52,18 +68,22 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 ## Accumulated Context
 
 ### Blockers
+
 *(none atualmente)*
 
 ### Todos por fase
 
 **Phase 1 (pre-start):**
+
 - Migration 033: policy `is_interno()` em `tarefas` + coluna `notificar boolean DEFAULT true`
 - Hook de tarefas já existe no codebase — Phase 1 é principalmente UI + migration
 
 **Phase 3 (pre-start):**
+
 - Migration 034: pg_cron daily job para resumo matinal e alertas de cadência
 
 ### Validated assumptions
+
 - pg_cron já está ativo no Supabase cloud (verificado durante pesquisa)
 - Edge function `notify-tarefa` já deployada — Phase 3 é extensão, não criação
 - `recharts` e `PeriodSelector` já existem no codebase (usados no dashboard ICP)
