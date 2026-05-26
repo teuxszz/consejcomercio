@@ -15,7 +15,7 @@ Milestone 2 transforma o CRM de "lugar onde deveria reportar" em "lugar onde o t
 
 - [ ] **Phase 1: Tasks + Adoption Signal** — Tarefas por lead e por time, RLS corrigida, badge de inbox e painel de adoção para o gestor
 - [x] **Phase 2: Cadence Guide + WhatsApp Quick Actions** — Vista "Ação Hoje", badge D-point no Kanban, sugestão contextual e links wa.me com pré-texto por D-point
-- [x] **Phase 3: Pull-back Notifications** — DM Slack ao atribuir tarefa, resumo diário e alerta de cadência via pg_cron (completed 2026-05-26)
+- [x] **Phase 3: Pull-back Notifications** — DM Slack ao atribuir tarefa, resumo diário e alerta de cadência via pg_cron (completed 2026-05-26)
 - [ ] **Phase 4: Revenue Dashboard** — Página de receita com MRR, ARR, forecast, renovações e gráfico histórico
 
 ---
@@ -104,7 +104,17 @@ Plans:
 2. Gráfico de evolução de MRR mês a mês dos últimos 6 meses está visível com seletor de período — gestor consegue identificar tendência de crescimento ou queda sem planilha.
 3. Lista de renovações pendentes destaca visualmente contratos vencendo em 30 dias — gestor age antes de perder o cliente.
 
-**Plans:** TBD
+**Plans:** 3 plans
+Plans:
+**Wave 1** *(plans independentes — sem overlap de `files_modified`)*
+
+- [ ] 04-01-PLAN.md — TDD helpers puros src/lib/receita.ts (calcularMrr/Historico/Forecast/classificarRenovacoes) + refactor RenovacoesPage + smoke E2E /receita (REV-01/02/03 — foundation)
+- [ ] 04-02-PLAN.md — Estender ContratosPage para aceitar ?vencendo_em_dias=N (drill-down filter; NaN-safe; preserva filtros existentes) (REV-01 — drill-down)
+
+**Wave 2** *(depende de Wave 1)*
+
+- [ ] 04-03-PLAN.md — ReceitaPage end-to-end (4 cards + breakdown + LineChart 6m+3m + lista renovações 30/60/90 + sem data_fim) + rota /receita + nav sidebar gated coordenador+ (REV-01/02/03 — UI slice)
+
 **UI hint:** yes
 
 ---
@@ -116,7 +126,7 @@ Plans:
 | 1. Tasks + Adoption Signal | 0/4 | Not started | - |
 | 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
 | 3. Pull-back Notifications | 2/2 | Complete    | 2026-05-26 |
-| 4. Revenue Dashboard | 0/? | Not started | - |
+| 4. Revenue Dashboard | 0/3 | Not started | - |
 
 ---
 
