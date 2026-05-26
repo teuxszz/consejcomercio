@@ -1,4 +1,4 @@
-import { useAuditLogs } from '@/hooks/useAuditLog'
+import { useAllAuditLogs } from '@/hooks/useAuditLogs'
 import { useLeadsLixeira, useRestaurarLead } from '@/hooks/useLeads'
 import { useCurrentRole } from '@/hooks/useCurrentRole'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +17,7 @@ const ACAO_COLORS: Record<string, { bg: string; color: string }> = {
 }
 
 export function AuditoriaPage() {
-  const { data: logs, isLoading } = useAuditLogs()
+  const { data: logs, isLoading } = useAllAuditLogs()
   const { data: lixeira } = useLeadsLixeira()
   const restaurar = useRestaurarLead()
   const { isCoordenadorOrAcima } = useCurrentRole()
