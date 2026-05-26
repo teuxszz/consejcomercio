@@ -81,7 +81,17 @@ export function LoginPage() {
     })
     setLoading(false)
     if (error) {
-      toast.error('Erro ao enviar e-mail. Verifique o endereço.')
+      console.error('[resetPasswordForEmail]', error)
+      const msg = error.message || ''
+      if (/rate limit|too many|seconds/i.test(msg)) {
+        toast.error('Muitas tentativas. Aguarde alguns minutos e tente novamente.')
+      } else if (/redirect|url/i.test(msg)) {
+        toast.error('URL de redirecionamento não autorizada no Supabase.')
+      } else if (/smtp|email/i.test(msg)) {
+        toast.error('Falha no envio do e-mail (SMTP). Verifique a configuração no Supabase.')
+      } else {
+        toast.error(`Erro ao enviar: ${msg || 'tente novamente em instantes.'}`)
+      }
     } else {
       setMode('sent')
     }
