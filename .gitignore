@@ -27,6 +27,11 @@ dist-ssr
 scripts/data/*.csv
 .env.migration
 
+# Local env (use .env.example as template)
+.env
+.env.local
+.env.*.local
+
 # Test artifacts & credentials
 .env.test
 tests/e2e/.auth/
