@@ -1,3 +1,5 @@
+import { supabase } from '@/lib/supabase'
+
 export interface SlackChannel {
   id: string
   name: string
@@ -16,13 +18,9 @@ export interface SlackMessage {
 }
 
 async function callProxy(body: object) {
-  const res = await fetch('/api/slack-proxy', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  const data = await res.json()
-  if (!res.ok || !data.ok) throw new Error(data.error ?? 'Erro desconhecido do Slack')
+  const { data, error } = await supabase.functions.invoke('slack-proxy', { body })
+  if (error) throw new Error(error.message ?? 'Erro ao chamar slack-proxy')
+  if (!data?.ok) throw new Error(data?.error ?? 'Erro desconhecido do Slack')
   return data
 }
 
