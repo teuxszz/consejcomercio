@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2 — Cadence Guide + WhatsApp Quick Actions
-current_plan: None (not started)
+current_phase: 03
+current_plan: 1
 status: in_progress
-last_updated: "2026-05-26T15:03:59.943Z"
+last_updated: "2026-05-26T17:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 1
+  percent: 25
 ---
 
 # STATE — CONSEJ CRM v2 Milestone 2
@@ -31,13 +31,15 @@ progress:
 
 ## Current Position
 
-**Current phase:** 2 — Cadence Guide + WhatsApp Quick Actions
-**Current plan:** None (not started)
+Phase: 03 (pull-back-notifications) — next
+Plan: 1 of TBD
+**Current phase:** 03
+**Current plan:** 1
 **Phase status:** Not started
 **Milestone status:** In progress
 
 ```
-Progress: [█████░░░░░░░░░░░░░░░] 25% (1/4 phases complete)
+Progress: [██████████░░░░░░░░░░] 50% (2/4 phases complete)
 ```
 
 ---
@@ -47,7 +49,7 @@ Progress: [█████░░░░░░░░░░░░░░░] 25% (1/
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 1 | Tasks + Adoption Signal | SEC-01, SEC-02, TASK-01-04, NOTIF-04, ADOPT-01-03 | ✅ Complete |
-| 2 | Cadence Guide + WhatsApp Quick Actions | CAD-01-04, WA-01-03 | Not started |
+| 2 | Cadence Guide + WhatsApp Quick Actions | CAD-01-04, WA-01-03 | ✅ Complete |
 | 3 | Pull-back Notifications | NOTIF-01, NOTIF-02, NOTIF-03 | Not started |
 | 4 | Revenue Dashboard | REV-01, REV-02, REV-03 | Not started |
 
@@ -103,8 +105,8 @@ Progress: [█████░░░░░░░░░░░░░░░] 25% (1/
 
 ## Session Continuity
 
-**Last action:** Phase 1 concluída (2026-05-26) — migration 033 aplicada em cloud, edge function notify-tarefa redeployada
-**Next action:** `/gsd-plan-phase 2` — planejar Phase 2: Cadence Guide + WhatsApp Quick Actions
+**Last action:** Phase 2 concluída (2026-05-26) — Cadence Guide + WhatsApp Quick Actions: badge D-point, sugestão contextual, botão Copiar link wa.me. 14 testes unitários, 123 total passando, verificação visual aprovada.
+**Next action:** `/gsd-plan-phase 3` — planejar Phase 3: Pull-back Notifications (DM Slack, resumo diário, alerta cadência via pg_cron)
 **Open questions:** nenhuma no momento
 
 ---

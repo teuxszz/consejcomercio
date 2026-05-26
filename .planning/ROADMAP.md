@@ -14,7 +14,7 @@ Milestone 2 transforma o CRM de "lugar onde deveria reportar" em "lugar onde o t
 ## Phases
 
 - [ ] **Phase 1: Tasks + Adoption Signal** — Tarefas por lead e por time, RLS corrigida, badge de inbox e painel de adoção para o gestor
-- [ ] **Phase 2: Cadence Guide + WhatsApp Quick Actions** — Vista "Ação Hoje", badge D-point no Kanban, sugestão contextual e links wa.me com pré-texto por D-point
+- [x] **Phase 2: Cadence Guide + WhatsApp Quick Actions** — Vista "Ação Hoje", badge D-point no Kanban, sugestão contextual e links wa.me com pré-texto por D-point
 - [ ] **Phase 3: Pull-back Notifications** — DM Slack ao atribuir tarefa, resumo diário e alerta de cadência via pg_cron
 - [ ] **Phase 4: Revenue Dashboard** — Página de receita com MRR, ARR, forecast, renovações e gráfico histórico
 
@@ -68,7 +68,7 @@ Plans:
 3. Na página do lead, o sistema sugere a próxima ação textual ("D3 — envia follow-up de interesse; confirma dor principal") e exibe botão WhatsApp que abre wa.me com o pré-texto correto para aquele D-point, sem custo de API.
 4. Consultor pode copiar o link wa.me para área de transferência com um clique (uso em dispositivo mobile separado).
 
-**Plans:** TBD
+**Plans:** 1 plan (02-01-PLAN.md — concluído 2026-05-26)
 **UI hint:** yes
 
 ### Phase 3: Pull-back Notifications
@@ -107,7 +107,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Tasks + Adoption Signal | 0/4 | Not started | - |
-| 2. Cadence Guide + WhatsApp Quick Actions | 0/? | Not started | - |
+| 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
 | 3. Pull-back Notifications | 0/? | Not started | - |
 | 4. Revenue Dashboard | 0/? | Not started | - |
 

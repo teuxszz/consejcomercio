@@ -45,9 +45,9 @@ decisions:
   - D-10: Copiar link e Abrir no WA dentro do MensagensPage
   - D-11: stage deriva de CadenciaPoint.stage (ex: D1→primeiro_contato)
 metrics:
-  duration: "~30 min"
+  duration: "~35 min"
   completed: "2026-05-26"
-  tasks_completed: 5
+  tasks_completed: 6
   tasks_total: 6
   tests_added: 14
   files_modified: 5
@@ -116,7 +116,15 @@ Suite `src/lib/__tests__/cadencia.test.ts` com 14 cenários cobrindo:
 - Botão "Copiar link" ANTES do "Abrir no WhatsApp", com guard `channel === 'whatsapp' && telefone`
 - Feedback: "Link copiado!" por 2s após clicar
 
-### Task 6 — Checkpoint: aguardando verificação visual humana
+### Task 6 — Checkpoint: verificação visual aprovada pelo usuário
+
+Verificação visual humana realizada e aprovada. Todos os itens do checklist confirmados:
+- Badge D-point colorido no kanban funcionando (verde/amber/vermelho por urgência)
+- Clicar no badge navega para /mensagens com params corretos; DnD preservado
+- Leads terminais não exibem badge
+- CadenciaPage: skeleton de loading e empty state com CTA para /leads
+- LeadDetailPage: card verde com sugestão contextual e botão WhatsApp para leads ativos
+- MensagensPage: botão "Copiar link" ao lado de "Abrir no WhatsApp" com feedback visual 2s
 
 ---
 
@@ -124,11 +132,12 @@ Suite `src/lib/__tests__/cadencia.test.ts` com 14 cenários cobrindo:
 
 | Task | Hash | Message |
 |------|------|---------|
-| Task 1 RED | `95e4df7` | feat(02-02): getNextCadenciaPoint em cadencia.ts + testes unitários (14/14 pass) |
+| Task 1 | `95e4df7` | feat(02-02): getNextCadenciaPoint em cadencia.ts + testes unitários (14/14 pass) |
 | Task 2 | `ddc47a8` | feat(02-02): badge D-point colorido + botão WA no LeadCard (CAD-01, WA-01) |
 | Task 3 | `9e15fa5` | feat(02-02): CadenciaPage — skeleton loading, empty-state descritivo e telefone em abordar() (CAD-02, WA-02) |
 | Task 4 | `36f6ed8` | feat(02-02): card de sugestão contextual de cadência na LeadDetailPage (CAD-03, WA-01, D-06, D-09) |
 | Task 5 | `161bada` | feat(02-02): botão 'Copiar link' wa.me no MensagensPage (WA-03, D-10) |
+| Task 6 | checkpoint | Verificação visual humana — aprovada pelo usuário |
 
 ---
 
