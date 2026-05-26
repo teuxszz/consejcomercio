@@ -15,7 +15,7 @@ Milestone 2 transforma o CRM de "lugar onde deveria reportar" em "lugar onde o t
 
 - [ ] **Phase 1: Tasks + Adoption Signal** — Tarefas por lead e por time, RLS corrigida, badge de inbox e painel de adoção para o gestor
 - [x] **Phase 2: Cadence Guide + WhatsApp Quick Actions** — Vista "Ação Hoje", badge D-point no Kanban, sugestão contextual e links wa.me com pré-texto por D-point
-- [ ] **Phase 3: Pull-back Notifications** — DM Slack ao atribuir tarefa, resumo diário e alerta de cadência via pg_cron
+- [x] **Phase 3: Pull-back Notifications** — DM Slack ao atribuir tarefa, resumo diário e alerta de cadência via pg_cron (completed 2026-05-26)
 - [ ] **Phase 4: Revenue Dashboard** — Página de receita com MRR, ARR, forecast, renovações e gráfico histórico
 
 ---
@@ -83,12 +83,12 @@ Plans:
 2. Todo dia pela manhã cada consultor recebe uma DM com "Você tem X tarefas vencendo hoje e Y leads para contato na cadência" (pg_cron diário via migration 034).
 3. Quando um lead entra no dia de ação da cadência (D1/D3/D5/D7/D10), o responsável pelo lead recebe DM no Slack com o nome do lead e o D-point.
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 **Wave 1** *(plans independentes — sem overlap de `files_modified`)*
 
-- [ ] 03-01-PLAN.md — Verificação/configuração do Database Webhook para `notify-tarefa` + smoke test (NOTIF-01)
-- [ ] 03-02-PLAN.md — Edge function `notify-resumo-diario` + migration 034 (pg_cron) + deploy real (NOTIF-02, NOTIF-03)
+- [x] 03-01-PLAN.md — Verificação/configuração do Database Webhook para `notify-tarefa` + smoke test (NOTIF-01)
+- [x] 03-02-PLAN.md — Edge function `notify-resumo-diario` + migration 034 (pg_cron) + deploy real (NOTIF-02, NOTIF-03)
 
 **UI hint:** no (sem UI nova — somente Slack DMs)
 
@@ -115,7 +115,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Tasks + Adoption Signal | 0/4 | Not started | - |
 | 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
-| 3. Pull-back Notifications | 1/2 | In progress (03-02 checkpoint) | - |
+| 3. Pull-back Notifications | 2/2 | Complete    | 2026-05-26 |
 | 4. Revenue Dashboard | 0/? | Not started | - |
 
 ---

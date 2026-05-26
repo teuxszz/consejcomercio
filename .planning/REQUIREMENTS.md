@@ -35,9 +35,9 @@
 
 ### Notifications (NOTIF) — Notificações
 
-- [ ] **NOTIF-01**: Usuário recebe DM no Slack quando uma tarefa é atribuída a ele por outra pessoa (extensão da edge function `notify-tarefa` existente).
-- [ ] **NOTIF-02**: Usuário recebe DM no Slack todo dia pela manhã com resumo: "Você tem X tarefas vencendo hoje e Y leads para contato na cadência" (pg_cron daily job — migration 034).
-- [ ] **NOTIF-03**: Usuário recebe DM no Slack quando um lead dele chega no dia de ação da cadência (D1/D3/D5/D7/D10) — disparo automático pelo cron diário.
+- [x] **NOTIF-01**: Usuário recebe DM no Slack quando uma tarefa é atribuída a ele por outra pessoa (extensão da edge function `notify-tarefa` existente).
+- [x] **NOTIF-02**: Usuário recebe DM no Slack todo dia pela manhã com resumo: "Você tem X tarefas vencendo hoje e Y leads para contato na cadência" (pg_cron daily job — migration 034).
+- [x] **NOTIF-03**: Usuário recebe DM no Slack quando um lead dele chega no dia de ação da cadência (D1/D3/D5/D7/D10) — disparo automático pelo cron diário.
 - [ ] **NOTIF-04**: Sidebar do CRM exibe badge numérico com a contagem de tarefas abertas atribuídas ao usuário logado (Supabase Realtime subscription montada no AppLayout).
 
 ### Adoption (ADOPT) — Visibilidade de Adoção
