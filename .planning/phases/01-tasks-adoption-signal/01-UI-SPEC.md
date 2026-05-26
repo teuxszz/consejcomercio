@@ -1,10 +1,12 @@
 ---
 phase: 1
 slug: tasks-adoption-signal
-status: draft
+status: approved
+reviewed_at: 2026-05-26
 shadcn_initialized: true
 preset: manual (shadcn/ui pattern with Radix primitives — components.json not present, but ui/ primitives exist in src/components/ui/)
 created: 2026-05-26
+revised: 2026-05-26
 ---
 
 # Phase 1 — UI Design Contract: Tasks + Adoption Signal
@@ -43,7 +45,7 @@ Declared values (multiples of 4):
 
 Exceptions:
 - Sidebar nav items: `px-3 py-2` (12px / 8px) — existing pattern, do not change
-- Badge pill: `px-1.5 py-0.5` (6px / 2px) — existing pattern for count badges
+- Badge pill: `px-1.5 py-0.5` (6px / 2px) — Excecao tipografica formal: badge de contagem usa `text-[10px]`; valores sub-4px (`px-1.5 py-0.5`) sao necessarios para proporcao visual correta em texto de 10px; aprovados exclusivamente para badges de contagem numerica.
 - Task row: `px-4 py-3` (16px / 12px) — matches `TarefasPanel` existing pattern
 
 ---
@@ -53,7 +55,7 @@ Exceptions:
 | Role    | Size  | Weight         | Line Height | Tailwind Class                    |
 |---------|-------|----------------|-------------|-----------------------------------|
 | Body    | 14px  | 400 (regular)  | 1.5         | `text-sm` (default body)          |
-| Label   | 12px  | 500 (medium)   | 1.4         | `text-xs font-medium`             |
+| Label   | 12px  | 600 (semibold) | 1.4         | `text-xs font-semibold`           |
 | Heading | 20px  | 600 (semibold) | 1.2         | `text-xl font-bold` (page titles) |
 | Caption | 10px  | 400 (regular)  | 1.4         | `text-[10px]` (badges, group labels) |
 
@@ -79,12 +81,13 @@ Rules:
 
 Accent `#0089ac` reserved exclusively for:
 1. Primary CTA buttons ("Nova Tarefa", "Criar tarefa", "Salvar")
-2. Sidebar badge pill background (count of open tasks)
-3. Active nav item background (`#006d88` — sidebar active token)
-4. Focus ring on form inputs (`hsl(var(--ring))`)
-5. `AdocaoCard` metric number highlight
+2. Active nav item background (`#006d88` — sidebar active token)
+3. Focus ring on form inputs (`hsl(var(--ring))`)
+4. `AdocaoCard` metric number highlight
 
-Never use accent for: borders, backgrounds of non-interactive surfaces, text on white/light.
+Sidebar badge pill uses `bg-cyan-500` (Tailwind utility) rather than the literal `#0089ac` accent — this is intentional: the badge must be visually differentiated from primary CTA buttons to avoid accent saturation. `cyan-500` (#06b6d4) is reserved exclusively for notification/count badges in the sidebar.
+
+Never use accent or `cyan-500` for: borders, backgrounds of non-interactive surfaces, text on white/light.
 
 ### Status Colors (inline semantic palette — existing pattern from `TarefasPanel` and `AuditoriaPage`)
 
@@ -129,12 +132,12 @@ Never use accent for: borders, backgrounds of non-interactive surfaces, text on 
 
 | Field           | Element             | Validation                                        | Notes                                          |
 |-----------------|---------------------|---------------------------------------------------|------------------------------------------------|
-| Título          | `Input` autoFocus   | `z.string().min(3, 'Título obrigatório (mín. 3 caracteres)')` | Placeholder: "O que precisa ser feito?" |
-| Descrição       | `Textarea` rows=3   | optional                                          | Placeholder: "Contexto, links, anotações..."   |
+| Titulo          | `Input` autoFocus   | `z.string().min(3, 'Titulo obrigatorio (min. 3 caracteres)')` | Placeholder: "O que precisa ser feito?" |
+| Descricao       | `Textarea` rows=3   | optional                                          | Placeholder: "Contexto, links, anotacoes..."   |
 | Tipo            | `Select` (3-col grid) | enum (8 values)                                 | Default: `generica`                            |
 | Prioridade      | `Select` (3-col grid) | enum (4 values)                                 | Default: `media`                               |
 | Vencimento      | `Input type="datetime-local"` (3-col grid) | optional                       | Label: "Vencimento"                            |
-| Responsável     | `Select` populated from `usePerfis()` | `z.string().uuid('Responsável obrigatório')` | Shows user name; defaults to logged user |
+| Responsavel     | `Select` populated from `usePerfis()` | `z.string().uuid('Responsavel obrigatorio')` | Shows user name; defaults to logged user |
 | Notas           | `Textarea` rows=2   | optional, nullable                                | Show only in edit mode or as optional expand   |
 
 **3-column grid:** Tipo / Prioridade / Vencimento — `grid grid-cols-3 gap-3`.
@@ -143,14 +146,14 @@ Never use accent for: borders, backgrounds of non-interactive surfaces, text on 
 `"Lead: {lead.nome} · {lead.empresa}"` — `text-xs text-fg4 px-2 py-1 rounded bg-[var(--alpha-bg-sm)]` above the fields.
 
 **Footer:**
-- Left: `Button variant="outline"` — "Cancelar"
-- Right: `Button style={{ backgroundColor: '#0089ac' }}` — "Criar tarefa" (create) / "Salvar alterações" (edit)
+- Left: `Button variant="outline"` — "Descartar tarefa" (create mode) / "Descartar alteracoes" (edit mode)
+- Right: `Button style={{ backgroundColor: '#0089ac' }}` — "Criar tarefa" (create) / "Salvar alteracoes" (edit)
 - Disabled state: submit button disabled while `isPending` or `!titulo.trim()`
 - Loading state: submit button shows spinner icon + "Salvando..." text
 
 **Form layout:** `<div className="space-y-3 py-2">` — matches existing `NovaTarefaModal`.
 
-**Labels:** `<label className="text-xs font-medium text-fg2 mb-1 block">` — exact match of existing pattern.
+**Labels:** `<label className="text-xs font-semibold text-fg2 mb-1 block">` — updated from `font-medium` to `font-semibold` per typography contract (2 weights only: 400/600).
 
 **Error display:** `<p className="text-xs text-red-500 mt-1">{errors.campo?.message}</p>` — matches `NewLeadModal`.
 
@@ -167,7 +170,7 @@ Never use accent for: borders, backgrounds of non-interactive surfaces, text on 
 ```
 
 **Main content column:**
-- Line 1: `[TipoIcon w-3.5] [title text-sm font-medium text-fg2 truncate] [PriorityBadge] [StatusBadge]`
+- Line 1: `[TipoIcon w-3.5] [title text-sm font-semibold text-fg2 truncate] [PriorityBadge] [StatusBadge]`
 - Line 2 (if lead linked): `[Link icon w-3 text-fg4] [lead name · company text-xs text-fg4]`
 - Line 3 (if due date): `[Calendar icon w-3] [date text-[11px]] [OVERDUE indicator if vencida]`
 - Line 4 (if assignee != current user): `[Avatar w-5 h-5 rounded-full] [name text-xs text-fg4]`
@@ -177,7 +180,7 @@ Never use accent for: borders, backgrounds of non-interactive surfaces, text on 
 **Hover state:** `hover:bg-[var(--alpha-bg-xs)]` — exact match of existing pattern.
 
 **Action buttons (visible on hover via `group-hover:opacity-100 opacity-0`):**
-- Complete: `Circle` icon → `CheckCircle2` on hover, `text-muted-foreground hover:text-[#10b981]`
+- Complete: `Circle` icon to `CheckCircle2` on hover, `text-muted-foreground hover:text-[#10b981]`
 - Open lead (if linked): `ExternalLink` icon, `p-1.5 rounded hover:bg-[var(--alpha-bg-sm)]`
 - Edit: `Pencil` icon, `p-1.5 rounded hover:bg-[var(--alpha-bg-sm)] text-muted-foreground hover:text-fg2`
 - Delete: `Trash2` icon, `p-1.5 rounded hover:bg-[rgba(239,68,68,0.10)] text-muted-foreground hover:text-[#fca5a5]`
@@ -188,13 +191,13 @@ Complete and delete are always visible (not just on hover) for accessibility on 
 
 ### 3. TarefaStatusBadge
 
-**Base:** `text-[10px] px-1.5 py-0.5 rounded-full font-medium border` — exact match of priority badge pattern from `TarefasPanel`.
+**Base:** `text-[10px] px-1.5 py-0.5 rounded-full font-semibold border` — updated from `font-medium` to `font-semibold` per typography contract (2 weights only: 400/600).
 
 | Status       | className                                                                              | Label         |
 |--------------|----------------------------------------------------------------------------------------|---------------|
 | aberta       | `style={{ background: 'rgba(251,191,36,0.12)', color: 'var(--amber-hi)', borderColor: 'rgba(251,191,36,0.30)' }}` | Aberta       |
 | em_andamento | `style={{ background: 'rgba(59,130,246,0.12)', color: '#93c5fd', borderColor: 'rgba(59,130,246,0.30)' }}` | Em andamento |
-| concluida    | `style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--emerald-hi)', borderColor: 'rgba(16,185,129,0.30)' }}` | Concluída  |
+| concluida    | `style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--emerald-hi)', borderColor: 'rgba(16,185,129,0.30)' }}` | Concluida  |
 
 ---
 
@@ -202,10 +205,12 @@ Complete and delete are always visible (not just on hover) for accessibility on 
 
 **Page title:** `"Tarefas"` — `text-xl font-bold text-foreground mb-6`.
 
+**Focal point primario:** botao "Nova tarefa" no canto superior direito do filter bar; lista de tarefas vencidas/criticas destacadas no topo da task list (ordenadas por prioridade desc, data_vencimento asc).
+
 **Layout:** Full-width content area (no sidebar scroll lock needed). Top area: filter bar. Content: task list in Card.
 
 **Filter bar (`flex items-center gap-3 flex-wrap mb-4`):**
-- Status filter: `Select` h-8 w-36 — values: "Todas", "Abertas", "Em andamento", "Concluídas"
+- Status filter: `Select` h-8 w-36 — values: "Todas", "Abertas", "Em andamento", "Concluidas"
 - Date filter: `Select` h-8 w-40 — values: "Qualquer data", "Vencendo hoje", "Esta semana", "Atrasadas"
 - Scope toggle (right-aligned): `ScopeToggle` component (existing canonical) — "Minhas / Todas" — visible for coordenador+ only
 - New task button (far right): `Button` h-8 `style={{ backgroundColor: '#0089ac' }}` `gap-1.5 text-xs` — "Nova tarefa" with `Plus` icon
@@ -216,8 +221,8 @@ Complete and delete are always visible (not just on hover) for accessibility on 
 
 **Empty state (no tasks):**
 - Icon: `CheckCircle2 w-10 h-10` in `rounded-full` container `style={{ background: 'rgba(16,185,129,0.15)' }}` with `color: #6ee7b7`
-- Heading: `"Nenhuma tarefa pendente"` — `text-sm font-medium text-foreground`
-- Body: `"Você está em dia! Crie uma nova tarefa ou aguarde atribuições."` — `text-xs text-muted-foreground mt-1`
+- Heading: `"Nenhuma tarefa pendente"` — `text-sm font-semibold text-foreground`
+- Body: `"Voce esta em dia! Crie uma nova tarefa ou aguarde atribuicoes."` — `text-xs text-muted-foreground mt-1`
 - Padding: `py-12 text-center` — matches `TarefasPanel` empty state
 
 **Empty state (filters active, no results):**
@@ -226,12 +231,13 @@ Complete and delete are always visible (not just on hover) for accessibility on 
 
 ---
 
-### 5. Badge numérico no Sidebar (NOTIF-04)
+### 5. Badge numerico no Sidebar (NOTIF-04)
 
 **Position:** Inline, after the label text of the "Tarefas" `NavItem`. Far-right aligned via `ml-auto`.
 
 **Appearance:** `text-[10px] font-bold bg-cyan-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] text-center`
 - Exact spec from RESEARCH.md Pattern 3 code example — matches existing sidebar aesthetic.
+- `bg-cyan-500` (#06b6d4) is intentionally distinct from accent `#0089ac` — see Color section for rationale.
 - Cap: `{count > 99 ? '99+' : count}`
 - Hidden when `count === 0` — `{count > 0 && <span>...}` — no empty placeholder.
 
@@ -247,13 +253,13 @@ Complete and delete are always visible (not just on hover) for accessibility on 
 
 **Container:** `<Card className="mb-6">` with `<CardHeader>` + `<CardContent>`.
 
-**Header:** `<CardTitle className="text-sm flex items-center gap-2">` with `Activity` icon — "Adoção do time (últimos 7 dias)".
+**Header:** `<CardTitle className="text-sm flex items-center gap-2">` with `Activity` icon — "Adocao do time (ultimos 7 dias)".
 
 **Metric layout:** 3 columns `grid grid-cols-3 gap-4` inside `CardContent`:
 
 | Column       | Metric                      | Color token           | Icon         |
 |--------------|-----------------------------|-----------------------|--------------|
-| Logins       | N logins únicos             | `var(--cyan-hi)`      | `LogIn`      |
+| Logins       | N logins unicos             | `var(--cyan-hi)`      | `LogIn`      |
 | Leads criados | N leads criados             | `var(--emerald-hi)`   | `UserPlus`   |
 | Tarefas      | N tarefas criadas           | `var(--amber-hi)`     | `CheckSquare` |
 
@@ -265,8 +271,8 @@ Each metric column:
 ```
 
 **Leads esquecidos section (below 3 columns, separated by `border-t` `mt-4 pt-4`):**
-- Header: `"Leads sem atualização há 7+ dias"` — `text-xs font-medium text-fg2 flex items-center gap-1.5 mb-2` with `AlertTriangle w-3.5 h-3.5 text-[#fca5a5]`
-- If 0 leads: `"Nenhum lead esquecido — ótimo!"` in `text-xs text-muted-foreground`
+- Header: `"Leads sem atualizacao ha 7+ dias"` — `text-xs font-semibold text-fg2 flex items-center gap-1.5 mb-2` with `AlertTriangle w-3.5 h-3.5 text-[#fca5a5]`
+- If 0 leads: `"Nenhum lead esquecido — otimo!"` in `text-xs text-muted-foreground`
 - If N > 0: list up to 3 leads as `<a>` links — `text-xs text-fg2 hover:text-foreground underline-offset-2 hover:underline`; show "+ N mais" link to `/adocao` if count > 3
 
 ---
@@ -275,11 +281,11 @@ Each metric column:
 
 **Gate:** `<RequireRole atLeast="coordenador">` wraps entire page content.
 
-**Page title:** `"Adoção"` — `text-xl font-bold text-foreground mb-6`.
+**Page title:** `"Adocao"` — `text-xl font-bold text-foreground mb-6`.
 
-**Section 1 — Atividade por usuário (ADOPT-02):**
+**Section 1 — Atividade por usuario (ADOPT-02):**
 
-Title: `"Atividade no mês"` — `text-base font-semibold text-foreground mb-3` with `Users` icon.
+Title: `"Atividade no mes"` — `text-base font-semibold text-foreground mb-3` with `Users` icon.
 
 Table in `<Card><CardContent className="p-0">`:
 
@@ -287,11 +293,11 @@ Table in `<Card><CardContent className="p-0">`:
 <table className="w-full text-sm">
   <thead>
     <tr className="border-b text-xs text-muted-foreground">
-      <th className="px-4 py-3 text-left font-medium">Usuário</th>
-      <th className="px-4 py-3 text-right font-medium">Último login</th>
-      <th className="px-4 py-3 text-right font-medium">Leads criados</th>
-      <th className="px-4 py-3 text-right font-medium">Tarefas criadas</th>
-      <th className="px-4 py-3 text-right font-medium">Leads atualizados</th>
+      <th className="px-4 py-3 text-left font-semibold">Usuario</th>
+      <th className="px-4 py-3 text-right font-semibold">Ultimo login</th>
+      <th className="px-4 py-3 text-right font-semibold">Leads criados</th>
+      <th className="px-4 py-3 text-right font-semibold">Tarefas criadas</th>
+      <th className="px-4 py-3 text-right font-semibold">Leads atualizados</th>
     </tr>
   </thead>
   <tbody className="divide-y">
@@ -301,32 +307,32 @@ Table in `<Card><CardContent className="p-0">`:
 ```
 
 Row pattern: `<tr className="hover:bg-[var(--alpha-bg-xs)] transition-colors">`
-- Usuário column: avatar (initials, `w-6 h-6 rounded-full bg-cyan-600 text-white text-[10px]`) + name `text-sm text-fg2`
-- Numeric columns: right-aligned, `text-sm font-medium text-foreground`; `0` displayed as `text-muted-foreground`
-- Last login: relative time (`"há 2 dias"`, `"hoje"`) — `text-xs text-fg4`; if never logged: `"—"` in `text-muted-foreground`
+- Usuario column: avatar (initials, `w-6 h-6 rounded-full bg-cyan-600 text-white text-[10px]`) + name `text-sm text-fg2`
+- Numeric columns: right-aligned, `text-sm font-semibold text-foreground`; `0` displayed as `text-muted-foreground`
+- Last login: relative time (`"ha 2 dias"`, `"hoje"`) — `text-xs text-fg4`; if never logged: `"—"` in `text-muted-foreground`
 
 **Section 2 — Leads esquecidos (ADOPT-03):**
 
-Title: `"Leads esquecidos (7+ dias sem atualização)"` — `text-base font-semibold text-foreground mb-3` with `AlertTriangle` icon `text-[#fca5a5]`.
+Title: `"Leads esquecidos (7+ dias sem atualizacao)"` — `text-base font-semibold text-foreground mb-3` with `AlertTriangle` icon `text-[#fca5a5]`.
 
 Table in `<Card><CardContent className="p-0">`:
 
-Columns: Lead | Empresa | Etapa | Último update | Responsável | Ação
+Columns: Lead | Empresa | Etapa | Ultimo update | Responsavel | Acao
 
 ```
 <th>Lead</th>
 <th>Empresa</th>
 <th>Etapa</th>
-<th>Sem atualização</th>
-<th>Responsável</th>
-<th class="sr-only">Ação</th>
+<th>Sem atualizacao</th>
+<th>Responsavel</th>
+<th class="sr-only">Acao</th>
 ```
 
-- "Sem atualização" column: relative time in red — `text-xs` `style={{ color: '#fca5a5' }}`; example: `"há 12 dias"`
+- "Sem atualizacao" column: relative time in red — `text-xs` `style={{ color: '#fca5a5' }}`; example: `"ha 12 dias"`
 - Etapa column: stage badge using existing `STAGE_COLORS` from `src/lib/constants.ts`
-- Ação column: `"Ver lead"` button — `Button variant="ghost" size="sm" className="gap-1 text-xs"` with `ExternalLink w-3 h-3`; navigates to `/leads/{id}`
+- Acao column: `"Ver lead"` button — `Button variant="ghost" size="sm" className="gap-1 text-xs"` with `ExternalLink w-3 h-3`; navigates to `/leads/{id}`
 
-Empty state: `"Todos os leads estão sendo atualizado regularmente."` — centered, `py-8 text-center text-xs text-muted-foreground` with `CheckCircle2` icon in green.
+Empty state: `"Todos os leads estao sendo atualizados regularmente."` — centered, `py-8 text-center text-xs text-muted-foreground` with `CheckCircle2` icon in green.
 
 **Loading state (both sections):** skeleton rows — 3 rows of `<div className="h-10 rounded animate-pulse bg-[var(--alpha-bg-sm)]">` inside the card.
 
@@ -348,36 +354,37 @@ Prop: `variant: 'compact' | 'full'`
 |-------------------------------------|-----------------------------------------------------------------------------------------------|
 | Primary CTA — create task           | "Nova tarefa"                                                                                  |
 | Modal submit — create               | "Criar tarefa"                                                                                 |
-| Modal submit — edit                 | "Salvar alterações"                                                                            |
-| Modal cancel                        | "Cancelar"                                                                                     |
-| Empty state — no tasks (inbox)      | Heading: "Nenhuma tarefa pendente" / Body: "Você está em dia! Crie uma nova tarefa ou aguarde atribuições." |
+| Modal submit — edit                 | "Salvar alteracoes"                                                                            |
+| Modal cancel — create mode          | "Descartar tarefa"                                                                             |
+| Modal cancel — edit mode            | "Descartar alteracoes"                                                                         |
+| Empty state — no tasks (inbox)      | Heading: "Nenhuma tarefa pendente" / Body: "Voce esta em dia! Crie uma nova tarefa ou aguarde atribuicoes." |
 | Empty state — filters active        | Heading: "Nenhuma tarefa com esses filtros" / Body: "Tente remover alguns filtros para ver mais tarefas." |
-| Empty state — forgotten leads       | "Todos os leads estão sendo atualizados regularmente."                                         |
+| Empty state — forgotten leads       | "Todos os leads estao sendo atualizados regularmente."                                         |
 | Error — create task failed          | "Erro ao criar tarefa. Tente novamente."                                                       |
 | Error — complete task failed        | "Erro ao concluir tarefa. Tente novamente."                                                    |
 | Error — delete task failed          | "Erro ao remover tarefa."                                                                      |
 | Success — task created              | "Tarefa criada"                                                                                |
-| Success — task completed            | "Tarefa concluída"                                                                             |
+| Success — task completed            | "Tarefa concluida"                                                                             |
 | Success — task deleted              | "Tarefa removida"                                                                              |
 | Destructive — delete task label     | "Remover tarefa"                                                                               |
 | Destructive — delete confirmation   | Inline (no modal) — Trash2 icon button with `title="Remover tarefa"` tooltip. No confirmation dialog needed for tasks (low-stakes, no cascade). |
 | Sidebar badge tooltip               | `title="N tarefas abertas"` (populated dynamically)                                           |
-| Adoption card title                 | "Adoção do time (últimos 7 dias)"                                                              |
-| Adoption page title                 | "Adoção"                                                                                       |
-| Forgotten leads section title       | "Leads esquecidos (7+ dias sem atualização)"                                                   |
-| Adoption empty — no login data yet  | "Ainda não há dados de login. O painel será preenchido após o primeiro acesso do time."        |
-| Field label — título                | "Título *"                                                                                     |
-| Field label — descrição             | "Descrição"                                                                                    |
+| Adoption card title                 | "Adocao do time (ultimos 7 dias)"                                                              |
+| Adoption page title                 | "Adocao"                                                                                       |
+| Forgotten leads section title       | "Leads esquecidos (7+ dias sem atualizacao)"                                                   |
+| Adoption empty — no login data yet  | "Ainda nao ha dados de login. O painel sera preenchido apos o primeiro acesso do time."        |
+| Field label — titulo                | "Titulo *"                                                                                     |
+| Field label — descricao             | "Descricao"                                                                                    |
 | Field label — tipo                  | "Tipo"                                                                                         |
 | Field label — prioridade            | "Prioridade"                                                                                   |
 | Field label — vencimento            | "Vencimento"                                                                                   |
-| Field label — responsável           | "Responsável"                                                                                  |
+| Field label — responsavel           | "Responsavel"                                                                                  |
 | Field label — notas                 | "Notas"                                                                                        |
 | Filter label — status               | "Status"                                                                                       |
 | Filter option — all statuses        | "Todos os status"                                                                              |
 | Filter option — aberta              | "Abertas"                                                                                      |
 | Filter option — em_andamento        | "Em andamento"                                                                                 |
-| Filter option — concluida           | "Concluídas"                                                                                   |
+| Filter option — concluida           | "Concluidas"                                                                                   |
 
 **Destructive action details:**
 - Task deletion: single-click with Trash2 icon (no confirmation dialog). Rationale: tasks have no cascade (no related records). Toast error on failure allows user to retry. Matches existing `TarefasPanel` behavior (`remover.mutate(id)` direct call).
@@ -389,13 +396,13 @@ Prop: `variant: 'compact' | 'full'`
 
 ### TarefaModal — open/close behavior
 - Opens: `Dialog open={open} onOpenChange={...}` — Radix Dialog handles focus trap and ESC close
-- Closes: ESC, Cancel button, or backdrop click (when not submitting)
+- Closes: ESC, Cancel button ("Descartar tarefa" / "Descartar alteracoes"), or backdrop click (when not submitting)
 - Does NOT close while `isPending === true`
 - On successful create: close modal + `toast.success('Tarefa criada')` + `qc.invalidateQueries`
 - On error: keep modal open + `toast.error('Erro ao criar tarefa. Tente novamente.')`
 
 ### Complete task interaction
-- Single click on `Circle` icon → `useConcluirTarefa.mutate(id)`
+- Single click on `Circle` icon — `useConcluirTarefa.mutate(id)`
 - Optimistic: row visually fades out (opacity reduces to 0.5) immediately
 - On success: row removed from list (query invalidated), badge count decrements
 - On error: row restores, `toast.error('Erro ao concluir tarefa. Tente novamente.')`
@@ -445,7 +452,7 @@ No third-party registries declared for Phase 1. Zero new npm packages required (
 | Card pattern (`rounded-xl border bg-card shadow`) | `src/components/ui/card.tsx` |
 | Sidebar colors (`#00081d`, `#006d88`, `#6bd0e7`) | `src/components/layout/Sidebar.tsx` |
 | Priority badge pattern + colors          | `src/components/me/TarefasPanel.tsx` |
-| Form label pattern (`text-xs font-medium text-fg2 mb-1 block`) | `src/components/me/TarefasPanel.tsx` + `NewLeadModal.tsx` |
+| Form label pattern (`text-xs font-semibold text-fg2 mb-1 block`) | `src/components/me/TarefasPanel.tsx` + `NewLeadModal.tsx` (updated to font-semibold) |
 | Empty state pattern (icon + heading + body, `py-12 text-center`) | `src/components/me/TarefasPanel.tsx` |
 | CSS tokens (background, card, primary, destructive, alpha-*) | `src/index.css` |
 | Status color palette (audit log actions)  | `src/pages/AuditoriaPage.tsx` |
@@ -453,6 +460,18 @@ No third-party registries declared for Phase 1. Zero new npm packages required (
 | Sidebar badge spec (code comment)        | `01-RESEARCH.md` Pattern 3          |
 | Task tipo/prioridade enums               | `src/types/index.ts` (via RESEARCH.md) |
 | Requirement-to-component mapping         | `REQUIREMENTS.md` + RESEARCH.md     |
+
+---
+
+## Revision Log
+
+| Date       | Issue                | Fix Applied                                                                 |
+|------------|----------------------|-----------------------------------------------------------------------------|
+| 2026-05-26 | Copywriting — "Cancelar" generico no TarefaModal | Substituido por "Descartar tarefa" (create) / "Descartar alteracoes" (edit) em toda a spec |
+| 2026-05-26 | Typography — 3 pesos declarados (400/500/600) | Removido peso 500; `font-medium` substituido por `font-semibold` (600) em todas as ocorrencias |
+| 2026-05-26 | Spacing — badge pill sem justificativa formal | Adicionada justificativa tipografica formal na tabela de excecoes de espacamento |
+| 2026-05-26 | Visuals — TarefasPage sem focal point declarado | Adicionada declaracao de focal point primario na spec do componente |
+| 2026-05-26 | Color — inconsistencia accent #0089ac vs bg-cyan-500 | Adicionada nota semantica na secao de cores; cyan-500 listado como reservado para badges de notificacao |
 
 ---
 
