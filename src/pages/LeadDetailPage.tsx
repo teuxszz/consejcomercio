@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLeads, useUpdateLead, useDeleteLead } from '@/hooks/useLeads'
+import { useInteracoesByLead } from '@/hooks/useInteracoes'
+import { getNextCadenciaPoint } from '@/lib/cadencia'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,7 +13,7 @@ import { STAGE_COLORS, LEAD_SOURCE_LABELS, SEGMENTS, PIPELINE_STAGES, ESTADOS_BR
 import { usePerfis } from '@/hooks/usePerfis'
 import { useConfiguracoes } from '@/hooks/useConfiguracoes'
 import { formatDate, getUFFromPhone } from '@/lib/utils'
-import { ArrowLeft, Stethoscope, Trash2 } from 'lucide-react'
+import { ArrowLeft, Stethoscope, Trash2, Send } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { Lead } from '@/types'
 import { cn } from '@/lib/utils'
@@ -29,9 +31,21 @@ export function LeadDetailPage() {
   const { data: perfis = [] } = usePerfis()
   const { data: config } = useConfiguracoes()
   const lead = leads?.find(l => l.id === id)
+  const { data: leadInteracoes = [] } = useInteracoesByLead(id)
+  const nextCadencia = getNextCadenciaPoint(
+    lead ?? { id: '', status: '', created_at: new Date().toISOString() },
+    leadInteracoes,
+  )
 
   const [editing, setEditing] = useState<Partial<Lead>>({})
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  function cadenciaTiming(daysUntil: number): string {
+    if (daysUntil === 0) return 'hoje'
+    if (daysUntil === 1) return 'amanhã'
+    if (daysUntil > 1) return `em ${daysUntil} dias`
+    return `${Math.abs(daysUntil)}d atrasado`
+  }
 
   useEffect(() => {
     if (lead) setEditing(lead)
@@ -83,6 +97,40 @@ export function LeadDetailPage() {
           <Trash2 className="w-4 h-4" /> Excluir lead
         </Button>
       </div>
+
+      {/* Sugestão contextual de cadência — só aparece quando cadência ativa (CAD-03, D-06) */}
+      {nextCadencia && (
+        <div
+          className="flex items-start gap-3 p-4 rounded-xl mb-4"
+          style={{ background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.20)' }}
+        >
+          <Send className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#4ade80' }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold" style={{ color: '#4ade80' }}>
+              {nextCadencia.point.label} da cadência — {cadenciaTiming(nextCadencia.daysUntil)}
+            </p>
+            <p className="text-sm text-foreground mt-0.5">{nextCadencia.point.descricao}</p>
+          </div>
+          <button
+            title={`Abrir mensagem WhatsApp para ${lead.nome}`}
+            onClick={() => {
+              const params = new URLSearchParams({
+                leadId:   lead.id,
+                nome:     lead.nome,
+                empresa:  lead.empresa ?? '',
+                stage:    nextCadencia.point.stage,
+                telefone: lead.telefone ?? '',
+              })
+              navigate(`/mensagens?${params.toString()}`)
+            }}
+            className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-white"
+            style={{ backgroundColor: '#25D366' }}
+          >
+            <Send className="w-3.5 h-3.5" />
+            WhatsApp
+          </button>
+        </div>
+      )}
 
       <Tabs defaultValue="info">
         <TabsList className="mb-4">
