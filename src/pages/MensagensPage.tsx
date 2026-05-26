@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Copy, Check, Smartphone, Mail, Linkedin, RefreshCw, Sparkles, Search, Phone, X, MessageSquare, BookOpen, Pencil, Eye, RotateCcw, ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -472,6 +473,7 @@ export function MensagensPage() {
   const [responsavel, setResponsavel] = useState(prefs.responsavel ?? '')
   const [varIdx, setVarIdx]         = useState(0)
   const [copied, setCopied]         = useState(false)
+  const [waLinkCopied, setWaLinkCopied] = useState(false)
 
   // Variáveis extras (preenchem {{dor}}, {{gancho}}, {{tempo}}, {{cta_custom}})
   const [varDor, setVarDor]         = useState('')
@@ -626,6 +628,18 @@ export function MensagensPage() {
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Copia link wa.me com a mensagem composta (WA-03)
+  async function copyWaLink() {
+    try {
+      const url = buildWhatsAppUrl(telefone, effectiveBody)
+      await navigator.clipboard.writeText(url)
+      setWaLinkCopied(true)
+      setTimeout(() => setWaLinkCopied(false), 2000)
+    } catch {
+      toast.error('Não foi possível copiar o link. Copie manualmente o endereço.')
+    }
   }
 
   // ── Composer slot-based ──────────────────────────────────────────────────
@@ -1088,6 +1102,22 @@ export function MensagensPage() {
                     <RefreshCw className="w-3.5 h-3.5" />
                     Outra versão
                   </Button>
+                )}
+                {/* Copiar link wa.me (WA-03) — guard idêntico ao botão Abrir no WhatsApp */}
+                {channel === 'whatsapp' && telefone && (
+                  <button
+                    type="button"
+                    onClick={copyWaLink}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium border transition-colors"
+                    style={waLinkCopied
+                      ? { background: 'rgba(37,211,102,0.15)', color: '#4ade80', borderColor: 'rgba(37,211,102,0.40)' }
+                      : { background: 'var(--alpha-bg-xs)', color: 'var(--text-soft-a)', borderColor: 'var(--alpha-border)' }
+                    }
+                    title="Copiar link wa.me para usar em outro dispositivo"
+                  >
+                    {waLinkCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {waLinkCopied ? 'Link copiado!' : 'Copiar link'}
+                  </button>
                 )}
                 {channel === 'whatsapp' && telefone && (
                   <button
