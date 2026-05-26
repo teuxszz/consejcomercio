@@ -5,14 +5,14 @@ import { useNavigate } from 'react-router-dom'
 import { differenceInDays } from 'date-fns'
 import type { Lead } from '@/types'
 import type { Perfil } from '@/hooks/usePerfis'
-import { LEAD_SOURCE_LABELS } from '@/lib/constants'
+import { LEAD_SOURCE_LABELS, TERMINAL_STAGES } from '@/lib/constants'
 import { formatRelative } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Calendar, MessageCircle, Clock, UserRoundPlus, Check, Send, Target } from 'lucide-react'
 import { useUpdateLead } from '@/hooks/useLeads'
 import { useInteracoes } from '@/hooks/useInteracoes'
 import { useIcpFit } from '@/hooks/useIcpFit'
-import { getCadenciaDueToday } from '@/lib/cadencia'
+import { getNextCadenciaPoint } from '@/lib/cadencia'
 
 const SEGMENT_COLORS: Record<string, { bg: string; color: string }> = {
   empresa_junior:        { bg: 'rgba(139,92,246,0.15)',  color: '#c4b5fd' },
@@ -143,11 +143,24 @@ export function LeadCard({ lead, isDragging = false, stageId, perfis = [] }: Pro
 
   // Cadência check
   const leadInteracoes = allInteracoes.filter(i => i.lead_id === lead.id)
-  const cadenciaPoint  = getCadenciaDueToday(lead, leadInteracoes)
+  const nextCadencia   = getNextCadenciaPoint(lead, leadInteracoes)
+  const isTerminal     = (TERMINAL_STAGES as readonly string[]).includes(lead.status)
 
-  // Message shortcut URL (if cadência is due, use its stage; else fall back to pipeline stage)
-  const msgStage = cadenciaPoint?.stage ?? STAGE_TO_MSG[lead.status] ?? 'primeiro_contato'
-  const msgUrl   = `/mensagens?nome=${encodeURIComponent(lead.nome)}&empresa=${encodeURIComponent(lead.empresa ?? '')}&stage=${msgStage}&leadId=${lead.id}`
+  // Message shortcut URL — includes telefone for MensagensPage pre-fill (WA-02)
+  const msgUrl = '/mensagens?' + new URLSearchParams({
+    nome:     lead.nome,
+    empresa:  lead.empresa ?? '',
+    stage:    nextCadencia?.point.stage ?? (STAGE_TO_MSG[lead.status] ?? 'primeiro_contato'),
+    leadId:   lead.id,
+    telefone: lead.telefone ?? '',
+  }).toString()
+
+  // Cadência chip style by urgency (D-08)
+  function cadenciaChipStyle(daysUntil: number): { background: string; color: string; borderColor: string } {
+    if (daysUntil <= 0) return { background: 'rgba(239,68,68,0.18)', color: 'var(--red-hi, #f87171)', borderColor: 'rgba(239,68,68,0.30)' }
+    if (daysUntil === 1) return { background: 'rgba(251,191,36,0.18)', color: 'var(--amber-hi, #fbbf24)', borderColor: 'rgba(251,191,36,0.30)' }
+    return { background: 'rgba(37,211,102,0.18)', color: '#4ade80', borderColor: 'rgba(37,211,102,0.30)' }
+  }
 
   const accentColor = isStagnant
     ? 'rgba(249,115,22,0.90)'
@@ -319,17 +332,21 @@ export function LeadCard({ lead, isDragging = false, stageId, perfis = [] }: Pro
             </div>
           )}
 
-          {/* Cadência badge */}
-          {cadenciaPoint && !isStagnant && (
+          {/* Cadência badge — D-point colorido por urgência (D-03, D-04, D-07, D-08) */}
+          {nextCadencia && !isStagnant && (
             <button
-              title={`Cadência: ${cadenciaPoint.label} — ${cadenciaPoint.descricao}`}
+              title={`${nextCadencia.point.label} — ${nextCadencia.point.descricao}`}
               onPointerDown={e => e.stopPropagation()}
               onClick={e => { e.stopPropagation(); navigate(msgUrl) }}
-              className="flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(37,211,102,0.18)', color: '#4ade80' }}
+              className="flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium transition-opacity hover:opacity-80 border"
+              style={cadenciaChipStyle(nextCadencia.daysUntil)}
             >
               <Send className="w-2.5 h-2.5" />
-              {cadenciaPoint.label}
+              {`D${nextCadencia.point.dia} · ${
+                nextCadencia.daysUntil <= 0 ? 'hoje'
+                : nextCadencia.daysUntil === 1 ? 'amanhã'
+                : `${nextCadencia.daysUntil}d`
+              }`}
             </button>
           )}
         </div>
@@ -377,25 +394,41 @@ export function LeadCard({ lead, isDragging = false, stageId, perfis = [] }: Pro
           )}
         </div>
 
-        {/* Quick message button */}
-        <button
-          title="Gerar mensagem de abordagem"
-          onPointerDown={e => e.stopPropagation()}
-          onClick={e => { e.stopPropagation(); navigate(msgUrl) }}
-          className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded transition-colors"
-          style={{ color: 'var(--text-soft-a)' }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLElement).style.color = '#6bd0e7'
-            ;(e.currentTarget as HTMLElement).style.background = 'rgba(0,137,172,0.12)'
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.color = 'var(--text-soft-a)'
-            ;(e.currentTarget as HTMLElement).style.background = ''
-          }}
-        >
-          <MessageCircle className="w-3 h-3" />
-          mensagem
-        </button>
+        {/* Action buttons */}
+        <div className="flex items-center gap-1">
+          {/* Quick message button */}
+          <button
+            title="Gerar mensagem de abordagem"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); navigate(msgUrl) }}
+            className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded transition-colors"
+            style={{ color: 'var(--text-soft-a)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = '#6bd0e7'
+              ;(e.currentTarget as HTMLElement).style.background = 'rgba(0,137,172,0.12)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-soft-a)'
+              ;(e.currentTarget as HTMLElement).style.background = ''
+            }}
+          >
+            <MessageCircle className="w-3 h-3" />
+            mensagem
+          </button>
+
+          {/* WhatsApp shortcut — só quando tem telefone e não é terminal (WA-01) */}
+          {lead.telefone && !isTerminal && (
+            <button
+              title="Abrir mensagem WhatsApp"
+              onPointerDown={e => e.stopPropagation()}
+              onClick={e => { e.stopPropagation(); navigate(msgUrl) }}
+              className="p-1 rounded hover:bg-[var(--alpha-bg-sm)] transition-colors"
+              style={{ color: '#25D366' }}
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
