@@ -62,6 +62,57 @@ export function getCadenciaDueToday(
   return match ?? null
 }
 
+// ─── Next cadência point ───────────────────────────────────────────────────────
+
+export interface NextCadenciaResult {
+  point: CadenciaPoint
+  /** 0 = due today, negative = overdue, positive = days remaining */
+  daysUntil: number
+}
+
+/**
+ * Retorna o próximo ponto da cadência com quantos dias faltam,
+ * independente de ser hoje ou futuro.
+ *
+ * Diferença de getCadenciaDueToday():
+ *  - getCadenciaDueToday retorna apenas quando daysUntil === 0 (exact match)
+ *  - getNextCadenciaPoint retorna QUALQUER ponto ativo, com daysUntil
+ *
+ * Retorna null se:
+ *  - lead em estágio terminal (ganho/perdido/cancelado)
+ *  - cadência concluída (última interação > dia 10)
+ *  - nenhuma interação e lead criado há > 1 dia (D1 expirado)
+ */
+export function getNextCadenciaPoint(
+  lead: Pick<Lead, 'id' | 'status' | 'created_at'>,
+  interacoesDoLead: InteracaoLead[],
+  today: Date = new Date(),
+): NextCadenciaResult | null {
+  if ((TERMINAL_STAGES as readonly string[]).includes(lead.status)) return null
+
+  const ultima = interacoesDoLead[0]  // array já ordenado desc por enviada_em
+
+  if (!ultima) {
+    // Sem interações: D1 ativo apenas se criado há 0 ou 1 dias
+    const diasDesdeCriacao = daysBetween(new Date(lead.created_at), today)
+    const point = CADENCIA_DIAS[0]  // Dia 1
+    if (diasDesdeCriacao <= 1) {
+      return { point, daysUntil: point.dia - diasDesdeCriacao }
+    }
+    return null  // D1 expirou (criado há > 1d sem interação)
+  }
+
+  const diasDesdeUltima = daysBetween(new Date(ultima.enviada_em), today)
+
+  // Encontrar o próximo ponto cujo dia >= diasDesdeUltima
+  const proximo = CADENCIA_DIAS.find(p => p.dia >= diasDesdeUltima)
+  if (!proximo) return null  // cadência encerrada (passado dia 10)
+
+  return { point: proximo, daysUntil: proximo.dia - diasDesdeUltima }
+}
+
+// ─── Days since last touch ─────────────────────────────────────────────────────
+
 /**
  * Para um lead sem interações, retorna quantos dias desde a criação.
  * Para um lead com interações, retorna dias desde a última.
