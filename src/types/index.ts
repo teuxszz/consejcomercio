@@ -277,6 +277,7 @@ export interface Tarefa {
   data_vencimento?: string | null
   data_conclusao?: string | null
   notas?: string | null
+  notificar?: boolean
   created_at: string
   updated_at: string
 }

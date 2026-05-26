@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -12,6 +12,7 @@ export function AppLayout() {
   const location      = useLocation()
   const queryClient   = useQueryClient()
   const [checking, setChecking] = useState(true)
+  const loggedSessionRef = useRef<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -38,6 +39,19 @@ export function AppLayout() {
         // sees stale data (profile, leads, etc.) from the previous session.
         queryClient.clear()
         navigate('/login', { replace: true })
+      }
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Guard against React 19 StrictMode double-invoke: only record once per access_token.
+        if (loggedSessionRef.current !== session.access_token) {
+          loggedSessionRef.current = session.access_token
+          supabase.from('audit_logs').insert({
+            tabela: 'perfis',
+            registro_id: session.user.id,
+            acao: 'login',
+            usuario: session.user.email ?? null,
+          }).then(({ error }) => { if (error) console.error('audit login:', error) })
+        }
       }
     })
 

@@ -49,6 +49,11 @@ export const QUERY_KEYS = {
     mine: (userId: string) => ['tarefas', 'mine', userId] as const,
     byEntidade: (tipo: string, id: string) => ['tarefas', 'entidade', tipo, id] as const,
   },
+  adocao: {
+    logins: ['adocao', 'logins'] as const,
+    atividade: ['adocao', 'atividade'] as const,
+    leadsEsquecidos: ['adocao', 'leads-esquecidos'] as const,
+  },
   pos_juniors: {
     all: ['pos_juniors'] as const,
     byId: (id: string) => ['pos_juniors', id] as const,

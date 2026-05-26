@@ -27,6 +27,7 @@ interface TarefaRow {
   entidade_tipo: string | null
   entidade_id: string | null
   data_vencimento: string | null
+  notificar: boolean | null
 }
 
 interface WebhookPayload {
@@ -165,6 +166,9 @@ serve(async (req) => {
 
   const tarefa = payload.record
   if (!tarefa) return json({ ok: true, skipped: 'no record' })
+
+  // SEC-02: opt-out de DM Slack para tarefas de cadência automática
+  if (tarefa.notificar === false) return json({ ok: true, skipped: 'notificar=false' })
 
   // Detecta atribuição nova / mudança de atribuído
   const novoAtribuido = tarefa.atribuido_a_id
