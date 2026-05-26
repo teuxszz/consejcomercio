@@ -83,7 +83,14 @@ Plans:
 2. Todo dia pela manhã cada consultor recebe uma DM com "Você tem X tarefas vencendo hoje e Y leads para contato na cadência" (pg_cron diário via migration 034).
 3. Quando um lead entra no dia de ação da cadência (D1/D3/D5/D7/D10), o responsável pelo lead recebe DM no Slack com o nome do lead e o D-point.
 
-**Plans:** TBD
+**Plans:** 2 plans
+Plans:
+**Wave 1** *(plans independentes — sem overlap de `files_modified`)*
+
+- [ ] 03-01-PLAN.md — Verificação/configuração do Database Webhook para `notify-tarefa` + smoke test (NOTIF-01)
+- [ ] 03-02-PLAN.md — Edge function `notify-resumo-diario` + migration 034 (pg_cron) + deploy real (NOTIF-02, NOTIF-03)
+
+**UI hint:** no (sem UI nova — somente Slack DMs)
 
 ### Phase 4: Revenue Dashboard
 
@@ -108,7 +115,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Tasks + Adoption Signal | 0/4 | Not started | - |
 | 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
-| 3. Pull-back Notifications | 0/? | Not started | - |
+| 3. Pull-back Notifications | 0/2 | Planned | - |
 | 4. Revenue Dashboard | 0/? | Not started | - |
 
 ---

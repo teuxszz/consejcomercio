@@ -501,7 +501,7 @@ Bom dia, [Nome]! Aqui está seu resumo de hoje:
 
 **Justificativa para manual-only (NOTIF-01):** A edge function `notify-tarefa` é Deno e não roda no ambiente Vitest/jsdom. O teste correto é um integration test via `supabase functions serve` + request manual. Para Milestone 2 com 2-5 usuários, o esforço de teste de integração de edge function não é proporcional ao risco.
 
-**Justificativa para NOTIF-02/03:** A lógica de cálculo de D-point para o cron é PL/pgSQL, não TypeScript. O que pode ser testado em Vitest é a **lógica de negócio** (quais leads/dias são elegíveis) — não o SQL em si. A função `getCadenciaDueToday` já tem 14 testes cobrindo D-point. Novos testes devem cobrir o caso de leads sem interação (D1 por dias desde criação).
+**Justificativa para NOTIF-02/03:** A lógica de cálculo de D-point para o cron é PL/pgSQL, não TypeScript. O que pode ser testado em Vitest é a **lógica de negócio** (quais leads/dias são elegíveis) — não o SQL em si. A função `getNextCadenciaPoint` já tem 14 testes cobrindo D-point. Novos testes devem cobrir o caso de leads sem interação (D1 por dias desde criação).
 
 ### Sampling Rate
 
@@ -556,22 +556,27 @@ Bom dia, [Nome]! Aqui está seu resumo de hoje:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **NOTIF-01 já está 100% funcional ou precisa de alguma alteração?**
-   - O que sabemos: edge function `notify-tarefa` existe com lógica de DM para INSERT/UPDATE; coluna `notificar` (SEC-02) já está em migration 033; código já verifica `notificar === false`.
-   - O que está incerto: se o Database Webhook está configurado no dashboard Supabase.
-   - Recomendação: o planner deve incluir uma task de "Verificar/Configurar Database Webhook para notify-tarefa" como Wave 0.
+1. **NOTIF-01 já está 100% funcional ou precisa de alguma alteração?** **(RESOLVED)**
+   - O que sabíamos: edge function `notify-tarefa` existe com lógica de DM para INSERT/UPDATE; coluna `notificar` (SEC-02) já está em migration 033; código já verifica `notificar === false`.
+   - O que estava incerto: se o Database Webhook está configurado no dashboard Supabase.
+   - **DECISÃO (RESOLVED):** o planner incluiu task de verificação/configuração do Database Webhook como parte de Wave 0 (validação manual no Supabase Dashboard → Database → Webhooks). NOTIF-01 é tratado como "já implementado em código" — sem nova feature; apenas conferência de configuração de plataforma.
 
-2. **Usar `notify-tarefa` estendida ou nova edge function `notify-resumo-diario`?**
-   - O que sabemos: `notify-tarefa` recebe payload de Database Webhook (com `type`, `table`, `record`). Adicionar um modo `?mode=resumo` ou `type === 'RESUMO'` é possível mas mistura contratos.
-   - O que está incerto: se o time tem preferência por coesão vs. isolamento.
-   - Recomendação: **nova edge function `notify-resumo-diario`** — isolamento previne regressão no webhook de tarefas e facilita teste independente.
+2. **Usar `notify-tarefa` estendida ou nova edge function `notify-resumo-diario`?** **(RESOLVED)**
+   - O que sabíamos: `notify-tarefa` recebe payload de Database Webhook (com `type`, `table`, `record`). Adicionar um modo `?mode=resumo` ou `type === 'RESUMO'` é possível mas mistura contratos.
+   - O que estava incerto: se o time tem preferência por coesão vs. isolamento.
+   - **DECISÃO (RESOLVED):** criar **nova edge function `notify-resumo-diario`** — isolamento previne regressão no webhook de tarefas e facilita teste independente. Implementado no PLAN 03-02, Task 2.
 
-3. **Idempotência no resumo diário (NOTIF-02/NOTIF-03)?**
-   - O que sabemos: `notify-renovacao` usa tabela de idempotência; `notify-tarefa` não usa (DMs são eventos únicos).
-   - O que está incerto: se re-envio acidental (execução dupla do cron) é aceitável para um time de 2-5 pessoas.
-   - Recomendação: para Milestone 2, aceitar re-envio. Adicionar `resumos_diarios_enviados` se reclamação aparecer.
+3. **Idempotência no resumo diário (NOTIF-02/NOTIF-03)?** **(RESOLVED)**
+   - O que sabíamos: `notify-renovacao` usa tabela de idempotência; `notify-tarefa` não usa (DMs são eventos únicos).
+   - O que estava incerto: se re-envio acidental (execução dupla do cron) é aceitável para um time de 2-5 pessoas.
+   - **DECISÃO (RESOLVED):** para Milestone 2, **aceitar re-envio sem tabela de idempotência** (T-03-02-07 marcado como `accept` no threat model do PLAN 03-02). Adicionar `resumos_diarios_enviados` apenas se reclamação aparecer em uso real.
+
+4. **Status `'stand_by'` deve ser excluído do `NOT IN (...)` na query de cadência?** **(RESOLVED)**
+   - O que sabíamos: PATTERNS.md alertou para o caso, e RESEARCH.md (Pitfall 4) lista apenas os 4 status terminais.
+   - O que estava incerto: se `'stand_by'` existe atualmente como status válido em `leads.status`.
+   - **DECISÃO (RESOLVED):** PLAN 03-02 Task 2 inclui pré-decisão runtime — executar `SELECT DISTINCT status FROM leads` ANTES de escrever a query SQL. Se `'stand_by'` (ou variação) existir, EXCLUIR do alerta de cadência (lead pausado não deve ser cobrado) e documentar em comentário SQL. Se não existir, documentar a ausência em comentário SQL. Resultado da consulta é registrado em `03-02-CRON-DEPLOY-LOG.md`.
 
 ---
 

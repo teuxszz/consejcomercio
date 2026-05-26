@@ -5,13 +5,13 @@ milestone_name: milestone
 current_phase: 03
 current_plan: 1
 status: in_progress
-last_updated: "2026-05-26T17:00:00.000Z"
+last_updated: "2026-05-26T18:55:30.569Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 5
+  total_plans: 7
   completed_plans: 1
-  percent: 25
+  percent: 14
 ---
 
 # STATE — CONSEJ CRM v2 Milestone 2
@@ -35,7 +35,7 @@ Phase: 03 (pull-back-notifications) — next
 Plan: 1 of TBD
 **Current phase:** 03
 **Current plan:** 1
-**Phase status:** Not started
+**Phase status:** Ready to execute (2 plans)
 **Milestone status:** In progress
 
 ```
@@ -105,9 +105,9 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 
 ## Session Continuity
 
-**Last action:** Phase 2 concluída (2026-05-26) — Cadence Guide + WhatsApp Quick Actions: badge D-point, sugestão contextual, botão Copiar link wa.me. 14 testes unitários, 123 total passando, verificação visual aprovada.
-**Next action:** `/gsd-plan-phase 3` — planejar Phase 3: Pull-back Notifications (DM Slack, resumo diário, alerta cadência via pg_cron)
-**Open questions:** nenhuma no momento
+**Last action:** Phase 3 planejada (2026-05-26) — Pull-back Notifications: 2 planos (03-01 webhook NOTIF-01, 03-02 pg_cron + edge function NOTIF-02/03), verification passed em 2 iterações.
+**Next action:** `/gsd-execute-phase 3` — executar Phase 3 (Wave 1 paralela: 03-01 e 03-02)
+**Open questions:** verificar status `stand_by` em produção antes de escrever migration 034 (tarefa Wave 0 do 03-02)
 
 ---
 
