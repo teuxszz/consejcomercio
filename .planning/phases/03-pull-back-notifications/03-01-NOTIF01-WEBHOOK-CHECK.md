@@ -30,14 +30,22 @@
 
 ### Resultado da verificação
 
-<!-- PREENCHER APÓS VERIFICAÇÃO NO DASHBOARD -->
-
-- **Webhook encontrado:** [ ] Sim / [ ] Não — criado novo
-- **Nome do webhook:** ___________________________
+- **Webhook encontrado:** [x] Sim (já existia, mas mal configurado)
+- **Nome do webhook:** `notify-tarefa`
 - **URL configurada:** `https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/notify-tarefa`
-- **Eventos configurados:** [ ] INSERT [ ] UPDATE
-- **Header Authorization presente:** [ ] Sim com `Bearer <WEBHOOK_TAREFA_SECRET>`
-- **Webhook ativo:** [ ] Sim
+- **Eventos configurados:** [x] INSERT [x] UPDATE
+- **Header Authorization presente:** [x] Sim com `Bearer <SERVICE_ROLE_KEY>`
+- **Webhook ativo:** [x] Sim
+
+### Problemas encontrados e corrigidos
+
+| Problema | Causa | Solução |
+|----------|-------|---------|
+| Edge function errada | Webhook apontava para `slack-proxy` em vez de `notify-tarefa` | Alterado para `notify-tarefa` |
+| Authorization inválido | Header usava JWT inválido; depois `Bearer my-secret-value` (não-JWT) | Substituído pela Service Role Key |
+| `WEBHOOK_TAREFA_SECRET` desnecessário | Supabase valida JWT na camada de plataforma antes do código da função; `Bearer <valor>` não-JWT retorna `UNAUTHORIZED_INVALID_JWT_FORMAT` | Secret deletado; `if (WEBHOOK_SECRET)` avalia como false e pula o check interno |
+
+**Lição aprendida:** Webhooks do tipo "Supabase Edge Functions" exigem JWT válido (anon key ou service role key) no header Authorization — a validação ocorre na plataforma antes do código da função rodar. O `WEBHOOK_TAREFA_SECRET` só funciona se o tipo for "HTTP Request" (URL externa). Para webhooks internos, usar a service role key.
 
 ---
 
@@ -63,14 +71,12 @@
 
 ### Resultado
 
-<!-- PREENCHER APÓS SMOKE TEST 1 -->
-
-- **DM recebida:** [ ] PASS — DM chegou em < 30s / [ ] FAIL — nenhuma DM recebida
-- **Consultor destinatário do teste:** ___________________________
-- **Horário do teste:** ___________________________
-- **request_id do log do webhook:** ___________________________
-- **Status HTTP do webhook:** ___________________________
-- **Conteúdo da DM (resumo):** ___________________________
+- **DM recebida:** [x] PASS — DM chegou em < 30s
+- **Consultor destinatário do teste:** Gabriel Araujo (slack_user_id: U09CS4AQNE5)
+- **Horário do teste:** 2026-05-26 ~20:10 UTC
+- **request_id do log do webhook:** 10 (status 200 após correção)
+- **Status HTTP do webhook:** 200
+- **Conteúdo da DM (resumo):** DM recebida com título da tarefa e link para o CRM
 
 ---
 
@@ -104,20 +110,18 @@ No log do webhook, o evento deve aparecer com resposta `200` mas com body `{"ok"
 
 <!-- PREENCHER APÓS SMOKE TEST 2 -->
 
-- **DM NÃO recebida (opt-out funcionando):** [ ] PASS / [ ] FAIL — DM indevida recebida
-- **Resposta do webhook no log:** ___________________________
-- **request_id do evento opt-out:** ___________________________
+- **DM NÃO recebida (opt-out funcionando):** [x] PASS
+- **Resposta do webhook no log:** `{"ok":true,"skipped":"notificar=false"}`
+- **request_id do evento opt-out:** confirmado via SQL (INSERT retornou success, sem DM)
 
 ---
 
 ## Conclusão
 
-<!-- PREENCHER APÓS AMBOS OS SMOKE TESTS -->
-
-- **NOTIF-01 funcional em produção:** [ ] PASS / [ ] FAIL
-- **Opt-out funcional:** [ ] PASS / [ ] FAIL
-- **Webhook ativo e configurado:** [ ] Sim
-- **Evidência commitada:** [ ] Sim
+- **NOTIF-01 funcional em produção:** [x] PASS
+- **Opt-out funcional:** [x] PASS
+- **Webhook ativo e configurado:** [x] Sim
+- **Evidência commitada:** [x] Sim
 
 ---
 
