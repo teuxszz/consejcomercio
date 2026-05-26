@@ -75,6 +75,7 @@ export function CadenciaPage() {
       stage: row.point.stage,
       leadId: row.lead.id,
     })
+    params.set('telefone', row.lead.telefone ?? '')
     navigate(`/mensagens?${params.toString()}`)
   }
 
@@ -139,16 +140,20 @@ export function CadenciaPage() {
         </CardContent>
       </Card>
 
-      {/* Loading */}
+      {/* Loading — skeleton de 3 rows animados (CAD-02) */}
       {isLoading && (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground text-sm">
-            Carregando cadência...
-          </CardContent>
-        </Card>
+        <div className="space-y-2">
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className="h-14 rounded-lg animate-pulse"
+              style={{ background: 'var(--alpha-bg-sm)' }}
+            />
+          ))}
+        </div>
       )}
 
-      {/* Empty */}
+      {/* Empty — estado descritivo com CTA para /leads (CAD-02, D-05) */}
       {!isLoading && filtered.length === 0 && (
         <Card>
           <CardContent className="py-14 text-center">
@@ -157,8 +162,15 @@ export function CadenciaPage() {
             </div>
             <p className="text-sm font-medium text-foreground">Nenhum lead devido hoje</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Todos os leads ativos já foram contatados dentro da janela da cadência.
+              Todos os leads ativos estão dentro da janela da cadência. Volte amanhã ou use o kanban para ver os próximos D-points.
             </p>
+            <button
+              onClick={() => navigate('/leads')}
+              className="mt-3 text-xs hover:underline"
+              style={{ color: '#0089ac' }}
+            >
+              Ver kanban de leads
+            </button>
           </CardContent>
         </Card>
       )}
