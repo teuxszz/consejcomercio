@@ -2,7 +2,8 @@
 ## notify-resumo-diario + migration 034
 
 **Data de início:** 2026-05-26
-**Executor:** Gabriel (gabriel@araujon2000@gmail.com)
+**Data de conclusão:** 2026-05-26
+**Executor:** Gabriel (araujon2000@gmail.com)
 **Commit dos artefatos:** `266dd65f2b918c2ae37b1e9a7fa7a34be51af5af`
 
 ---
@@ -24,181 +25,169 @@ Documentado também na migration 034 como comentário SQL (linhas 15–25).
 
 ## Subpasso 1 — Vault secret
 
-**Status:** PENDENTE (ação manual do operador)
+**Status:** OK (secret já existia de sessão anterior; recriado sem `< >` brackets)
 
-**Gerar o valor com:**
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-**Comando SQL a executar no Dashboard → SQL Editor:**
+**Comando SQL executado:**
 ```sql
-SELECT vault.create_secret('<valor_gerado>', 'webhook_resumo_secret', 'Bearer p/ notify-resumo-diario');
+DELETE FROM vault.secrets WHERE name = 'webhook_resumo_secret';
+SELECT vault.create_secret(
+  '<valor_32chars_hex>',
+  'webhook_resumo_secret',
+  'Bearer p/ notify-resumo-diario'
+);
 ```
 
-**Confirmar criação:**
-```sql
-SELECT name FROM vault.secrets WHERE name = 'webhook_resumo_secret';
-```
+**Confirmação:** `SELECT name FROM vault.secrets WHERE name = 'webhook_resumo_secret';` retornou 1 linha.
 
-- Data/hora da criação: _______________
-- Resultado da confirmação: _______________
+**Incidente registrado:** primeira tentativa de criação incluiu os caracteres `< >` literais como parte do valor do secret (template não substituído). Causou 401 no smoke test. Corrigido via DELETE + CREATE com valor puro.
 
 ---
 
 ## Subpasso 2 — Secrets da edge function
 
-**Status:** PENDENTE (ação manual no Dashboard)
+**Status:** OK (configurado via CLI após Dashboard inicial inconsistente)
 
-**Local:** Supabase Dashboard → Edge Functions → notify-resumo-diario → Secrets
-
-**Secret a configurar:**
-| Nome | Valor | Status |
-|------|-------|--------|
-| `WEBHOOK_RESUMO_SECRET` | (mesmo valor do Subpasso 1) | PENDENTE |
-
-**Secrets já presentes (verificar):**
-| Nome | Esperado | Status |
-|------|----------|--------|
-| `SLACK_BOT_TOKEN` | Herdado do projeto | VERIFICAR |
-| `APP_URL` | Herdado do projeto | VERIFICAR |
-| `SUPABASE_URL` | Injetado automaticamente | AUTOMÁTICO |
-| `SUPABASE_SERVICE_ROLE_KEY` | Injetado automaticamente | AUTOMÁTICO |
-
-- Data/hora da configuração: _______________
-- Secrets confirmados: _______________
-
----
-
-## Subpasso 3 — Schema push (`supabase db push`)
-
-**Status:** PENDENTE
-
-**Pré-requisito:** Secret no Vault deve existir ANTES deste subpasso.
-
-**Comando:**
+**Comando final usado:**
 ```powershell
-$env:SUPABASE_ACCESS_TOKEN = "<seu_token>"  # se não estiver setado
-supabase db push --linked
+rtk supabase secrets set WEBHOOK_RESUMO_SECRET=<valor> --project-ref wfnriqwkzdazdbuzbyug
 ```
 
-- Data/hora: _______________
-- Exit code: _______________
-- Migration `034_cron_resumo_diario.sql` aplicada: _______________
-- Primeiras linhas da saída: _______________
+**Secrets confirmados:**
+| Nome | Status |
+|------|--------|
+| `WEBHOOK_RESUMO_SECRET` | OK (mesmo valor do Vault) |
+| `SLACK_BOT_TOKEN` | OK (herdado de notify-tarefa) |
+| `APP_URL` | OK (herdado de notify-tarefa) |
+| `SUPABASE_URL` | AUTOMÁTICO |
+| `SUPABASE_SERVICE_ROLE_KEY` | AUTOMÁTICO |
 
 ---
 
-## Subpasso 4 — Verificação pós-push
+## Subpasso 3 — Migration 034 aplicada
 
-**Status:** PENDENTE
+**Status:** OK (aplicada via SQL Editor por bloqueio do `supabase db push --linked` — falta de `SUPABASE_DB_PASSWORD` no ambiente)
 
-**Queries SQL a executar no Dashboard:**
-```sql
--- Função criada?
-SELECT proname FROM pg_proc WHERE proname = 'cron_resumo_diario';
+**Método:** cópia integral de `supabase/migrations/034_cron_resumo_diario.sql` para o SQL Editor do Dashboard.
 
--- Job agendado?
-SELECT jobname, schedule, command FROM cron.job WHERE jobname = 'resumo-diario-consultores';
+**Resultado da execução:**
+```json
+[ { "schedule": 2 } ]
 ```
+(`cron.schedule` retornou jobid = 2)
 
-- `pg_proc` retornou: _______________
-- `cron.job` retornou (jobname / schedule): _______________
+---
+
+## Subpasso 4 — Verificação pós-migration
+
+**Status:** OK
+
+```sql
+SELECT proname FROM pg_proc WHERE proname = 'cron_resumo_diario';
+-- → 1 linha (cron_resumo_diario)
+
+SELECT jobname, schedule, command FROM cron.job WHERE jobname = 'resumo-diario-consultores';
+-- → 1 linha:
+--   jobname  = 'resumo-diario-consultores'
+--   schedule = '0 10 * * *'
+--   command  = 'SELECT public.cron_resumo_diario()'
+```
 
 ---
 
 ## Subpasso 5 — Deploy da edge function
 
-**Status:** PENDENTE
+**Status:** OK (deploy final com `--no-verify-jwt`)
 
 **Comando:**
-```bash
-supabase functions deploy notify-resumo-diario --project-ref wfnriqwkzdazdbuzbyug
+```powershell
+rtk supabase functions deploy notify-resumo-diario --project-ref wfnriqwkzdazdbuzbyug --no-verify-jwt
 ```
 
-- Data/hora: _______________
-- URL final: `https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/notify-resumo-diario`
-- Versão deployada: _______________
-- Exit code: _______________
+**Saída:**
+```
+Uploading asset (notify-resumo-diario): supabase/functions/notify-resumo-diario/index.ts
+Deployed Functions on project wfnriqwkzdazdbuzbyug: notify-resumo-diario
+```
+
+**URL final:** `https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/notify-resumo-diario`
+
+**Incidente registrado:** primeiro deploy sem `--no-verify-jwt` causou 401 (`UNAUTHORIZED_INVALID_JWT_FORMAT`) — a edge function tem auth própria via `constantTimeAuthCheck`, então a verificação JWT padrão do Supabase precisa ser desabilitada. Corrigido com redeploy + flag.
 
 ---
 
 ## Subpasso 6 — Smoke test direto (curl)
 
-**Status:** PENDENTE
+**Status:** OK
 
-**Pré-requisito:** Obter `perfil_id` real de um perfil interno com `slack_user_id` mapeado:
-```sql
-SELECT id, nome, slack_user_id FROM perfis WHERE tipo = 'interno' AND slack_user_id IS NOT NULL LIMIT 5;
+**Comando (PowerShell, sintaxe `Invoke-RestMethod` por incompatibilidade do `curl.exe` no PS):**
+```powershell
+Invoke-RestMethod -Method POST `
+  -Uri "https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/notify-resumo-diario" `
+  -Headers @{ "Authorization" = "Bearer <SECRET>" } `
+  -ContentType "application/json" `
+  -Body '{"perfil_id":"93f649b0-5c52-431e-91ff-e53c3a9bea55","tarefas_hoje":2,"leads_cadencia":[{"id":"00000000-0000-0000-0000-000000000001","nome":"Empresa Teste","d_point":3}]}'
 ```
 
-**Comando curl (substituir `<SECRET>` e `<PERFIL_ID>`):**
-```bash
-curl -X POST https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/notify-resumo-diario \
-  -H "Authorization: Bearer <SECRET>" \
-  -H "Content-Type: application/json" \
-  -d '{"perfil_id":"<PERFIL_ID>","tarefas_hoje":2,"leads_cadencia":[{"id":"00000000-0000-0000-0000-000000000001","nome":"Empresa Teste","d_point":3}]}'
-```
-
-- Status HTTP: _______________
-- Body da resposta: _______________
-- DM observada no Slack: _______________
-- Timestamp da DM: _______________
+- **Status HTTP:** 200
+- **DM observada no Slack:** SIM (Gabriel Araujo / `U09CS4AQNE5`) — confirmado pelo usuário
+- **Payload de teste:** 2 tarefas + 1 lead em D3
 
 ---
 
 ## Subpasso 7 — Smoke test do cron (disparo manual)
 
-**Status:** PENDENTE
+**Status:** OK
 
 **Query SQL:**
 ```sql
--- Executa o cron manualmente
 SELECT public.cron_resumo_diario();
-
--- Verificar POSTs enviados pelo pg_net
-SELECT * FROM net._http_response ORDER BY id DESC LIMIT 10;
-
--- Verificar runs agendados (apenas execuções via scheduler aparecem aqui)
-SELECT runid, status, return_message, start_time, end_time
-FROM cron.job_run_details
-WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'resumo-diario-consultores')
-ORDER BY start_time DESC
-LIMIT 5;
+SELECT id, status_code, content::text FROM net._http_response ORDER BY id DESC LIMIT 10;
 ```
 
-- Número de DMs recebidas no Slack: _______________
-- `_http_response.id` do primeiro POST: _______________
-- Status code dos POSTs: _______________
-- Content dos POSTs: _______________
-- Warnings no log Postgres (se houver): _______________
+**Resultado relevante:**
+| id | status_code | content |
+|----|-------------|---------|
+| 11 | 200 | `{"ok":true,"ts":"1779826503.824199"}` |
+| 12 | 200 | `{"ok":true,"skipped":"notificar=false"}` (outra função — notify-tarefa) |
+
+- **`_http_response.id` do POST do cron_resumo_diario:** **11**
+- **Status code:** 200
+- **Slack message ts:** `1779826503.824199`
+- **DMs entregues:** ao menos 1 consultor com tarefas/leads hoje (POST único — demais consultores não tinham trabalho no dia)
+- **Warnings:** nenhum
+
+Entries `id 4-10` são 401s anteriores (incidentes documentados nos Subpassos 1 e 5, todos resolvidos).
 
 ---
 
 ## Subpasso 8 — Auditoria final
-
-**Status:** PENDENTE
 
 | Artefato | Hash |
 |---------|------|
 | `supabase/migrations/034_cron_resumo_diario.sql` | `266dd65f2b918c2ae37b1e9a7fa7a34be51af5af` |
 | `supabase/functions/notify-resumo-diario/index.ts` | `266dd65f2b918c2ae37b1e9a7fa7a34be51af5af` |
 
-| Requisito | Status |
-|-----------|--------|
-| NOTIF-02 (tarefas_hoje no resumo) | PENDENTE |
-| NOTIF-03 (leads_cadencia no resumo) | PENDENTE |
+| Requisito | Status | Evidência |
+|-----------|--------|-----------|
+| NOTIF-02 (tarefas_hoje no resumo) | **OK** | curl Subpasso 6 (`tarefas_hoje:2` aceito, DM entregue) + cron Subpasso 7 (`_http_response.id=11`) |
+| NOTIF-03 (leads_cadencia no resumo) | **OK** | curl Subpasso 6 (`leads_cadencia: [{...d_point:3}]` aceito, DM entregue) + lógica SQL replica `getNextCadenciaPoint` (Task 1, 14 testes) |
 
-**Resultado final:** PENDENTE
+**Resultado final:** **APROVADO** — NOTIF-02 e NOTIF-03 funcionais em produção.
+
+**Estado do cron em produção (2026-05-26):**
+- `jobname`: `resumo-diario-consultores`
+- `jobid`: 2
+- `schedule`: `0 10 * * *` (10:00 UTC = 07:00 BRT)
+- Próximo disparo automático: 2026-05-27 07:00 BRT
 
 ---
 
-## Notas de troubleshooting
+## Notas de troubleshooting (resolvidas neste deploy)
 
-Se o smoke test retornar **401**: secret entre Vault (Subpasso 1) e edge function (Subpasso 2) está diferente.
-
-Se retornar **500**: verificar logs em Dashboard → Edge Functions → notify-resumo-diario → Logs. Verificar se `SLACK_BOT_TOKEN` está configurado.
-
-Se retornar **200 + `{ ok: true, skipped: 'no slack_user_id' }`**: o `perfil_id` não tem `slack_user_id` mapeado. Usar outro `perfil_id` com `slack_user_id` preenchido.
-
-Se `cron_resumo_diario()` executar mas não aparecer nada em `net._http_response`: provavelmente nenhum consultor tem tarefas ou leads hoje. O cron executa, mas não chama a edge function quando `v_tarefas = 0` e `jsonb_array_length(v_leads) = 0`.
+| Sintoma | Causa raiz | Correção |
+|---------|------------|----------|
+| 23505 duplicate key em `vault.create_secret` | Secret já existia de sessão anterior | DELETE + CREATE |
+| Vault `decrypted_secret` retornou `<valor>` literal | Placeholder `< >` não removido na criação inicial | Recriar com valor limpo |
+| Curl: 401 com secret correto | Secret da edge function desincronizado do Vault | `supabase secrets set` via CLI |
+| Curl: 401 persistente após sync | Verificação JWT padrão do Supabase ativa | Redeploy com `--no-verify-jwt` |
+| `supabase db push --linked` falhou | `SUPABASE_DB_PASSWORD` ausente; permissão para alterar role `cli_login_postgres` recusada | Aplicar migration via SQL Editor (cópia integral do .sql) |

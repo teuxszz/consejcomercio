@@ -46,9 +46,9 @@ decisions:
   - "DM consolidada (não por evento) — um único código de disparo (cron + edge function)"
   - "RAISE WARNING (não EXCEPTION) no cron: job marca success mesmo sem secret para evitar rollback do scheduler"
 metrics:
-  duration: "~45 min (Task 1 já realizada; Task 2 commit 266dd65)"
+  duration: "~90 min (Task 1 pré-existente; Task 2 commit 266dd65; Task 3 deploy + smoke tests reais)"
   completed_date: "2026-05-26"
-  completed_tasks: 2 of 3
+  completed_tasks: 3 of 3
   files_count: 3
 ---
 
@@ -64,7 +64,7 @@ metrics:
 |------|------|--------|--------|
 | 1 | Estender testes unitários de cadência (NOTIF-02/03) | `ffbb40a` | DONE (pré-existente) |
 | 2 | Edge function + migration 034 | `266dd65` | DONE |
-| 3 | Deploy + Vault secret + smoke test | — | AGUARDANDO CHECKPOINT |
+| 3 | Deploy + Vault secret + smoke test | — | DONE (deploy log atualizado) |
 
 ---
 
@@ -113,19 +113,31 @@ None — plan executed exactly as written. Task 1 was pre-committed (ffbb40a). T
 
 ---
 
-## Task 3 — Deploy Status (CHECKPOINT)
+## Task 3 — Deploy Concluído (2026-05-26)
 
-Task 3 requer subpassos com ações manuais no Supabase Dashboard:
-1. Criar `webhook_resumo_secret` no Vault via SQL Editor
-2. Configurar `WEBHOOK_RESUMO_SECRET` nos secrets da edge function
-3. `supabase db push --linked`
-4. Verificar função + job via SQL
-5. `supabase functions deploy notify-resumo-diario --project-ref wfnriqwkzdazdbuzbyug`
-6. Smoke test direto (curl → DM real no Slack)
-7. Smoke test do cron (`SELECT public.cron_resumo_diario()` → `net._http_response`)
-8. Auditoria final no log
+Todos os 8 subpassos executados com sucesso. Detalhes completos em `03-02-CRON-DEPLOY-LOG.md`.
 
-O arquivo `03-02-CRON-DEPLOY-LOG.md` foi criado com a estrutura completa e instruções passo-a-passo para cada subpasso.
+| Subpasso | Resultado |
+|----------|-----------|
+| 1. Vault secret | OK (recriado sem `< >` brackets do template) |
+| 2. Edge function secrets | OK (via `supabase secrets set` CLI) |
+| 3. Migration 034 aplicada | OK (via SQL Editor — `cron.schedule` retornou jobid=2) |
+| 4. Verificação SQL | `cron_resumo_diario` + job `resumo-diario-consultores` confirmados |
+| 5. Deploy edge function | OK com `--no-verify-jwt` |
+| 6. Smoke test curl | HTTP 200 + DM real recebida no Slack de Gabriel |
+| 7. Smoke test cron | `net._http_response.id=11` status 200, ts Slack `1779826503.824199` |
+| 8. Auditoria final | NOTIF-02 + NOTIF-03 PASS |
+
+**Estado em produção:**
+- Edge function `notify-resumo-diario` deployada em `https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/notify-resumo-diario`
+- Cron `resumo-diario-consultores` ativo, schedule `0 10 * * *` (07:00 BRT), jobid=2
+- Próximo disparo automático: 2026-05-27 07:00 BRT
+
+**Incidentes resolvidos durante o deploy** (4 troubleshooting steps no LOG):
+- Vault secret com brackets literais → DELETE + CREATE
+- 401 por dessincronia entre Vault e edge function → CLI `supabase secrets set`
+- 401 persistente da verificação JWT padrão do Supabase → redeploy com `--no-verify-jwt`
+- `supabase db push --linked` bloqueado por falta de senha → migration aplicada via SQL Editor
 
 ---
 
