@@ -1,34 +1,33 @@
 // Edge Function: notify-resumo-diario
 // Gatilho: chamada explícita do pg_cron (migration 034) diariamente às 07:00 BRT (10:00 UTC).
-// Posta DM no Slack do consultor com resumo de tarefas vencendo hoje + leads em cadência.
+// Posta DM no Slack do consultor com resumo de tarefas vencendo hoje + leads em cadência
+// E (Plan 5-02) dispara e-mail companion se prefs.cadencia.email=true.
+//
+// Refactor Plan 5-02:
+//   - Helpers _shared/{auth,perfis,slack,email,templates} centralizados
+//   - sendEmail per-user (tipo='cadencia', entidade=NULL) em paralelo a postDm
+//   - magic link via generateMagicLink (Q7-a) com fallback URL direto
+//   - Volume CONSEJ <30/dia (A6) — sob rate limit do generateLink (Q7/R3)
 //
 // Requer:
-//   - perfis.slack_user_id preenchido para o destinatário (migração 030)
-//   - SLACK_BOT_TOKEN
-//   - WEBHOOK_RESUMO_SECRET
-//   - APP_URL
-//   - SUPABASE_URL             (injetado automaticamente pela plataforma)
-//   - SUPABASE_SERVICE_ROLE_KEY (injetado automaticamente pela plataforma)
+//   - perfis.slack_user_id preenchido para Slack DM (migração 030)
+//   - perfis.preferencias_notif (migration 035)
+//   - SLACK_BOT_TOKEN, WEBHOOK_RESUMO_SECRET, APP_URL, RESEND_API_KEY
+//   - SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (injetados)
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
-import { timingSafeEqual } from 'https://deno.land/std@0.224.0/crypto/timing_safe_equal.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+import { constantTimeAuthCheck } from '../_shared/auth.ts'
+import { findSlackUserId, findPerfilNome, loadPrefs } from '../_shared/perfis.ts'
+import { postDm } from '../_shared/slack.ts'
+import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { renderCadencia } from '../_shared/templates/render.ts'
 
 interface ResumoDiarioPayload {
   perfil_id: string
   tarefas_hoje: number
   leads_cadencia: Array<{ id: string; nome: string; d_point: number }>
-}
-
-function constantTimeAuthCheck(received: string, expectedSecret: string): boolean {
-  const enc = new TextEncoder()
-  const expected = enc.encode(`Bearer ${expectedSecret}`)
-  const got = enc.encode(received)
-  if (got.length !== expected.length) {
-    timingSafeEqual(expected, expected)
-    return false
-  }
-  return timingSafeEqual(got, expected)
 }
 
 const SLACK_BOT_TOKEN  = Deno.env.get('SLACK_BOT_TOKEN')
@@ -41,68 +40,6 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSessio
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
-}
-
-async function findSlackUserId(perfilId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from('perfis')
-    .select('slack_user_id')
-    .eq('id', perfilId)
-    .maybeSingle<{ slack_user_id: string | null }>()
-  return data?.slack_user_id ?? null
-}
-
-async function findPerfilNome(perfilId: string): Promise<string> {
-  const { data } = await supabase
-    .from('perfis')
-    .select('nome')
-    .eq('id', perfilId)
-    .maybeSingle<{ nome: string }>()
-  return data?.nome ?? 'consultor'
-}
-
-// Abre (ou recupera) o canal de DM com o usuário. Padrão recomendado pelo Slack
-// para garantir entrega — postar direto no U... pode falhar silenciosamente.
-async function openDmChannel(slackUserId: string): Promise<{ ok: boolean; channel?: string; error?: string }> {
-  const res = await fetch('https://slack.com/api/conversations.open', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    body: JSON.stringify({ users: slackUserId }),
-  })
-  const body = await res.json() as { ok: boolean; channel?: { id: string }; error?: string }
-  if (!body.ok || !body.channel) return { ok: false, error: body.error ?? `HTTP ${res.status}` }
-  return { ok: true, channel: body.channel.id }
-}
-
-async function postDm(slackUserId: string, text: string, blocks: unknown[]): Promise<{ ok: boolean; ts?: string; error?: string }> {
-  // 1. Resolve o canal de DM (D...)
-  const dm = await openDmChannel(slackUserId)
-  if (!dm.ok || !dm.channel) {
-    return { ok: false, error: `conversations.open falhou: ${dm.error}` }
-  }
-  // 2. Posta no canal de DM com retry exponencial (3x, backoff 500*2^i ms)
-  for (let i = 0; i < 3; i++) {
-    const res = await fetch('https://slack.com/api/chat.postMessage', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: JSON.stringify({ channel: dm.channel, text, blocks, unfurl_links: false }),
-    })
-    if (res.status === 429 || res.status >= 500) {
-      await new Promise(r => setTimeout(r, 500 * 2 ** i))
-      continue
-    }
-    const body = await res.json() as { ok: boolean; ts?: string; error?: string }
-    return body.ok
-      ? { ok: true, ts: body.ts }
-      : { ok: false, error: body.error ?? `HTTP ${res.status}` }
-  }
-  return { ok: false, error: 'Slack indisponível após retries' }
 }
 
 function buildResumoDiarioBlocks(
@@ -179,20 +116,60 @@ serve(async (req) => {
     return json({ ok: true, skipped: 'empty payload' })
   }
 
-  // 7. Resolve slack_user_id do perfil
-  const slackUserId = await findSlackUserId(payload.perfil_id)
-  if (!slackUserId) {
-    // Fluxo esperado para perfis sem Slack mapeado — não é erro, retorna 200
-    return json({ ok: true, skipped: 'no slack_user_id' })
-  }
+  // 7. Resolve dados do perfil (Slack + email + prefs)
+  const slackUserId = await findSlackUserId(supabase, payload.perfil_id)
+  const prefs = await loadPrefs(supabase, payload.perfil_id)
+  const { data: perfil } = await supabase
+    .from('perfis')
+    .select('email, nome')
+    .eq('id', payload.perfil_id)
+    .maybeSingle<{ email: string | null; nome: string | null }>()
 
-  // 8. Resolve nome do consultor (fallback seguro caso perfil seja apagado)
-  const nomeConsultor = await findPerfilNome(payload.perfil_id)
+  const nomeConsultor = perfil?.nome ?? (await findPerfilNome(supabase, payload.perfil_id))
+  const totalTarefas = payload.tarefas_hoje
+  const totalLeads = payload.leads_cadencia.length
 
-  // 9. Monta blocos Slack
-  const blocks = buildResumoDiarioBlocks(nomeConsultor, payload.tarefas_hoje, payload.leads_cadencia, APP_URL)
+  // 8. Decisão Slack DM
+  const wantSlack = prefs?.cadencia?.slack === true && slackUserId !== null
+  const slackPromise: Promise<{ ok: boolean; ts?: string; error?: string; skipped?: string }> =
+    wantSlack
+      ? (async () => {
+          const blocks = buildResumoDiarioBlocks(nomeConsultor, totalTarefas, payload.leads_cadencia, APP_URL)
+          return postDm(SLACK_BOT_TOKEN!, slackUserId!, 'Resumo diário CONSEJ', blocks)
+        })()
+      : Promise.resolve({ ok: true, skipped: 'slack_off' })
 
-  // 10. Envia DM
-  const result = await postDm(slackUserId, 'Resumo diário CONSEJ', blocks)
-  return json(result, result.ok ? 200 : 502)
+  // 9. Decisão e-mail
+  const wantEmail = prefs?.cadencia?.email === true && !!perfil?.email
+  const emailPromise: Promise<{ ok: boolean; status?: string; skipped?: string; errorMsg?: string }> =
+    wantEmail
+      ? (async () => {
+          const magicLink = await generateMagicLink(supabase, perfil!.email!, '/me?tab=notificacoes')
+          const html = renderCadencia({
+            nomeConsultor,
+            totalTarefas,
+            totalLeads,
+            deepLink: `${APP_URL}/me`,
+            gerenciarPrefsLink: magicLink,
+          })
+          return sendEmail(supabase, {
+            perfilId: payload.perfil_id,
+            toEmail: perfil!.email!,
+            tipo: 'cadencia',
+            entidadeId: null,
+            entidadeTipo: null,
+            subject: `Resumo diário — ${totalTarefas} tarefa(s) hoje`,
+            html,
+          })
+        })()
+      : Promise.resolve({ ok: true, skipped: 'email_off' })
+
+  // 10. Dispatch paralelo (D-03)
+  const [slackRes, emailRes] = await Promise.all([slackPromise, emailPromise])
+
+  return json({
+    ok: slackRes.ok && emailRes.ok,
+    slack: slackRes,
+    email: emailRes,
+  })
 })

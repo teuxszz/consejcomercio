@@ -30,6 +30,7 @@ import {
 } from '../_shared/perfis.ts'
 import { sendEmail, generateMagicLink } from '../_shared/email.ts'
 import { renderTarefa } from '../_shared/templates/render.ts'
+import { postDm } from '../_shared/slack.ts'
 
 interface TarefaRow {
   id: string
@@ -84,51 +85,7 @@ function formatDate(iso: string | null): string {
   }
 }
 
-// ─── Slack DM helpers (mantidos inline nesta task — extração para
-//     _shared/slack.ts fica para Plan 2 junto com refactor das outras 3
-//     funções, evitando drift) ────────────────────────────────────────────────
-
-async function openDmChannel(slackUserId: string): Promise<{ ok: boolean; channel?: string; error?: string }> {
-  const res = await fetch('https://slack.com/api/conversations.open', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    body: JSON.stringify({ users: slackUserId }),
-  })
-  const body = (await res.json()) as { ok: boolean; channel?: { id: string }; error?: string }
-  if (!body.ok || !body.channel) return { ok: false, error: body.error ?? `HTTP ${res.status}` }
-  return { ok: true, channel: body.channel.id }
-}
-
-async function postDm(
-  slackUserId: string,
-  text: string,
-  blocks: unknown[],
-): Promise<{ ok: boolean; ts?: string; error?: string }> {
-  const dm = await openDmChannel(slackUserId)
-  if (!dm.ok || !dm.channel) {
-    return { ok: false, error: `conversations.open falhou: ${dm.error}` }
-  }
-  for (let i = 0; i < 3; i++) {
-    const res = await fetch('https://slack.com/api/chat.postMessage', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: JSON.stringify({ channel: dm.channel, text, blocks, unfurl_links: false }),
-    })
-    if (res.status === 429 || res.status >= 500) {
-      await new Promise((r) => setTimeout(r, 500 * 2 ** i))
-      continue
-    }
-    const body = (await res.json()) as { ok: boolean; ts?: string; error?: string }
-    return body.ok ? { ok: true, ts: body.ts } : { ok: false, error: body.error ?? `HTTP ${res.status}` }
-  }
-  return { ok: false, error: 'Slack indisponível após retries' }
-}
+// ─── Slack DM helpers extraídos para ../_shared/slack.ts (Plan 5-02) ────────
 
 // ─── Slack delivery log (idempotente via UNIQUE partial index migração 035) ──
 async function logSlackDelivery(
@@ -309,7 +266,7 @@ serve(async (req) => {
             elements: [{ type: 'button', text: { type: 'plain_text', text: 'Abrir no CRM' }, url: link }],
           },
         ]
-        const r = await postDm(slackUserId!, text, blocks)
+        const r = await postDm(SLACK_BOT_TOKEN!, slackUserId!, text, blocks)
         if (r.ok) {
           await logSlackDelivery(novoAtribuido, 'tarefa', tarefa.id, 'tarefa', r.ts, tarefa.titulo)
         }

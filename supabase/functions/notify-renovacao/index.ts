@@ -11,23 +11,17 @@
 //   SUPABASE_SERVICE_ROLE_KEY — injetado automaticamente
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
-import { timingSafeEqual } from 'https://deno.land/std@0.224.0/crypto/timing_safe_equal.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+// ─── Plan 5-02: companion e-mail per-user (D-01 broadcast Slack preservado) ──
+import { constantTimeAuthCheck } from '../_shared/auth.ts'
+import { loadPrefs, findDiretores } from '../_shared/perfis.ts'
+import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { renderRenovacao } from '../_shared/templates/render.ts'
 
 interface RenovacaoPayload {
   contrato_id: string
   dias_antes:  number
-}
-
-function constantTimeAuthCheck(received: string, expectedSecret: string): boolean {
-  const enc = new TextEncoder()
-  const expected = enc.encode(`Bearer ${expectedSecret}`)
-  const got = enc.encode(received)
-  if (got.length !== expected.length) {
-    timingSafeEqual(expected, expected)
-    return false
-  }
-  return timingSafeEqual(got, expected)
 }
 
 const SLACK_BOT_TOKEN          = Deno.env.get('SLACK_BOT_TOKEN')
@@ -68,14 +62,18 @@ interface ContratoHidratado {
   valor_mensal: number | null
   valor_total:  number | null
   tipo: string
+  cliente_id: string | null
   cliente_nome: string | null
   cliente_empresa: string | null
+  // D-07: lê responsavel_id atual no momento do disparo (cron) — sem snapshot.
+  // Se o responsável muda entre schedule e dispatch, o destinatário é o NOVO.
+  responsavel_id: string | null
 }
 
 async function hydrateContrato(contratoId: string): Promise<ContratoHidratado | null> {
   const { data, error } = await supabase
     .from('contratos')
-    .select('id, data_fim, valor_mensal, valor_total, tipo, cliente:clientes(nome, empresa)')
+    .select('id, data_fim, valor_mensal, valor_total, tipo, cliente_id, responsavel_id, cliente:clientes(nome, empresa)')
     .eq('id', contratoId)
     .maybeSingle<{
       id: string
@@ -83,6 +81,8 @@ async function hydrateContrato(contratoId: string): Promise<ContratoHidratado | 
       valor_mensal: number | null
       valor_total: number | null
       tipo: string
+      cliente_id: string | null
+      responsavel_id: string | null
       cliente: { nome: string | null; empresa: string | null } | null
     }>()
 
@@ -94,8 +94,10 @@ async function hydrateContrato(contratoId: string): Promise<ContratoHidratado | 
     valor_mensal: data.valor_mensal,
     valor_total: data.valor_total,
     tipo: data.tipo,
+    cliente_id: data.cliente_id,
     cliente_nome: data.cliente?.nome ?? null,
     cliente_empresa: data.cliente?.empresa ?? null,
+    responsavel_id: data.responsavel_id,
   }
 }
 
@@ -230,5 +232,80 @@ serve(async (req) => {
     .eq('contrato_id', payload.contrato_id)
     .eq('dias_antes', payload.dias_antes)
 
-  return json({ ok: true, ts: result.ts })
+  // ─── Plan 5-02: companion e-mail per-user (D-01 broadcast preservado) ──────
+  const emailResults = await dispatchEmailRenovacao(contrato, payload.dias_antes).catch((e) => ({
+    error: e instanceof Error ? e.message : String(e),
+  }))
+
+  return json({ ok: true, ts: result.ts, email: emailResults })
 })
+
+// ─── Plan 5-02: dispatch per-user de e-mail para renovação ───────────────────
+// Lê contrato.responsavel_id JÁ HIDRATADO no momento do disparo (D-07).
+// Fallback p/ diretores se NULL (D-05). Prefs.renovacao.email gate.
+async function dispatchEmailRenovacao(
+  contrato: ContratoHidratado,
+  diasAntes: number,
+): Promise<{ targets: number; sent: number; skipped: number; fallback: boolean }> {
+  const fallback = !contrato.responsavel_id
+  const targetIds: string[] = fallback
+    ? (await findDiretores(supabase)).map((d) => d.id)
+    : [contrato.responsavel_id!]
+
+  let sent = 0
+  let skipped = 0
+
+  for (const perfilId of targetIds) {
+    const { data: perfil } = await supabase
+      .from('perfis')
+      .select('email, nome')
+      .eq('id', perfilId)
+      .maybeSingle<{ email: string | null; nome: string | null }>()
+
+    if (!perfil?.email) {
+      skipped++
+      continue
+    }
+
+    const prefs = await loadPrefs(supabase, perfilId)
+    if (!prefs?.renovacao?.email) {
+      skipped++
+      continue
+    }
+
+    const valorBRL =
+      contrato.valor_total != null
+        ? contrato.valor_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : contrato.valor_mensal != null
+          ? `${contrato.valor_mensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/mês`
+          : '—'
+
+    const deepLink = contrato.cliente_id
+      ? `${APP_URL.replace(/\/$/, '')}/clientes/${contrato.cliente_id}`
+      : `${APP_URL.replace(/\/$/, '')}/contratos`
+
+    const magicLink = await generateMagicLink(supabase, perfil.email, '/me?tab=notificacoes')
+    const html = renderRenovacao({
+      nomeResponsavel: perfil.nome ?? 'Consultor',
+      nomeCliente: contrato.cliente_nome ?? contrato.cliente_empresa ?? '(cliente)',
+      diasAteRenovacao: diasAntes,
+      valorContrato: valorBRL,
+      deepLink,
+      gerenciarPrefsLink: magicLink,
+    })
+
+    const r = await sendEmail(supabase, {
+      perfilId,
+      toEmail: perfil.email,
+      tipo: 'renovacao',
+      entidadeId: contrato.id,
+      entidadeTipo: 'contrato',
+      subject: `Renovação em ${diasAntes} dia(s): ${contrato.cliente_nome ?? '(cliente)'}`,
+      html,
+    })
+    if (r.ok) sent++
+    else skipped++
+  }
+
+  return { targets: targetIds.length, sent, skipped, fallback }
+}
