@@ -107,10 +107,10 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 
 ## Session Continuity
 
-**Last action:** Phase 04 Wave 1 completa (2026-05-27) — 04-01 (helpers receita.ts + 36 testes TDD) e 04-02 (ContratosPage `?vencendo_em_dias` drill-down) executados em paralelo via worktrees, mesclados em main. Suite full: 173 pass, zero regressão; lint limpo nos arquivos modificados.
-**Next action:** Wave 2 / Plan 04-03 — ReceitaPage end-to-end (4 cards + LineChart 6m+3m + lista renovações 30/60/90 + sem data_fim), rota /receita, nav sidebar gated coordenador+, smoke E2E. `autonomous: false` → contém checkpoints humanos.
-**Open questions:** validação visual da ReceitaPage será no checkpoint final de Phase 04 (per `workflow.human_verify_mode=end-of-phase`).
+**Last action:** Phase 04 completa (2026-05-27) — Wave 1 (04-01 + 04-02 via worktrees paralelos) + Wave 2 (04-03 inline após bloqueios de sandbox de worktree/sequential agents) entregues. Suite final: 173 pass, zero regressão; typecheck e lint limpos nos arquivos modificados; todos os REV-01/02/03 satisfeitos.
+**Next action:** UAT humano de `/receita` (10 cenários do Task 2 do Plan 04-03) + verificação cross-phase (`gsd-verifier`) + close-out da Milestone 2. UAT deferido per `workflow.human_verify_mode=end-of-phase`.
+**Open questions:** validação visual da ReceitaPage no navegador real + observação do volume de contratos em produção (Open Q3 RESOLVED registra-se aqui).
 
 ---
 
-*Last updated: 2026-05-27 after Wave 1 of Phase 04*
+*Last updated: 2026-05-27 after Phase 04 completion*
