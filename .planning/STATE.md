@@ -135,15 +135,16 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Wave 1 (Plan 05-01) executada em 2026-05-27. Worktree spawn → 5 tasks → 3 commits atômicos (`2eb4367` migration, `bc6979b` helpers, `ffa4c49` notify-tarefa) + SUMMARY (`f513b9f`). Fix inline da generated column immutable (`32af69b`) durante apply. Migration aplicada manualmente via Supabase Studio (`supabase db push` falhou com 42501 — bug do CLI). Edge function deployed via `supabase functions deploy notify-tarefa`. Smoke test pulado (manual depois). Tests: 202 passed, 14 skipped, 1 todo. Worktree branch `worktree-agent-ac7e04fd3c5f2a816` mantido (cleanup adiado por opção do usuário).
+**Last action:** Wave 1 (Plan 05-01) executada em 2026-05-27. Worktree spawn → 5 tasks → 3 commits atômicos (`2eb4367` migration, `bc6979b` helpers, `ffa4c49` notify-tarefa) + SUMMARY (`f513b9f`). Fix inline da generated column immutable (`32af69b`) durante apply. Migration aplicada manualmente via Supabase Studio (`supabase db push` falhou com 42501 — agora documentado no tech-debt com fix via `SUPABASE_DB_PASSWORD`). Edge function deployed via `supabase functions deploy notify-tarefa`. Smoke test pulado (manual depois). Tests: 202 passed, 14 skipped, 1 todo. Worktree do Plan 05-01 cleanup OK.
 **Next action:** Quando quiser, `/gsd-execute-phase 5 --wave 2` pra Plan 05-02 (refactor notify-resumo-diario/indicacao/renovacao pra usar helper + edge function `resend-webhook` com HMAC svix + 3 templates adicionais). Smoke test do notify-tarefa: atribuir uma tarefa real pelo CRM e verificar que linha aparece em `notificacoes_envios` com status `queued`/`delivered`.
-**Open questions:** (1) `supabase db push` CLI bug — investigar antes do push da próxima migration ou continuar aplicando via Studio. (2) Worktree cleanup pendente em `.claude/worktrees/agent-ac7e04fd3c5f2a816`.
+**Open questions:** nenhuma — Wave 1 está fechada. CLI bug do `supabase db push` documentado no tech-debt; orphan worktrees pré-existentes (`agent-a026b738fa11cbd99`, `agent-abb4ea3eb4032a6de`, `agent-ac6661204c53f4c55`) foram deixados intactos por não serem desta sessão.
 
 ## Tech Debt
 
 | Item | Origem | Bloqueio | Plano |
 |------|--------|----------|-------|
 | Migrar sender `resend.dev` → `notif@consej.com.br` | Phase 5 | Credencial Registro.br (Andrieli — `comunicacao.consej@gmail.com`) | Quando contato com Andrieli destravar: adicionar 3 registros DNS (TXT DKIM + MX feedback + TXT SPF no subdomínio `send`), verificar via Resend API, atualizar edge function para usar novo from address. Domínio `consej.com.br` já está cadastrado no Resend (id `3b6472fc-b277-42ed-a22f-2dc41dab81d7`, status `not_started`) — só falta DNS. |
+| `supabase db push` falha com `42501: permission denied to alter role cli_login_postgres` | Phase 5 (descoberto no Plan 05-01) | DB user do projeto não tem CREATEROLE — CLI v2.101.0 tenta rotacionar role temporária pra cada push. | **Fix permanente:** pegar DB password em `https://supabase.com/dashboard/project/wfnriqwkzdazdbuzbyug/settings/database` (seção "Database password" — reset se não souber), depois `setx SUPABASE_DB_PASSWORD "<password>"` (PowerShell, persistente) e reiniciar shell. **Fix per-comando:** `supabase db push -p "<password>"`. **Workaround atual:** aplicar migrations via Supabase Studio SQL Editor (https://supabase.com/dashboard/project/wfnriqwkzdazdbuzbyug/sql/new). |
 
 ---
 
