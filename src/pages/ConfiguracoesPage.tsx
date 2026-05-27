@@ -14,6 +14,8 @@ import { SEGMENTS, BUDGET_OPTIONS, SERVICE_AREAS } from '@/lib/constants'
 import type { ServicoConfig, MetasConfig, ServicoCategoria, MensagensConfig } from '@/types'
 import { DEFAULT_MENSAGENS_CONFIG } from '@/hooks/useConfiguracoes'
 import { STAGES, SECTORS, CHANNELS, TEMPLATES } from '@/pages/MensagensPage'
+import { QuotaResendBanner } from '@/components/shared/QuotaResendBanner'
+import { RequireRole } from '@/components/shared/RequireRole'
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -348,6 +350,10 @@ export function ConfiguracoesPage() {
     <div>
       <h1 className="text-xl font-bold text-foreground mb-6">Configurações</h1>
       <div className="max-w-2xl space-y-4">
+
+        <RequireRole atLeast="coordenador" fallback={null}>
+          <QuotaResendBanner />
+        </RequireRole>
 
         {/* Portfólio de Serviços */}
         <Card>

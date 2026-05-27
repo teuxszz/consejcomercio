@@ -14,6 +14,11 @@ vi.mock('@/hooks/useAdocao', () => ({
   useAdocaoAtividade: () => ({ data: [], isLoading: false }),
   useLeadsEsquecidos: () => ({ data: [], isLoading: false }),
 }))
+// Plan 05-03 adicionou QuotaResendBanner em AdocaoPage; ele importa useQuotaResend
+// → supabase. Mockamos pra evitar boot do client real (env vars ausentes em CI).
+vi.mock('@/hooks/useQuotaResend', () => ({
+  useQuotaResend: () => ({ data: { hoje: 0, mes: 0 } }),
+}))
 
 import { useCurrentRole } from '@/hooks/useCurrentRole'
 import { AdocaoPage } from '../AdocaoPage'

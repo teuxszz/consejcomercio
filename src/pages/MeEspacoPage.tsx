@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { LayoutDashboard, CheckSquare, Users, Calendar, UserCircle2 } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, Users, Calendar, UserCircle2, Bell } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { useMinhasTarefas } from '@/hooks/useTarefas'
@@ -16,14 +16,16 @@ import { TarefasPanel } from '@/components/me/TarefasPanel'
 import { MeusLeadsPanel } from '@/components/me/MeusLeadsPanel'
 import { MinhaAgendaPanel } from '@/components/me/MinhaAgendaPanel'
 import { PerfilPanel } from '@/components/me/PerfilPanel'
+import { NotificacoesPanel } from '@/components/me/NotificacoesPanel'
 import { TERMINAL_STAGES } from '@/lib/constants'
 
 const TABS = [
-  { id: 'visao',    label: 'Visão Geral',     icon: LayoutDashboard },
-  { id: 'tarefas',  label: 'Minhas Tarefas',  icon: CheckSquare    },
-  { id: 'leads',    label: 'Meus Leads',      icon: Users          },
-  { id: 'agenda',   label: 'Minha Agenda',    icon: Calendar       },
-  { id: 'perfil',   label: 'Perfil',          icon: UserCircle2    },
+  { id: 'visao',         label: 'Visão Geral',     icon: LayoutDashboard },
+  { id: 'tarefas',       label: 'Minhas Tarefas',  icon: CheckSquare    },
+  { id: 'leads',         label: 'Meus Leads',      icon: Users          },
+  { id: 'agenda',        label: 'Minha Agenda',    icon: Calendar       },
+  { id: 'notificacoes',  label: 'Notificações',    icon: Bell           },
+  { id: 'perfil',        label: 'Perfil',          icon: UserCircle2    },
 ] as const
 
 type TabId = typeof TABS[number]['id']
@@ -115,6 +117,7 @@ export function MeEspacoPage() {
         <TabsContent value="tarefas" className="mt-6"><TarefasPanel    userId={userId} /></TabsContent>
         <TabsContent value="leads"   className="mt-6"><MeusLeadsPanel  userId={userId} /></TabsContent>
         <TabsContent value="agenda"  className="mt-6"><MinhaAgendaPanel userId={userId} /></TabsContent>
+        <TabsContent value="notificacoes" className="mt-6"><NotificacoesPanel /></TabsContent>
         <TabsContent value="perfil"  className="mt-6"><PerfilPanel /></TabsContent>
       </Tabs>
     </div>

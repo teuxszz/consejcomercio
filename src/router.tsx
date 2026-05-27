@@ -17,6 +17,7 @@ import { ConfiguracoesPage } from '@/pages/ConfiguracoesPage'
 import { SlackPage } from '@/pages/SlackPage'
 import { ReunioesPage } from '@/pages/ReunioesPage'
 import { MeEspacoPage } from '@/pages/MeEspacoPage'
+import { NotificacoesHistoricoPage } from '@/pages/NotificacoesHistoricoPage'
 import { MensagensPage } from '@/pages/MensagensPage'
 import { CadenciaPage } from '@/pages/CadenciaPage'
 import { ObjecoesPage } from '@/pages/ObjecoesPage'
@@ -74,6 +75,9 @@ export const router = createBrowserRouter([
       { path: 'importar', element: <ImportarPage /> },
       { path: 'pos-juniors', element: <PosJuniorsPage /> },
       { path: 'me', element: <MeEspacoPage /> },
+      { path: 'me/notificacoes-historico', element: <NotificacoesHistoricoPage /> },
+      { path: 'me/preferencias', element: <Navigate to="/me?tab=notificacoes" replace /> },
+      { path: 'preferencias', element: <Navigate to="/me?tab=notificacoes" replace /> },
       { path: 'perfil', element: <Navigate to="/me?tab=perfil" replace /> },
       { path: 'ajuda', element: <AjudaPage /> },
       { path: 'ranking', element: <RankingPage /> },

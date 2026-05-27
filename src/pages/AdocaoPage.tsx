@@ -3,6 +3,7 @@ import { differenceInDays, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Card, CardContent } from '@/components/ui/card'
 import { RequireRole } from '@/components/shared/RequireRole'
+import { QuotaResendBanner } from '@/components/shared/QuotaResendBanner'
 import { LeadsEsquecidosTable } from '@/components/adocao/LeadsEsquecidosTable'
 import { useAdocaoAtividade } from '@/hooks/useAdocao'
 
@@ -13,6 +14,10 @@ function AdocaoContent() {
   return (
     <div className="space-y-8">
       <h1 className="text-xl font-bold text-foreground">Adoção</h1>
+
+      <RequireRole atLeast="coordenador">
+        <QuotaResendBanner />
+      </RequireRole>
 
       <section>
         <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
