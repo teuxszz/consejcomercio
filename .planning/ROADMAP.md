@@ -47,12 +47,12 @@
 3. Coordenador+ vê `/me/notificacoes-historico` com 30 dias de envios + status de entrega (Resend webhook), pode reenviar.
 4. Limite Resend free tier (100/dia, 3k/mês) não é excedido em uso normal — gating UI mostra warning se aproximando.
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — Foundation + First Email (Tarefa) — migration 035 + helpers `_shared/` + notify-tarefa refatorada + Resend MVP end-to-end (EMAIL-01 parcial, EMAIL-02, EMAIL-03 parcial)
 - [x] 05-02-PLAN.md — Extend para cadência/renovação/indicação + edge function `resend-webhook` para tracking automático (EMAIL-02, EMAIL-03, EMAIL-04 backend)
-- [ ] 05-03-PLAN.md — UI internos: tab Notificações em MeEspacoPage + página `/me/notificacoes-historico` + reenviar + banner quota coord+ (EMAIL-01, EMAIL-04)
+- [x] 05-03-PLAN.md — UI internos: tab Notificações em MeEspacoPage + página `/me/notificacoes-historico` + reenviar + banner quota coord+ (EMAIL-01, EMAIL-04)
 - [ ] 05-04-PLAN.md — Portal cliente: página `/portal/preferencias` placeholder preparando Phase 7 (EMAIL-01)
 
 **UI hint:** sim (página de preferências + histórico)
@@ -143,7 +143,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 5. Multi-Channel Notifications (Email) | 2/4 | In Progress|  |
+| 5. Multi-Channel Notifications (Email) | 3/4 | In Progress|  |
 | 6. PWA + Push Notifications | 0/TBD | Not started | - |
 | 7. Client Portal Expansion | 0/TBD | Not started | - |
 | 8. Individual Performance Reports | 0/TBD | Not started | - |
