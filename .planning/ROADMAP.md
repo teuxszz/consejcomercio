@@ -34,8 +34,9 @@
 
 ## Phase Details
 
-### Phase 5: Multi-Channel Notifications (Email)
+### Phase 5: Multi-Channel Notifications (Email) ✅ Complete
 
+**Status:** Complete (2026-05-27 — UAT 7/7 pass · UI audit 20/24 · SECURITY 7/7 threats verified)
 **Goal:** As a consultor CONSEJ, I want to escolher receber notificações via Slack, e-mail ou ambos (granular por tipo) com histórico de entrega e botão de reenvio, so that quem não usa Slack ainda receba todas as notificações da v2.0 por e-mail sem perda de funcionalidade.
 **Mode:** mvp
 **Requirements:** EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04

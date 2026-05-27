@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
-current_phase: 05
-status: phase_complete_pending_verify
-last_updated: "2026-05-27T19:59:27.353Z"
+current_phase: 06
+status: phase_complete
+last_updated: "2026-05-27T21:00:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
   completed_plans: 4
   percent: 16
@@ -32,15 +32,15 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 05 (multi-channel-notifications-email) — ALL PLANS COMPLETE, awaiting verify
+Phase: 05 (multi-channel-notifications-email) — ✅ COMPLETE
 Plan: 4 of 4 complete
-**Current phase:** 05
+**Current phase:** 05 (closed) → próxima Phase 06 (PWA + Push Notifications)
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
-**Phase status:** TODAS as 4 waves COMPLETE. Backend multi-canal (helpers `_shared/` + 4 notify-* refatoradas + resend-webhook + reenviar-notificacao), UI interna (matriz prefs + histórico + quota banner), Portal placeholder (D-10). EMAIL-01..04 implementados. 256 testes verdes, build OK. Próximo: smoke test prático + `/gsd-verify-work 5` para fechar phase formalmente OU pular pra Phase 6.
-**Milestone status:** Active, 0/6 phases complete (Phase 5 ALL PLANS DONE — verify pendente)
+**Phase status:** Phase 5 fechada. UAT 7/7 pass, UI audit 20/24 (sem blockers de produção exceto reenviar-sem-confirmação flagado), SECURITY 7/7 threats (T-05-01..07) verified. Backend multi-canal deployed (6 edge functions), migration 035 em prod, UI interna + portal placeholder shipped. CORS fix inline durante UAT (a760c96).
+**Milestone status:** v3.0 Active, **1/6 phases complete (16%)**
 
 ```
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6 phases complete)
+Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/6 phases complete)
 ```
 
 ---
@@ -49,7 +49,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 5 | Multi-Channel Notifications (Email) | EMAIL-01..04 | Ready to plan |
+| 5 | Multi-Channel Notifications (Email) | EMAIL-01..04 | ✅ Complete |
 | 6 | PWA + Push Notifications | PUSH-01..04 | Not started |
 | 7 | Client Portal Expansion | PORTAL-01..04 | Not started |
 | 8 | Individual Performance Reports | REP-01..04 | Not started |
@@ -135,9 +135,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Smoke test E2E confirmado pelo usuário ("o email funcionou"). Cadeia completa validada: tarefa atribuída → trigger DB → notify-tarefa → helper sendEmail → Resend API → inbox real. `/gsd-extract-learnings 5` produziu `05-LEARNINGS.md` (commit `60df3e9`): 14 decisões, 9 lições, 8 patterns, 7 surpresas com source attribution.
-**Next action:** (1) `/gsd-verify-work 5` pra fechar phase formalmente OU (2) `/gsd-execute-phase 6` pra arrancar Phase 6 (PWA + Push Notifications) OU (3) follow-up rápido: botão "Nova tarefa" inline em LeadDetailPage + ClienteDetailPage (gap antigo da v2.0, ~30 linhas total).
-**Open questions:** nenhuma — Phase 5 funcionalmente entregue + smoke E2E validado + learnings capturados.
+**Last action:** Phase 5 **fechada formalmente** em 2026-05-27. Stack final: UAT 7/7 pass (CORS fix inline em commit `a760c96`), UI audit 20/24 (`28f3a1b`), SECURITY 7/7 threats verified — `T-05-01` HMAC svix manual + replay 5min, `T-05-02` escapeHtml em 4 templates, `T-05-03` quota banner coord+ + Resend 429, `T-05-04` RLS role-aware + dual-client edge, `T-05-05` magic link via `admin.generateLink`, `T-05-06` findDiretores idempotente, `T-05-07` self-loop guard + webhook secret.
+**Next action:** `/gsd-plan-phase 6` ou `/gsd-execute-phase 6` — Phase 6 (PWA + Push Notifications). Pré-requisitos: gerar VAPID keys + setar `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` como Supabase Secrets (ver Phase 6 pre-start no STATE.md).
+**Open questions:** nenhuma — Phase 5 100% closed (verify + UI + security todos verdes).
 
 ## Tech Debt
 
