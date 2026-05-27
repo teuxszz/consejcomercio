@@ -1107,17 +1107,17 @@ Alternativa: armazenar HTML em `.html` files e importar via `Deno.readTextFile(i
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Backfill de perfis existentes:** o trigger `handle_new_user` só roda em INSERT. A migration 035 precisa de UPDATE explícito (Q4 mostra o script). **Planner confirma na PLAN que essa linha está incluída.**
+1. **RESOLVED — Backfill de perfis existentes:** o trigger `handle_new_user` só roda em INSERT. A migration 035 inclui UPDATE explícito conforme script da Q4. Plan 1 Task 1 (migration) inclui o backfill na mesma migration — aceito pelo planner.
 
-2. **Resposta a "Reenviar" — Edge Function direta ou RPC?**
-   - Opção A: hook chama `supabase.functions.invoke('reenviar-notificacao', { body: { id } })` — simples, mas expõe edge function nova
-   - Opção B: hook chama `supabase.rpc('reenviar_notificacao', { p_id })` que internamente faz HTTP callout via `pg_net` (padrão de 031) para o Edge Function — mais alinhado com pattern existente, mais auditável
+2. **RESOLVED — Resposta a "Reenviar" — Edge Function direta ou RPC?**
+   - Opção A: hook chama `supabase.functions.invoke('reenviar-notificacao', { body: { id } })` — simples, expõe edge function nova
+   - Opção B: hook chama `supabase.rpc('reenviar_notificacao', { p_id })` que internamente faz HTTP callout via `pg_net` (padrão de 031) — mais alinhado com pattern existente
 
-   **Recomendação:** Opção A (Edge Function direta `reenviar-notificacao` reutilizando o helper `sendEmail`). Mais simples, sem callout indireto. RLS protege via JWT.
+   **Recomendação adotada:** Opção A (Edge Function direta `reenviar-notificacao` reutilizando o helper `sendEmail`). Mais simples, sem callout indireto. RLS protege via JWT. Implementado em Plan 3 Task 4.
 
-3. **Cliente sem prefs (Phase 5 only cria UI vazia em `/portal/preferencias`):** clientes ainda não recebem nenhum e-mail em Phase 5. Confirmar que o helper `sendEmail` não roda para clientes nesta phase — apenas para internos (responsáveis de leads/contratos/tarefas).
+3. **RESOLVED — Cliente sem prefs em Phase 5:** confirmado que o helper `sendEmail` só é chamado por notify-* (tarefa, cadência, renovação, indicação) com destinatário interno (responsáveis de leads/contratos/tarefas). Clientes não recebem e-mails em Phase 5. UI `/portal/preferencias` é placeholder per D-10 (integração real ativa em Phase 7).
 
 ---
 
