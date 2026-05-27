@@ -107,9 +107,9 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 
 ## Session Continuity
 
-**Last action:** Phase 04 completa (2026-05-27) — Wave 1 (04-01 + 04-02 via worktrees paralelos) + Wave 2 (04-03 inline após bloqueios de sandbox de worktree/sequential agents) entregues. Suite final: 173 pass, zero regressão; typecheck e lint limpos nos arquivos modificados; todos os REV-01/02/03 satisfeitos.
-**Next action:** UAT humano de `/receita` (10 cenários do Task 2 do Plan 04-03) + verificação cross-phase (`gsd-verifier`) + close-out da Milestone 2. UAT deferido per `workflow.human_verify_mode=end-of-phase`.
-**Open questions:** validação visual da ReceitaPage no navegador real + observação do volume de contratos em produção (Open Q3 RESOLVED registra-se aqui).
+**Last action:** Phase 04 completa e aprovada em UAT (2026-05-27). 12/12 must-haves verificados estaticamente via `gsd-verifier`; UAT humano dos 10 cenários aprovado pelo usuário. Phase goal "gestor decide receita em <30s sem planilha" atingido.
+**Next action:** Avaliar close-out da Milestone 2 (`gsd-complete-milestone`). Atenção: ROADMAP marca Phase 1 (Tasks + Adoption Signal) como "Not started" mas existem commits `feat(tasks)` e `feat(adopt)` em git history sem SUMMARY.md — confirmar com o usuário se Phase 1 foi entregue informalmente ou se há gap real antes de fechar a milestone.
+**Open questions:** Phase 1 sem SUMMARY.md por plan (01-01..01-04) — formalizar retroativamente ou aceitar como executada-mas-não-documentada?
 
 ---
 
