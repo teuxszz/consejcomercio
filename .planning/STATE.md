@@ -83,9 +83,10 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 ### Todos por fase
 
 **Phase 5 (pre-start):**
-- Criar conta Resend free, gerar API key, adicionar como Supabase Secret `RESEND_API_KEY`
+- ✅ Conta Resend free criada + API key registrada como Supabase Secret `RESEND_API_KEY` (2026-05-27)
 - Migration 035: tabela `notificacoes_envios` (histórico) + coluna `perfis.preferencias_notif` (JSONB)
 - Templates HTML simples em PT-BR para cada tipo de notif (tarefa/cadência/renovação/indicação)
+- Configurar domínio sender no Resend (default `onboarding@resend.dev` ok para dev; para prod usar `notif@consejconsultoria.com.br` se domínio já tem MX configurado)
 
 **Phase 6 (pre-start):**
 - Gerar VAPID keys (lib `web-push`) e adicionar `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` como Supabase Secrets
@@ -129,9 +130,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Milestone v3.0 iniciada em 2026-05-27 — PROJECT.md, REQUIREMENTS.md, ROADMAP.md e STATE.md criados/atualizados. 6 fases (5-10) e 25 requirements definidos. Notion explicitamente excluído. Phase numbering continua da v2.0.
-**Next action:** Rodar `/gsd-plan-phase 5` para detalhar a Phase 5 (Multi-Channel Notifications Email). Antes disso, criar conta Resend free e gerar API key como pre-requisito de setup.
-**Open questions:** Validar setup Resend (gratuidade real, deliverability em domínios .com.br). Definir conjunto exato de heurísticas para CLASS-01 com domain knowledge CONSEJ.
+**Last action:** Milestone v3.0 iniciada em 2026-05-27. PROJECT.md, REQUIREMENTS.md, ROADMAP.md e STATE.md criados. 6 fases (5-10), 25 requirements. RESEND_API_KEY já registrada como Supabase Secret.
+**Next action:** Rodar `/gsd-plan-phase 5` para detalhar a Phase 5 (Multi-Channel Notifications Email). Pré-requisito Resend já cumprido — pode iniciar planning quando quiser.
+**Open questions:** (1) Domínio sender para Resend em produção — usar `consejconsultoria.com.br` ou default `resend.dev`? (2) Definir conjunto exato de heurísticas para CLASS-01 com domain knowledge CONSEJ.
 
 ---
 
