@@ -45,11 +45,20 @@ interface NotifEnvio {
   subject: string | null
 }
 
+// ─── CORS ────────────────────────────────────────────────────────────────────
+// Browser chama via supabase.functions.invoke — precisa de preflight OPTIONS
+// + headers em todas as respostas.
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 // ─── Utils ───────────────────────────────────────────────────────────────────
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
   })
 }
 
@@ -84,6 +93,10 @@ function renderResendHtml(subjectOriginal: string): string {
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 serve(async (req) => {
+  // CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS })
+  }
   if (req.method !== 'POST') {
     return json({ ok: false, error: 'method not allowed' }, 405)
   }
