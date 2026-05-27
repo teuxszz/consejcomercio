@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
 current_phase: 05
 status: phase_complete_pending_verify
-last_updated: "2026-05-27T18:30:00.000Z"
+last_updated: "2026-05-27T19:59:27.353Z"
 progress:
   total_phases: 6
   completed_phases: 0
@@ -135,9 +135,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Wave 4 (Plan 05-04) executada em 2026-05-27. 2 commits (`88fdacc` PortalPreferenciasPage placeholder + nav + rota, `91e8a4b` SUMMARY). Per D-10: Switch desabilitado, sem persistência — integração real ativa na Phase 7. Worktree merged + cleanup OK. Build verde, 256 testes verdes. **Phase 5 ALL PLANS COMPLETE.**
-**Next action:** (1) Smoke test prático: atribuir tarefa real pelo CRM, abrir `/me/notificacoes-historico`, ver evolução `queued → delivered → opened`, testar reenviar. (2) Quando satisfeito, `/gsd-verify-work 5` pra rodar verifier formal OU avançar para Phase 6 (PWA + Push). (3) Considere `/gsd-extract-learnings 5` pra capturar decisões/surpresas antes do contexto sumir.
-**Open questions:** nenhuma — todas as 4 waves fechadas. Phase 5 funcionalmente entregue.
+**Last action:** Smoke test E2E confirmado pelo usuário ("o email funcionou"). Cadeia completa validada: tarefa atribuída → trigger DB → notify-tarefa → helper sendEmail → Resend API → inbox real. `/gsd-extract-learnings 5` produziu `05-LEARNINGS.md` (commit `60df3e9`): 14 decisões, 9 lições, 8 patterns, 7 surpresas com source attribution.
+**Next action:** (1) `/gsd-verify-work 5` pra fechar phase formalmente OU (2) `/gsd-execute-phase 6` pra arrancar Phase 6 (PWA + Push Notifications) OU (3) follow-up rápido: botão "Nova tarefa" inline em LeadDetailPage + ClienteDetailPage (gap antigo da v2.0, ~30 linhas total).
+**Open questions:** nenhuma — Phase 5 funcionalmente entregue + smoke E2E validado + learnings capturados.
 
 ## Tech Debt
 
