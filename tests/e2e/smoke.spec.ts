@@ -16,6 +16,7 @@ const ROTAS = [
   '/clientes',
   '/contratos',
   '/renovacoes',
+  '/receita',
   '/demandas',
   '/indicacoes',
   '/parceiros',
