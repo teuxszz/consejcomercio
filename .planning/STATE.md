@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
 current_phase: 05
-status: planned
-last_updated: "2026-05-27T15:30:00.000Z"
+status: executing
+last_updated: "2026-05-27T16:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 4
 ---
 
 # STATE — CONSEJ CRM v2 Milestone v3.0
@@ -32,11 +32,11 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 05 (multi-channel-notifications-email) — PLANNED
-Plan: 0 of 4 executados
+Phase: 05 (multi-channel-notifications-email) — EXECUTING (Wave 1 complete)
+Plan: 1 of 4 complete
 **Current phase:** 05
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
-**Phase status:** 4 PLAN.md gerados (Wave 1: 05-01, Wave 2: 05-02, Wave 3: 05-03, Wave 4: 05-04). Research + Validation + Patterns + Plan-check completos. Plan-checker reportou NEEDS_REVISION com 2 BLOCKers + 4 warnings — todos corrigidos inline. Pronto para `/gsd-execute-phase 5`.
+**Phase status:** Wave 1 (Plan 05-01) COMPLETE. Migration 035 aplicada em produção via Supabase Studio (CLI db push falhou por bug de cli_login_postgres role). Edge function `notify-tarefa` deployed com helpers `_shared/`. 202 testes verdes. Próximas waves: 05-02 (Wave 2, restantes notify-* + webhook Resend), 05-03 (Wave 3, UI internos), 05-04 (Wave 4, Portal placeholder).
 **Milestone status:** Active, 0/6 phases complete
 
 ```
@@ -135,9 +135,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Phase 5 planning completo em 2026-05-27. Stack de artefatos: `05-CONTEXT.md` (24 decisões) → `05-RESEARCH.md` (8 questões técnicas + Validation Arch + R1 risco) → `05-VALIDATION.md` (14 Wave-0 tests) → `05-PATTERNS.md` (25 files mapeados) → 4 PLAN.md (05-01..05-04, 14 tasks total). Plan-checker passou após fixes inline (B-1/B-2 dep Plan 4→Plan 3 wave 4; W-1 add testes UI Plan 3 Task 3; W-2 escopo email.fallback.test.ts; N-1 vitest.config.ts em files_modified).
-**Next action:** Rodar `/gsd-execute-phase 5` para executar Wave 1 (Plan 01 — migration 035 + helpers `_shared/` + notify-tarefa refactor + Wave-0 tests). Antes do merge de Plan 01: cumprir checkpoint humano R1 (pré-cadastrar e-mails internos CONSEJ na Resend Audience — `onboarding@resend.dev` é sandbox restrito).
-**Open questions:** (1) ✅ migration 035 confirmado em RESEARCH (última = 034). (2) ✅ Switch ausente confirmado — Plan 03 Task 1 inclui `npx shadcn@latest add switch` com gate humano. (3) ✅ deep-link via Supabase `admin.generateLink({type:'magiclink'})` — Plan 02 Task 2.
+**Last action:** Wave 1 (Plan 05-01) executada em 2026-05-27. Worktree spawn → 5 tasks → 3 commits atômicos (`2eb4367` migration, `bc6979b` helpers, `ffa4c49` notify-tarefa) + SUMMARY (`f513b9f`). Fix inline da generated column immutable (`32af69b`) durante apply. Migration aplicada manualmente via Supabase Studio (`supabase db push` falhou com 42501 — bug do CLI). Edge function deployed via `supabase functions deploy notify-tarefa`. Smoke test pulado (manual depois). Tests: 202 passed, 14 skipped, 1 todo. Worktree branch `worktree-agent-ac7e04fd3c5f2a816` mantido (cleanup adiado por opção do usuário).
+**Next action:** Quando quiser, `/gsd-execute-phase 5 --wave 2` pra Plan 05-02 (refactor notify-resumo-diario/indicacao/renovacao pra usar helper + edge function `resend-webhook` com HMAC svix + 3 templates adicionais). Smoke test do notify-tarefa: atribuir uma tarefa real pelo CRM e verificar que linha aparece em `notificacoes_envios` com status `queued`/`delivered`.
+**Open questions:** (1) `supabase db push` CLI bug — investigar antes do push da próxima migration ou continuar aplicando via Studio. (2) Worktree cleanup pendente em `.claude/worktrees/agent-ac7e04fd3c5f2a816`.
 
 ## Tech Debt
 
