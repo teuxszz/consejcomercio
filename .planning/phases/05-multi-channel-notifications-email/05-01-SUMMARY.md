@@ -207,6 +207,27 @@ Não há gate-trip de MVP+TDD aplicável (modo MVP, mas Plan é tipo `execute`).
 
 **Test suite:** `npm test` — 26 files, 202 tests passed, 14 skipped (RLS sem .env.test), 1 todo. Sem regressões.
 
-## Next: Task 4 Checkpoint
+## Tasks 4 & 5 — Closeout (2026-05-27 pós-checkpoint)
 
-Plan paused. Task 4 (R1 audit no Resend Dashboard) e Task 5 (`supabase db push` + deploy) aguardam ação humana — ver bloco `## CHECKPOINT REACHED` na resposta do executor ao orchestrator.
+### Task 4 (R1) — `approved`
+Usuário (Gabriel) confirmou pré-cadastro de e-mails internos CONSEJ na Resend Audience antes do push. Sender `onboarding@resend.dev` permanece (D-24); migração para `notif@consej.com.br` segue como tech-debt no STATE.md aguardando DNS via Andrieli.
+
+### Task 5 (BLOCKING) — `supabase db push` + deploy notify-tarefa
+
+**5a. `supabase db push` via CLI:** falhou com `42501: permission denied to alter role "cli_login_postgres"` — bug conhecido do Supabase CLI ao tentar criar/rotacionar `cli_login_postgres`. Não afeta a migration em si.
+
+**5b. Fix de migration descoberto durante apply:** Postgres rejeitou `dia date GENERATED ALWAYS AS (sent_at::date) STORED` com `42P17: generation expression is not immutable` — cast direto `timestamptz → date` não é immutable porque depende de `TimeZone` session var. Trocado por `((timezone('UTC', sent_at))::date)` que é immutable. Commit `32af69b`.
+
+**5c. Migration aplicada via Supabase Studio SQL Editor.** Verificação executada:
+```
+has_prefs_col=1, has_envios_table=1, has_quota_rpc=1, has_role_helper=1, perfis_backfilled=8
+```
+Todos os artefatos do schema 035 estão em produção.
+
+**5d. Edge function `notify-tarefa` deployed** via `supabase functions deploy notify-tarefa` (Docker não rodando — usado fallback bundle, OK). Assets `_shared/` (auth, perfis, email, templates) subiram juntos. Dashboard confirma deploy no projeto `wfnriqwkzdazdbuzbyug`.
+
+**5e. Smoke test automatizado:** pulado por escolha do usuário ("testar manualmente depois"). Próxima tarefa real atribuída pelo CRM dispara webhook → notify-tarefa → e-mail/Slack conforme prefs do destinatário (smart default: email ON sempre, Slack ON se `slack_user_id` populado). Verificação esperada: linha em `notificacoes_envios` com `status='queued'` ou `'delivered'`.
+
+### Plan 05-01 — Status final: COMPLETE
+
+Migration 035 aplicada em prod, helpers + notify-tarefa deployed, 202 testes verdes. Pronto para Plan 05-02 (estender helper aos outros 3 notify-* + webhook Resend Resend).
