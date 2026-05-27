@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-current_phase: 04
-current_plan: 1
-status: ready_to_plan
-last_updated: "2026-05-27T12:23:36.360Z"
+milestone: v2.0
+milestone_name: adocao-e-crescimento
+current_phase: archived
+current_plan: 0
+status: shipped
+last_updated: "2026-05-27T13:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 3
-  percent: 30
+  completed_plans: 10
+  percent: 100
 ---
 
-# STATE — CONSEJ CRM v2 Milestone 2
+# STATE — CONSEJ CRM v2 (post v2.0)
 
 *Single source of truth for current project position. Updated at each phase transition.*
 
@@ -22,95 +22,58 @@ progress:
 
 ## Project Reference
 
-**Milestone:** 2 — Adoção & Crescimento
-**Core value:** Transformar o CRM de "lugar onde deveria reportar" em "lugar onde o trabalho acontece"
+**Last shipped milestone:** v2.0 — Adoção & Crescimento (shipped 2026-05-27)
+**Core value delivered:** "Transformar o CRM de 'lugar onde deveria reportar' em 'lugar onde o trabalho acontece'"
 **Stack:** React 19 + Vite + Supabase (PostgreSQL + Auth + RLS + Edge Functions) + Vercel
 **Constraint:** Zero custo incremental de API/hosting
+
+Archives: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) · [v2.0-REQUIREMENTS.md](./milestones/v2.0-REQUIREMENTS.md)
 
 ---
 
 ## Current Position
 
-Phase: 04 (revenue-dashboard) — EXECUTING
-Plan: 1 of 3
-**Current phase:** 04
-**Current plan:** 1
-**Phase status:** Ready to execute (2 plans)
-**Milestone status:** In progress
+**Status:** No active milestone — v2.0 shipped, awaiting `/gsd-new-milestone` to start next cycle.
 
 ```
-Progress: [██████████░░░░░░░░░░] 50% (2/4 phases complete)
+Progress: [████████████████████] 100% (v2.0 complete: 4/4 phases, 10/10 plans, 23/23 requirements)
 ```
 
 ---
 
-## Phase Summary
+## v2.0 Phase Summary (shipped)
 
-| Phase | Name | Requirements | Status |
-|-------|------|--------------|--------|
-| 1 | Tasks + Adoption Signal | SEC-01, SEC-02, TASK-01-04, NOTIF-04, ADOPT-01-03 | ✅ Complete |
-| 2 | Cadence Guide + WhatsApp Quick Actions | CAD-01-04, WA-01-03 | ✅ Complete |
-| 3 | Pull-back Notifications | NOTIF-01, NOTIF-02, NOTIF-03 | Not started |
-| 4 | Revenue Dashboard | REV-01, REV-02, REV-03 | Not started |
+| Phase | Name | Requirements | Status | Completed |
+|-------|------|--------------|--------|-----------|
+| 1 | Tasks + Adoption Signal | SEC-01/02, TASK-01..04, NOTIF-04, ADOPT-01..03 | ✅ Complete | 2026-05-27 (retroactive SUMMARY) |
+| 2 | Cadence Guide + WhatsApp Quick Actions | CAD-01..04, WA-01..03 | ✅ Complete | 2026-05-26 |
+| 3 | Pull-back Notifications | NOTIF-01/02/03 | ✅ Complete | 2026-05-26 |
+| 4 | Revenue Dashboard | REV-01/02/03 | ✅ Complete + UAT approved | 2026-05-27 |
 
 ---
 
-## Key Decisions Accumulated
+## Key Decisions (v2.0 — preserved)
 
 | Decision | Rationale | Phase |
 |----------|-----------|-------|
-| SEC-01 (RLS fix) deve preceder qualquer feature TASK em produção | Clientes do tipo `cliente` não podem ler tarefas internas | Phase 1 |
+| SEC-01 (RLS fix) precede qualquer feature TASK em produção | Clientes do tipo `cliente` não podem ler tarefas internas | Phase 1 |
 | Notificações via Slack edge functions existentes | Zero custo incremental; extensão do que já existe | Phase 3 |
-| `stand_by` incluído no NOT IN do cron 034 | Leads pausados não devem ser cobrados na cadência; alinhado com ACTIVE_LEAD_STAGES | Phase 3 |
-| DM consolidada (não por evento) com cron + edge function | Um único code path para NOTIF-02 + NOTIF-03; evita N DMs por dia | Phase 3 |
-| WhatsApp via wa.me links (sem API) | Meta Business API exigiria numero dedicado + custo fixo | Phase 2 |
-| Revenue dashboard bloqueado até time usar CRM diariamente | Dados incompletos tornam analytics inútil | Phase 4 |
-| Próxima migration: 033 | Fecha RLS de tarefas + coluna `notificar`; migration 034 = pg_cron diário | Phase 1/3 |
-
----
-
-## Accumulated Context
-
-### Blockers
-
-*(none atualmente)*
-
-### Todos por fase
-
-**Phase 1 (pre-start):**
-
-- Migration 033: policy `is_interno()` em `tarefas` + coluna `notificar boolean DEFAULT true`
-- Hook de tarefas já existe no codebase — Phase 1 é principalmente UI + migration
-
-**Phase 3 (pre-start):**
-
-- Migration 034: pg_cron daily job para resumo matinal e alertas de cadência
-
-### Validated assumptions
-
-- pg_cron já está ativo no Supabase cloud (verificado durante pesquisa)
-- Edge function `notify-tarefa` já deployada — Phase 3 é extensão, não criação
-- `recharts` e `PeriodSelector` já existem no codebase (usados no dashboard ICP)
-
----
-
-## Performance Metrics
-
-| Metric | Target | Current |
-|--------|--------|---------|
-| Consultor abre CRM 3x/semana | 3x/semana | baseline desconhecido |
-| Leads novos registrados no dia | 100% | baseline desconhecido |
-| Gestor vê receita do mês em < 30s | < 30s | indisponível (Phase 4) |
-| Leads perdidos por esquecimento | 0 em 30d após Phase 1 | baseline desconhecido |
+| `stand_by` incluído no NOT IN do cron 034 | Leads pausados não devem ser cobrados na cadência | Phase 3 |
+| DM consolidada (não por evento) com cron + edge function | Um único code path para NOTIF-02 + NOTIF-03 | Phase 3 |
+| WhatsApp via wa.me links (sem API) | Meta Business API exigiria número dedicado + custo fixo | Phase 2 |
+| Revenue dashboard depende de Phase 1 (adoção) | Dados incompletos tornam analytics inútil | Phase 4 |
+| MRR pro-rata em `valor_total ÷ duração` | Reflete receita "como se" o contrato fosse mensal | Phase 4 |
+| `valor_protegido` NÃO contribui ao MRR | Provisão de risco, não receita realizada | Phase 4 |
+| Forecast: contratos sem `data_fim` não entram em saídas | Sem data_fim significa "renova automaticamente" | Phase 4 |
 
 ---
 
 ## Session Continuity
 
-**Last action:** Phase 04 completa e aprovada em UAT (2026-05-27). 12/12 must-haves verificados estaticamente via `gsd-verifier`; UAT humano dos 10 cenários aprovado pelo usuário. Phase goal "gestor decide receita em <30s sem planilha" atingido.
-**Next action:** Avaliar close-out da Milestone 2 (`gsd-complete-milestone`). Atenção: ROADMAP marca Phase 1 (Tasks + Adoption Signal) como "Not started" mas existem commits `feat(tasks)` e `feat(adopt)` em git history sem SUMMARY.md — confirmar com o usuário se Phase 1 foi entregue informalmente ou se há gap real antes de fechar a milestone.
-**Open questions:** Phase 1 sem SUMMARY.md por plan (01-01..01-04) — formalizar retroativamente ou aceitar como executada-mas-não-documentada?
+**Last action:** Milestone v2.0 arquivada em 2026-05-27. ROADMAP colapsado, REQUIREMENTS arquivada, PROJECT.md atualizado com Current State + Next Goals. Git tag `v2.0` a criar.
+**Next action:** Iniciar Milestone v3.0 via `/gsd-new-milestone` quando houver decisão sobre escopo (notificações por e-mail, PWA push, integração Notion, portal do cliente expansion, etc.) — ver PROJECT.md "Next Milestone Goals".
+**Open questions:** Próximo escopo a ser definido em `/gsd-new-milestone` (questioning → research → requirements → roadmap).
 
 ---
 
-*Last updated: 2026-05-27 after Phase 04 completion*
+*Last updated: 2026-05-27 after archiving v2.0*

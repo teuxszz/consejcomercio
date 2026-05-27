@@ -1,97 +1,101 @@
-# CONSEJ CRM v2 — Milestone 2: Adoção & Crescimento
+# CONSEJ CRM v2
 
 ## What This Is
 
 CRM interno da CONSEJ (empresa júnior de consultoria jurídica em Natal/RN) que gerencia o ciclo completo de lead → cliente → contrato.
 
-O **Milestone 1** construiu a fundação: pipeline de leads, clientes, contratos, diagnósticos, ICP scoring, Slack, portal de indicações, auditoria. Tudo isso existe e funciona.
+## Current State (v2.0 shipped 2026-05-27)
 
-O **Milestone 2** resolve o problema real: **o time não usa o CRM direito**. Com 2-5 pessoas, o CRM existe mas é subutilizado — o time esquece de abrir e não tem clareza sobre o que fazer quando abre. Isso significa dados incompletos, leads esquecidos e liderança operando no escuro.
+**Última entrega:** Milestone v2.0 — Adoção & Crescimento ✅ shipped
 
-## Core Value
+Transformou o CRM em "lugar onde o trabalho acontece":
+- Sistema de tarefas + sinal de adoção (`/tarefas`, `/adocao`)
+- Guia de cadência D-point + WhatsApp links (`/cadencia`, Kanban com badge)
+- Pull-back notifications via Slack (cron diário matinal)
+- Dashboard de receita end-to-end (`/receita` com MRR/ARR/forecast/renovações)
 
-> Transformar o CRM de "lugar onde deveria reportar" em "lugar onde o trabalho acontece" — criando razões para o time abrir todo dia e valor visível quando abre.
+Detalhes completos: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) · [v2.0-REQUIREMENTS.md](./milestones/v2.0-REQUIREMENTS.md)
+
+## Next Milestone Goals (v3.0 — a definir)
+
+Iniciar com `/gsd-new-milestone`. Tópicos potenciais (deferred do v2.0):
+
+- Notificações por e-mail como alternativa ao Slack
+- PWA / push notifications nativas mobile
+- Integração Notion (linkar atas e docs com leads/clientes)
+- Portal do cliente — expansão (upload docs + aprovação propostas)
+- Relatório de performance individual exportável (PDF/CSV)
+- Forecast com regressão linear (refino do helper `calcularForecast`)
+- IA para classificação automática de leads (somente após coletar mais dados)
 
 ## Who It's For
 
-- **Consultores CONSEJ** — precisam saber o que fazer com cada lead hoje, sem precisar lembrar da cadência
-- **Coordenadores/Diretores** — precisam ver receita, conversão e resultado sem pedir relatório manual
-- **Gabriel (gestor)** — precisa saber se o investimento no CRM está gerando resultado
+- **Consultores CONSEJ** — sabem o que fazer com cada lead hoje, sem precisar lembrar da cadência
+- **Coordenadores/Diretores** — vêem receita, conversão e resultado sem pedir relatório manual
+- **Gabriel (gestor)** — vê se o investimento no CRM está gerando resultado
 
 ## Context
 
 - **Stack:** React 19 + Vite + Supabase (PostgreSQL + Auth + RLS + Edge Functions)
 - **Team size:** 2–5 usuários internos
 - **Deployment:** Vercel (frontend) + Supabase cloud
-- **Budget constraint:** Zero custo incremental de API/hosting — integrações devem usar recursos já pagos
-- **Auth:** Email/password, perfis `interno` (role: consultor → coordenador → diretor) e `cliente`
+- **Budget constraint:** Zero custo incremental de API/hosting
+- **Auth:** Email/password, perfis `interno` (consultor → coordenador → diretor) e `cliente`
 - **Repo:** `consej-crm-v2/` (v2 ativo; v1 Next.js em `consej-crm/` é legado)
 
-## Requirements
+## Out of Scope (preserved across milestones)
 
-### Validated (já existe e funciona)
+- **WhatsApp Bot/API** — exige número dedicado + Meta Business API. Incompatível com zero custo
+- **Integração de e-mail (inbox por lead)** — OAuth + threading + storage; ROI incerto no curto prazo
+- **Multi-empresa / white-label** — CONSEJ only
+- **IA para classificação automática de leads** — sem dados suficientes para treinar
 
-- ✓ Auth email/password + perfis interno/cliente — existing
-- ✓ Pipeline de leads com Kanban (etapas arrastáveis com @dnd-kit) — existing
-- ✓ ICP scoring dinâmico (win rate, ganhos diretos vs atribuíveis, badge ICP-fit) — existing
-- ✓ Lixeira de leads (soft delete + restauração) — existing
-- ✓ Gestão de clientes (detail page, histórico) — existing
-- ✓ Módulo de contratos — existing
-- ✓ Módulo de diagnósticos — existing
-- ✓ Audit log global + por entidade — existing
-- ✓ Integração Slack (canais, mensagens via edge function autenticada) — existing
-- ✓ Portal de indicações + account switcher CRM ↔ Portal — existing
-- ✓ Onboarding wizard — existing
-- ✓ Busca global — existing
-- ✓ Error boundary + validação de env vars — existing
+---
 
-### Active (Milestone 2 — a construir)
+## Archive
 
-- [ ] Dashboard de receita — faturamento por período, contratos ativos, forecast, renovações pendentes
-- [ ] Sistema de tarefas por lead — to-dos com data e responsável atrelados ao lead
-- [ ] Rastreamento de cadência — CRM mostra quais leads estão no D3/D5/D7/D10 hoje
-- [ ] Tarefas internas do time — tarefas não atreladas a lead (preparar proposta, revisão de contrato)
-- [ ] Notificações de pull-back — alertas (email ou WhatsApp deep link) para trazer o time de volta ao CRM
-- [ ] Guia de próxima ação — sugestão contextual por lead ("está no D3, manda mensagem de follow-up")
-- [ ] Links rápidos de WhatsApp — `wa.me` com pré-texto da cadência, sem custo de API
-- [ ] Visibilidade de adoção — dashboard simples para gestor ver quem registrou o quê e o que está faltando
+<details>
+<summary>v2.0 — Adoção & Crescimento (shipped 2026-05-27)</summary>
 
-### Out of Scope
+Milestone que resolveu o problema "o time não usa o CRM direito". Entregou:
 
-- Bot WhatsApp com API (sem bot existente, exige infraestrutura de telefone/cloud — alto custo)
-- Integração de e-mail (inbox por lead) — complexidade alta para ROI incerto no curto prazo
-- Expansão significativa do Portal do cliente — fora do foco de adoção interna
-- Multi-empresa / white-label — CONSEJ só
+- 4 fases / 10 plans / 23 requirements / 66 commits / +16.389 LOC
+- Phase 1: Tasks + Adoption Signal (RLS fix, TarefaModal, sidebar badge, AdocaoPage)
+- Phase 2: Cadence Guide + WhatsApp Quick Actions (D-point Kanban, CadenciaInbox, wa.me)
+- Phase 3: Pull-back Notifications (Slack DMs via pg_cron + edge functions)
+- Phase 4: Revenue Dashboard (`/receita` com MRR/ARR/forecast/renovações)
 
-## Key Decisions
+Detalhes: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md)
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| WhatsApp via `wa.me` links (sem API) | Zero custo incremental; integração real exigiria número dedicado + Meta Business API | Links deep com pré-texto da cadência — suficiente para o use case atual |
-| Foco em adoção antes de features | Dados incompletos tornam analytics inútil. Resolver friction primeiro | Milestone 2 prioriza pull-back, processo claro e visibilidade de resultado |
-| Notificações via recursos existentes | Supabase edge functions já deployadas; usar `notify-tarefa` para alerts | Sem custo extra; extensão do que já existe |
+</details>
 
-## Success Metrics
+<details>
+<summary>v1.0 — Fundação (pré-GSD)</summary>
 
-- Consultor abre o CRM pelo menos 3x/semana (rastreável via audit log de login)
-- 100% dos leads novos registrados no mesmo dia de captação
-- Gestor consegue ver receita do mês atual em < 30 segundos
-- Zero leads perdidos por esquecimento de follow-up em 30 dias após lançamento das tarefas
+Construído antes do GSD ser adotado neste projeto. Entregou a base operacional:
+- Auth email/password + perfis interno/cliente
+- Pipeline de leads com Kanban (@dnd-kit) + ICP scoring dinâmico + lixeira (soft delete)
+- Módulos de clientes, contratos, diagnósticos
+- Audit log global e por entidade
+- Integração Slack (canais + mensagens via edge function autenticada)
+- Portal de indicações + account switcher CRM ↔ Portal
+- Onboarding wizard, busca global (Cmd+K), error boundary
+
+Sem archive formal — entregas registradas no git history.
+
+</details>
+
+---
 
 ## Evolution
 
-Este documento evolui a cada transição de fase.
+Este documento evolui a cada milestone shipped.
 
-**Após cada fase** (via `/gsd-transition`):
-1. Requirements invalidados? → Mover para Out of Scope com razão
-2. Requirements validados? → Mover para Validated com referência da fase
-3. Novos requirements emergiram? → Adicionar em Active
-4. Decisões a registrar? → Adicionar em Key Decisions
-
-**Após o milestone** (via `/gsd-complete-milestone`):
-1. Review completo de todas as seções
-2. Core Value check — ainda é a prioridade certa?
-3. Auditar Out of Scope — razões ainda válidas?
+**Ao iniciar próximo milestone** (via `/gsd-new-milestone`):
+1. Mover "Next Milestone Goals" para a seção de requirements ativos do novo
+2. Atualizar "Current State" quando o próximo milestone for shipped
+3. Adicionar entry colapsada na seção "Archive"
 
 ---
-*Last updated: 2026-05-26 after initialization*
+
+*Last updated: 2026-05-27 after archiving v2.0*
