@@ -6,10 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ResponsavelBadge } from '@/components/shared/ResponsavelBadge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { formatCurrency, getDaysUntilExpiry, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { classifyUrgency, type Urgencia } from '@/lib/receita'
 import type { Contrato } from '@/types'
-
-type Urgencia = 'critico' | 'alto' | 'medio' | 'baixo' | 'vencido'
 
 interface ContratoBucket extends Contrato {
   daysLeft: number
@@ -22,14 +20,6 @@ const URGENCIA_STYLE: Record<Urgencia, { label: string; bg: string; border: stri
   alto:    { label: '31–60 dias',  bg: 'rgba(249,115,22,0.10)',  border: 'rgba(249,115,22,0.35)', text: '#fb923c' },
   medio:   { label: '61–90 dias',  bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.30)', text: '#fbbf24' },
   baixo:   { label: '> 90 dias',   bg: 'var(--alpha-bg-xs)',     border: 'var(--alpha-border-md)', text: 'rgba(180,195,210,0.80)' },
-}
-
-function classifyUrgency(daysLeft: number): Urgencia {
-  if (daysLeft < 0)   return 'vencido'
-  if (daysLeft <= 30) return 'critico'
-  if (daysLeft <= 60) return 'alto'
-  if (daysLeft <= 90) return 'medio'
-  return 'baixo'
 }
 
 function monthKey(iso: string): string {
