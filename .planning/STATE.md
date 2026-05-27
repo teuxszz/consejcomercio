@@ -84,9 +84,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 **Phase 5 (pre-start):**
 - ✅ Conta Resend free criada + API key registrada como Supabase Secret `RESEND_API_KEY` (2026-05-27)
+- ✅ Decisão sender domain: usar `onboarding@resend.dev` (default Resend) em dev e prod inicialmente. Migrar para `notif@consej.com.br` quando DNS estiver configurado — bloqueado por credencial do Registro.br (contato Andrieli `comunicacao.consej@gmail.com`)
 - Migration 035: tabela `notificacoes_envios` (histórico) + coluna `perfis.preferencias_notif` (JSONB)
 - Templates HTML simples em PT-BR para cada tipo de notif (tarefa/cadência/renovação/indicação)
-- Configurar domínio sender no Resend (default `onboarding@resend.dev` ok para dev; para prod usar `notif@consejconsultoria.com.br` se domínio já tem MX configurado)
 
 **Phase 6 (pre-start):**
 - Gerar VAPID keys (lib `web-push`) e adicionar `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` como Supabase Secrets
@@ -132,7 +132,13 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 **Last action:** Milestone v3.0 iniciada em 2026-05-27. PROJECT.md, REQUIREMENTS.md, ROADMAP.md e STATE.md criados. 6 fases (5-10), 25 requirements. RESEND_API_KEY já registrada como Supabase Secret.
 **Next action:** Rodar `/gsd-plan-phase 5` para detalhar a Phase 5 (Multi-Channel Notifications Email). Pré-requisito Resend já cumprido — pode iniciar planning quando quiser.
-**Open questions:** (1) Domínio sender para Resend em produção — usar `consejconsultoria.com.br` ou default `resend.dev`? (2) Definir conjunto exato de heurísticas para CLASS-01 com domain knowledge CONSEJ.
+**Open questions:** (1) ✅ RESOLVIDO — usando `onboarding@resend.dev` por enquanto; migração para `notif@consej.com.br` é tech-debt aguardando DNS access via Andrieli. (2) Definir conjunto exato de heurísticas para CLASS-01 com domain knowledge CONSEJ (defer para o planning da Phase 10).
+
+## Tech Debt
+
+| Item | Origem | Bloqueio | Plano |
+|------|--------|----------|-------|
+| Migrar sender `resend.dev` → `notif@consej.com.br` | Phase 5 | Credencial Registro.br (Andrieli — `comunicacao.consej@gmail.com`) | Quando contato com Andrieli destravar: adicionar 3 registros DNS (TXT DKIM + MX feedback + TXT SPF no subdomínio `send`), verificar via Resend API, atualizar edge function para usar novo from address. Domínio `consej.com.br` já está cadastrado no Resend (id `3b6472fc-b277-42ed-a22f-2dc41dab81d7`, status `not_started`) — só falta DNS. |
 
 ---
 
