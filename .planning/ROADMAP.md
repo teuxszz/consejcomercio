@@ -104,12 +104,12 @@ Plans:
 2. Gráfico de evolução de MRR mês a mês dos últimos 6 meses está visível com seletor de período — gestor consegue identificar tendência de crescimento ou queda sem planilha.
 3. Lista de renovações pendentes destaca visualmente contratos vencendo em 30 dias — gestor age antes de perder o cliente.
 
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 Plans:
 **Wave 1** *(plans independentes — sem overlap de `files_modified`)*
 
-- [ ] 04-01-PLAN.md — TDD helpers puros src/lib/receita.ts (calcularMrr/Historico/Forecast/classificarRenovacoes) + refactor RenovacoesPage + smoke E2E /receita (REV-01/02/03 — foundation)
-- [ ] 04-02-PLAN.md — Estender ContratosPage para aceitar ?vencendo_em_dias=N (drill-down filter; NaN-safe; preserva filtros existentes) (REV-01 — drill-down)
+- [x] 04-01-PLAN.md — TDD helpers puros src/lib/receita.ts (calcularMrr/Historico/Forecast/classificarRenovacoes) + refactor RenovacoesPage + smoke E2E /receita (REV-01/02/03 — foundation)
+- [x] 04-02-PLAN.md — Estender ContratosPage para aceitar ?vencendo_em_dias=N (drill-down filter; NaN-safe; preserva filtros existentes) (REV-01 — drill-down)
 
 **Wave 2** *(depende de Wave 1)*
 
@@ -126,7 +126,7 @@ Plans:
 | 1. Tasks + Adoption Signal | 0/4 | Not started | - |
 | 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
 | 3. Pull-back Notifications | 2/2 | Complete    | 2026-05-26 |
-| 4. Revenue Dashboard | 0/3 | Not started | - |
+| 4. Revenue Dashboard | 2/3 | In Progress|  |
 
 ---
 

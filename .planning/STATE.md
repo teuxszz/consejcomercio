@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
-current_plan: Not started
+current_phase: 04
+current_plan: 1
 status: ready_to_plan
-last_updated: "2026-05-26T21:59:57.532Z"
+last_updated: "2026-05-27T12:23:36.360Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 7
+  total_plans: 10
   completed_plans: 3
-  percent: 43
+  percent: 30
 ---
 
 # STATE — CONSEJ CRM v2 Milestone 2
@@ -31,10 +31,10 @@ progress:
 
 ## Current Position
 
-Phase: 03 (pull-back-notifications) — EXECUTING
-Plan: 1 of 2
-**Current phase:** 4
-**Current plan:** Not started
+Phase: 04 (revenue-dashboard) — EXECUTING
+Plan: 1 of 3
+**Current phase:** 04
+**Current plan:** 1
 **Phase status:** Ready to execute (2 plans)
 **Milestone status:** In progress
 
@@ -107,10 +107,10 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 
 ## Session Continuity
 
-**Last action:** 03-02 Tasks 1-2 executadas (2026-05-26) — edge function notify-resumo-diario + migration 034 criadas e commitadas. Task 3 aguarda checkpoint humano (deploy + smoke test).
-**Next action:** Checkpoint Task 3 — operador deve: (1) criar secret Vault, (2) configurar edge function secrets, (3) supabase db push, (4) supabase functions deploy, (5) smoke tests
-**Open questions:** smoke test curl + cron manual pendentes após deploy da edge function
+**Last action:** Phase 04 Wave 1 completa (2026-05-27) — 04-01 (helpers receita.ts + 36 testes TDD) e 04-02 (ContratosPage `?vencendo_em_dias` drill-down) executados em paralelo via worktrees, mesclados em main. Suite full: 173 pass, zero regressão; lint limpo nos arquivos modificados.
+**Next action:** Wave 2 / Plan 04-03 — ReceitaPage end-to-end (4 cards + LineChart 6m+3m + lista renovações 30/60/90 + sem data_fim), rota /receita, nav sidebar gated coordenador+, smoke E2E. `autonomous: false` → contém checkpoints humanos.
+**Open questions:** validação visual da ReceitaPage será no checkpoint final de Phase 04 (per `workflow.human_verify_mode=end-of-phase`).
 
 ---
 
-*Last updated: 2026-05-26 after roadmap initialization*
+*Last updated: 2026-05-27 after Wave 1 of Phase 04*
