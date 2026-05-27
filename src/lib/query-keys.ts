@@ -64,4 +64,15 @@ export const QUERY_KEYS = {
   },
   configuracoes: ['configuracoes'] as const,
   dashboard: ['dashboard'] as const,
+  preferenciasNotif: {
+    all: ['preferenciasNotif'] as const,
+    byPerfil: (perfilId: string) => ['preferenciasNotif', perfilId] as const,
+  },
+  notificacoesEnvios: {
+    all: ['notificacoesEnvios'] as const,
+    byPerfil: (perfilId: string) => ['notificacoesEnvios', perfilId] as const,
+  },
+  quotaResend: {
+    current: ['quotaResend', 'current'] as const,
+  },
 }

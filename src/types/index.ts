@@ -426,3 +426,47 @@ export const NIVEL_CONFIG: Record<NivelToken, { label: string; cor: string; bonu
   ouro:     { label: 'Ouro',     cor: '#f59e0b', bonus: 20, min: 5000,  next: 15000 },
   diamante: { label: 'Diamante', cor: '#818cf8', bonus: 30, min: 15000, next: 15000 },
 }
+
+// ─── Phase 5 — Multi-Channel Notifications (Email) ──────────────────────────
+
+export type TipoNotif = 'tarefa' | 'cadencia' | 'renovacao' | 'indicacao'
+export type CanalNotif = 'email' | 'slack'
+export type StatusNotif =
+  | 'queued'
+  | 'delivered'
+  | 'opened'
+  | 'bounced'
+  | 'complained'
+  | 'dropped_quota'
+  | 'skipped_no_recipient'
+  | 'fallback_diretor'
+  | 'failed'
+
+export interface PreferenciasNotif {
+  tarefa:    { slack: boolean; email: boolean }
+  cadencia:  { slack: boolean; email: boolean }
+  renovacao: { slack: boolean; email: boolean }
+  indicacao: { slack: boolean; email: boolean }
+}
+
+export interface NotificacaoEnvio {
+  id: string
+  perfil_id: string
+  tipo: TipoNotif
+  entidade_id: string | null
+  entidade_tipo: 'lead' | 'cliente' | 'contrato' | 'tarefa' | null
+  canal: CanalNotif
+  subject: string | null
+  status: StatusNotif
+  resend_id: string | null
+  slack_ts: string | null
+  error_msg: string | null
+  sent_at: string
+  delivered_at: string | null
+  opened_at: string | null
+  bounced_at: string | null
+  complained_at: string | null
+  reenviado_por_id: string | null
+  reenviado_em: string | null
+  dia: string
+}
