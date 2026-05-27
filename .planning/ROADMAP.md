@@ -13,7 +13,7 @@ Milestone 2 transforma o CRM de "lugar onde deveria reportar" em "lugar onde o t
 
 ## Phases
 
-- [ ] **Phase 1: Tasks + Adoption Signal** — Tarefas por lead e por time, RLS corrigida, badge de inbox e painel de adoção para o gestor
+- [x] **Phase 1: Tasks + Adoption Signal** — Tarefas por lead e por time, RLS corrigida, badge de inbox e painel de adoção para o gestor (completed 2026-05-27)
 - [x] **Phase 2: Cadence Guide + WhatsApp Quick Actions** — Vista "Ação Hoje", badge D-point no Kanban, sugestão contextual e links wa.me com pré-texto por D-point
 - [x] **Phase 3: Pull-back Notifications** — DM Slack ao atribuir tarefa, resumo diário e alerta de cadência via pg_cron (completed 2026-05-26)
 - [x] **Phase 4: Revenue Dashboard** — Página de receita com MRR, ARR, forecast, renovações e gráfico histórico (completed 2026-05-27)
@@ -35,23 +35,23 @@ Milestone 2 transforma o CRM de "lugar onde deveria reportar" em "lugar onde o t
 3. Badge numérico no sidebar mostra em tempo real quantas tarefas abertas o usuário tem; zera conforme ele conclui.
 4. Coordenador acessa o painel de adoção e vê, sem pedir relatório, quais consultores logaram na última semana, quantos leads criaram e quais leads estão sem atualização há 7+ dias.
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Security migration 033 + login tracking + edge function update (SEC-01, SEC-02)
+- [x] 01-01-PLAN.md — Security migration 033 + login tracking + edge function update (SEC-01, SEC-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Tasks feature: TarefaModal, TarefaCard, TarefasPage e rota (TASK-01..04)
+- [x] 01-02-PLAN.md — Tasks feature: TarefaModal, TarefaCard, TarefasPage e rota (TASK-01..04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Sidebar realtime badge via Supabase Realtime (NOTIF-04)
+- [x] 01-03-PLAN.md — Sidebar realtime badge via Supabase Realtime (NOTIF-04)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 01-04-PLAN.md — Adoption dashboard: AdocaoCard, AdocaoPage, leads esquecidos (ADOPT-01..03)
+- [x] 01-04-PLAN.md — Adoption dashboard: AdocaoCard, AdocaoPage, leads esquecidos (ADOPT-01..03)
 
 **UI hint:** yes
 
@@ -123,7 +123,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Tasks + Adoption Signal | 0/4 | Not started | - |
+| 1. Tasks + Adoption Signal | 4/4 | Complete   | 2026-05-27 |
 | 2. Cadence Guide + WhatsApp Quick Actions | 1/1 | Complete | 2026-05-26 |
 | 3. Pull-back Notifications | 2/2 | Complete    | 2026-05-26 |
 | 4. Revenue Dashboard | 3/3 | Complete   | 2026-05-27 |
