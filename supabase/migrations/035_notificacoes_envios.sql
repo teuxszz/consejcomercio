@@ -58,7 +58,10 @@ CREATE TABLE IF NOT EXISTS notificacoes_envios (
   complained_at   timestamptz,
   reenviado_por_id uuid REFERENCES perfis(id),
   reenviado_em    timestamptz,
-  dia             date GENERATED ALWAYS AS (sent_at::date) STORED
+  -- IMMUTABLE cast via timezone(text, timestamptz) — direto `sent_at::date`
+  -- não é immutable (depende de TimeZone session var) e Postgres rejeita em
+  -- GENERATED column (erro 42P17). Fixamos UTC para consistência com pg_cron.
+  dia             date GENERATED ALWAYS AS ((timezone('UTC', sent_at))::date) STORED
 );
 
 -- ─── 3. Índice parcial de idempotência ───────────────────────────────────────
