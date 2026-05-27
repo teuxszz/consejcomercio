@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
 current_phase: 05
-status: context_gathered
-last_updated: "2026-05-27T15:00:00.000Z"
+status: planned
+last_updated: "2026-05-27T15:30:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 ---
@@ -32,11 +32,11 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 05 (multi-channel-notifications-email) — CONTEXT GATHERED
-Plan: 0 of TBD
+Phase: 05 (multi-channel-notifications-email) — PLANNED
+Plan: 0 of 4 executados
 **Current phase:** 05
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
-**Phase status:** CONTEXT.md gerado (24 decisões travadas). Pronto para `/gsd-plan-phase 5` (research + plan).
+**Phase status:** 4 PLAN.md gerados (Wave 1: 05-01, Wave 2: 05-02, Wave 3: 05-03, Wave 4: 05-04). Research + Validation + Patterns + Plan-check completos. Plan-checker reportou NEEDS_REVISION com 2 BLOCKers + 4 warnings — todos corrigidos inline. Pronto para `/gsd-execute-phase 5`.
 **Milestone status:** Active, 0/6 phases complete
 
 ```
@@ -135,9 +135,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Phase 5 discuss completo em 2026-05-27. `05-CONTEXT.md` + `05-DISCUSSION-LOG.md` criados, 24 decisões travadas cobrindo roteamento (híbrido), granularidade (matriz 4×2), rate-limit (warning 80% / drop 100% diário+mensal), webhook+histórico (tracking completo), arquitetura (helper Deno inline) e templates (4 específicos). Reinterpretações de EMAIL-02 e EMAIL-03 documentadas.
-**Next action:** Rodar `/gsd-plan-phase 5` para research + plan (CONTEXT.md já presente, planner usa direto).
-**Open questions:** (1) Confirmar último número de migration aplicado (031 ou 032 ou 034) antes de numerar a nova como 035. (2) Verificar se `src/components/ui/switch.tsx` já existe ou precisa `npx shadcn@latest add switch`. (3) Decidir final no planner: deep-link auth via `signInWithOtp` vs JWT custom vs downgrade pra redirect-após-login.
+**Last action:** Phase 5 planning completo em 2026-05-27. Stack de artefatos: `05-CONTEXT.md` (24 decisões) → `05-RESEARCH.md` (8 questões técnicas + Validation Arch + R1 risco) → `05-VALIDATION.md` (14 Wave-0 tests) → `05-PATTERNS.md` (25 files mapeados) → 4 PLAN.md (05-01..05-04, 14 tasks total). Plan-checker passou após fixes inline (B-1/B-2 dep Plan 4→Plan 3 wave 4; W-1 add testes UI Plan 3 Task 3; W-2 escopo email.fallback.test.ts; N-1 vitest.config.ts em files_modified).
+**Next action:** Rodar `/gsd-execute-phase 5` para executar Wave 1 (Plan 01 — migration 035 + helpers `_shared/` + notify-tarefa refactor + Wave-0 tests). Antes do merge de Plan 01: cumprir checkpoint humano R1 (pré-cadastrar e-mails internos CONSEJ na Resend Audience — `onboarding@resend.dev` é sandbox restrito).
+**Open questions:** (1) ✅ migration 035 confirmado em RESEARCH (última = 034). (2) ✅ Switch ausente confirmado — Plan 03 Task 1 inclui `npx shadcn@latest add switch` com gate humano. (3) ✅ deep-link via Supabase `admin.generateLink({type:'magiclink'})` — Plan 02 Task 2.
 
 ## Tech Debt
 
