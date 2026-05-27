@@ -278,8 +278,24 @@ Distribuição Plan 5-02:
 
 **Test suite:** 246 passed / 14 skipped / 1 todo / 0 failed.
 
-## Next Steps
+## Task 4 — Closeout (2026-05-27 pós-checkpoint)
 
-Orchestrator deve coletar Task 4 (deploy + Resend Dashboard config + secret + redeploy + smoke test) como checkpoint humano. Após aprovação:
-- Plan 05-03 (UI: prefs editor + histórico notificações em /me) pode prosseguir
-- Plan 05-04 (cron-renovacoes consolidation, se aplicável)
+### Deploy de edge functions
+Orchestrator rodou batch único:
+```
+supabase functions deploy notify-tarefa notify-resumo-diario notify-indicacao notify-renovacao resend-webhook
+```
+Output: `Deployed Functions on project wfnriqwkzdazdbuzbyug: notify-tarefa, notify-resumo-diario, notify-indicacao, notify-renovacao, resend-webhook`. Todas as 5 funções com assets `_shared/{auth,perfis,email,slack,templates/*}` sincronizados.
+
+### Webhook Resend + secret — `approved`
+Usuário (Gabriel) confirmou:
+- Webhook registrado em https://resend.com/webhooks → endpoint `https://wfnriqwkzdazdbuzbyug.supabase.co/functions/v1/resend-webhook`
+- Eventos marcados: `sent`/`delivered`/`opened`/`bounced`/`complained`/`delivery_delayed`/`clicked`
+- `WEBHOOK_RESEND_SECRET` setado via `supabase secrets set`
+- `supabase functions deploy resend-webhook` re-executado pra a função ler o novo env
+
+### Plan 05-02 — Status final: COMPLETE
+
+5 edge functions deployed (4 notify-* refatoradas usando helpers `_shared/` + 1 `resend-webhook` novo), webhook conectado ao endpoint, secret provisionada. Histórico de notif agora atualiza automaticamente: `queued` → `delivered`/`opened` ou `bounced`/`complained` conforme eventos do Resend.
+
+Pronto para Wave 3 (Plan 05-03 — UI: matriz prefs em MeEspaco + histórico /me/notificacoes-historico + reenviar + quota banner) com `/gsd-execute-phase 5 --wave 3`.
