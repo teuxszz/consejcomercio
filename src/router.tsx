@@ -40,6 +40,7 @@ import { PortalWalletPage } from '@/pages/portal/PortalWalletPage'
 import { PortalIndicarPage } from '@/pages/portal/PortalIndicarPage'
 import { PortalCatalogoPage } from '@/pages/portal/PortalCatalogoPage'
 import { PortalHistoricoPage } from '@/pages/portal/PortalHistoricoPage'
+import { PortalPreferenciasPage } from '@/pages/portal/PortalPreferenciasPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
       { path: 'indicar',         element: <PortalIndicarPage />  },
       { path: 'catalogo',        element: <PortalCatalogoPage /> },
       { path: 'historico',       element: <PortalHistoricoPage />},
+      { path: 'preferencias',    element: <PortalPreferenciasPage /> },
     ],
   },
   { path: '*', element: <Navigate to="/dashboard" replace /> },

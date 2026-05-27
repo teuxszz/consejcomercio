@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { usePortalPerfil } from '@/hooks/usePortal'
 import { calcularNivel, NIVEL_CONFIG } from '@/types'
 import { Toaster, toast } from 'sonner'
-import { Wallet, UserPlus, Gift, ClipboardList, LogOut, Coins, LayoutDashboard, ChevronsUpDown } from 'lucide-react'
+import { Wallet, UserPlus, Gift, ClipboardList, LogOut, Coins, LayoutDashboard, ChevronsUpDown, BellRing } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -16,6 +16,7 @@ const NAV = [
   { to: '/portal/indicar',   label: 'Indicar',   icon: UserPlus       },
   { to: '/portal/catalogo',  label: 'Catálogo',  icon: Gift           },
   { to: '/portal/historico', label: 'Histórico', icon: ClipboardList  },
+  { to: '/portal/preferencias', label: 'Preferências', icon: BellRing  },
 ]
 
 export function PortalLayout() {
