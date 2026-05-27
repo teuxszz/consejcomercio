@@ -4,7 +4,7 @@ import {
   Inbox, Share2, Handshake, TrendingUp, ClipboardList, Settings,
   LogOut, MessageSquare, CalendarDays, Sparkles, Search, BarChart2, Map, Upload, GraduationCap,
   Sun, Moon, Target, HelpCircle, Coins, Gift, ShieldQuestion, Crosshair,
-  ChevronsUpDown, UserCircle2, CheckSquare, Activity,
+  ChevronsUpDown, UserCircle2, CheckSquare, Activity, DollarSign,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil } from '@/hooks/usePerfis'
@@ -161,6 +161,7 @@ export function Sidebar() {
             )}
             {group.items.map(item => <NavItem key={item.to} {...item} />)}
             {group.label === 'PIPELINE' && <NavItem to="/tarefas" label="Tarefas" icon={CheckSquare} badge={badgeCount} />}
+            {group.label === 'CLIENTES' && isCoordenadorOrAcima && <NavItem to="/receita" label="Receita" icon={DollarSign} />}
             {group.label === 'CRESCIMENTO' && isCoordenadorOrAcima && <NavItem to="/adocao" label="Adoção" icon={Activity} />}
           </div>
         ))}
