@@ -14,7 +14,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'tests/rls/**/*.test.ts'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'tests/rls/**/*.test.ts',
+      'supabase/functions/**/__tests__/*.test.ts',
+    ],
     coverage: {
       provider: 'v8',
       include: ['src/lib/**', 'src/hooks/**', 'src/components/shared/**'],

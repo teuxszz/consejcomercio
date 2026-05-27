@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
 current_phase: 05
-current_plan: 0
-status: ready_to_plan
-last_updated: "2026-05-27T13:30:00.000Z"
+status: executing
+last_updated: "2026-05-27T17:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 4
+  completed_plans: 2
+  percent: 8
 ---
 
 # STATE — CONSEJ CRM v2 Milestone v3.0
@@ -33,11 +32,11 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 05 (multi-channel-notifications-email) — READY TO PLAN
-Plan: 0 of TBD
+Phase: 05 (multi-channel-notifications-email) — EXECUTING (Waves 1+2 complete)
+Plan: 2 of 4 complete
 **Current phase:** 05
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
-**Phase status:** Ready to plan via `/gsd-plan-phase 5`
+**Phase status:** Waves 1+2 COMPLETE. Backend de notificações multi-canal totalmente deployed: helpers `_shared/{auth,perfis,email,slack,templates/{tarefa,cadencia,renovacao,indicacao}}`, 4 notify-* refatoradas (notify-tarefa, notify-resumo-diario, notify-indicacao, notify-renovacao), e nova edge function `resend-webhook` com HMAC svix verificação. Webhook Resend conectado, `WEBHOOK_RESEND_SECRET` provisionada. 246 testes verdes. Próximas waves: 05-03 (Wave 3, UI internos), 05-04 (Wave 4, Portal placeholder).
 **Milestone status:** Active, 0/6 phases complete
 
 ```
@@ -83,27 +82,33 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 ### Todos por fase
 
 **Phase 5 (pre-start):**
+
 - ✅ Conta Resend free criada + API key registrada como Supabase Secret `RESEND_API_KEY` (2026-05-27)
 - ✅ Decisão sender domain: usar `onboarding@resend.dev` (default Resend) em dev e prod inicialmente. Migrar para `notif@consej.com.br` quando DNS estiver configurado — bloqueado por credencial do Registro.br (contato Andrieli `comunicacao.consej@gmail.com`)
 - Migration 035: tabela `notificacoes_envios` (histórico) + coluna `perfis.preferencias_notif` (JSONB)
 - Templates HTML simples em PT-BR para cada tipo de notif (tarefa/cadência/renovação/indicação)
 
 **Phase 6 (pre-start):**
+
 - Gerar VAPID keys (lib `web-push`) e adicionar `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` como Supabase Secrets
 - Criar `public/sw.js` Service Worker minimal + `public/manifest.json` PWA + ícones 192/512
 - Testar install prompt em Chrome Android e Safari iOS 16.4+ reais
 
 **Phase 7 (pre-start):**
+
 - Criar Supabase Storage bucket `cliente-docs` com RLS policy "cliente vê só os seus"
 - Migration 036: tabela `cliente_doc_aprovacoes` (id, doc_path, status, timestamps, cliente_id, consultor_id)
 
 **Phase 8 (pre-start):**
+
 - Decidir lib: `jspdf + html2canvas` vs `react-pdf` (bundle size + qualidade do gráfico renderizado)
 
 **Phase 9 (pre-start):**
+
 - Adicionar `ml-regression-simple-linear` ao package.json OU implementar artesanalmente (~30 linhas)
 
 **Phase 10 (pre-start):**
+
 - Migration 037: coluna `configuracoes.lead_classifier_weights` (JSONB) com defaults
 - Definir conjunto de heurísticas em conversa com o usuário (alinhar com domínio CONSEJ)
 
@@ -130,15 +135,16 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Milestone v3.0 iniciada em 2026-05-27. PROJECT.md, REQUIREMENTS.md, ROADMAP.md e STATE.md criados. 6 fases (5-10), 25 requirements. RESEND_API_KEY já registrada como Supabase Secret.
-**Next action:** Rodar `/gsd-plan-phase 5` para detalhar a Phase 5 (Multi-Channel Notifications Email). Pré-requisito Resend já cumprido — pode iniciar planning quando quiser.
-**Open questions:** (1) ✅ RESOLVIDO — usando `onboarding@resend.dev` por enquanto; migração para `notif@consej.com.br` é tech-debt aguardando DNS access via Andrieli. (2) Definir conjunto exato de heurísticas para CLASS-01 com domain knowledge CONSEJ (defer para o planning da Phase 10).
+**Last action:** Wave 2 (Plan 05-02) executada em 2026-05-27. Worktree spawn → 4 tasks (3 commits atômicos `8db65f1` helpers/templates, `ac3678a` refactor 4 notify-*, `eff5a77` resend-webhook + `f87c854` lint fix + `980e3f7` SUMMARY) → checkpoint humano → 5 funções deployed via batch (`notify-tarefa notify-resumo-diario notify-indicacao notify-renovacao resend-webhook`) → usuário registrou webhook Resend + setou `WEBHOOK_RESEND_SECRET` + redeploy. Worktree merged + cleanup OK. Tests: 246 passed (+44 desde Wave 1).
+**Next action:** Quando quiser, `/gsd-execute-phase 5 --wave 3` pra Plan 05-03 (UI internos: shadcn Switch install, 4 hooks, NotificacoesPanel matriz 4×2, tab MeEspaco, NotificacoesHistoricoPage, QuotaResendBanner, edge `reenviar-notificacao` + 2 testes UI). Smoke test backend: atribuir tarefa real pelo CRM e ver `notificacoes_envios` evoluir queued → delivered → opened.
+**Open questions:** nenhuma — Waves 1+2 fechadas. Backend de notificações multi-canal 100% deployed e funcional.
 
 ## Tech Debt
 
 | Item | Origem | Bloqueio | Plano |
 |------|--------|----------|-------|
 | Migrar sender `resend.dev` → `notif@consej.com.br` | Phase 5 | Credencial Registro.br (Andrieli — `comunicacao.consej@gmail.com`) | Quando contato com Andrieli destravar: adicionar 3 registros DNS (TXT DKIM + MX feedback + TXT SPF no subdomínio `send`), verificar via Resend API, atualizar edge function para usar novo from address. Domínio `consej.com.br` já está cadastrado no Resend (id `3b6472fc-b277-42ed-a22f-2dc41dab81d7`, status `not_started`) — só falta DNS. |
+| `supabase db push` falha com `42501: permission denied to alter role cli_login_postgres` | Phase 5 (descoberto no Plan 05-01) | DB user do projeto não tem CREATEROLE — CLI v2.101.0 tenta rotacionar role temporária pra cada push. | **Fix permanente:** pegar DB password em `https://supabase.com/dashboard/project/wfnriqwkzdazdbuzbyug/settings/database` (seção "Database password" — reset se não souber), depois `setx SUPABASE_DB_PASSWORD "<password>"` (PowerShell, persistente) e reiniciar shell. **Fix per-comando:** `supabase db push -p "<password>"`. **Workaround atual:** aplicar migrations via Supabase Studio SQL Editor (https://supabase.com/dashboard/project/wfnriqwkzdazdbuzbyug/sql/new). |
 
 ---
 

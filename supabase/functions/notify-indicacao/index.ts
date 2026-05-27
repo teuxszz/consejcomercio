@@ -11,23 +11,15 @@
 //   SUPABASE_SERVICE_ROLE_KEY — injetado automaticamente
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
-import { timingSafeEqual } from 'https://deno.land/std@0.224.0/crypto/timing_safe_equal.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import type { HydratedIndicacao, IndicacaoRow, WebhookPayload } from './types.ts'
 import { buildIndicacaoBlocks, buildIndicacaoFallbackText } from './slack.ts'
 
-function constantTimeAuthCheck(received: string, expectedSecret: string): boolean {
-  const enc = new TextEncoder()
-  const expected = enc.encode(`Bearer ${expectedSecret}`)
-  const got = enc.encode(received)
-  // Pad shorter input to constant length to avoid timing differences via length comparison.
-  if (got.length !== expected.length) {
-    // Still do a dummy comparison to keep timing constant when length differs.
-    timingSafeEqual(expected, expected)
-    return false
-  }
-  return timingSafeEqual(got, expected)
-}
+// ─── Plan 5-02: companion e-mail per-user (D-01 broadcast Slack preservado) ──
+import { constantTimeAuthCheck } from '../_shared/auth.ts'
+import { loadPrefs, findDiretores } from '../_shared/perfis.ts'
+import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { renderIndicacao } from '../_shared/templates/render.ts'
 
 const SLACK_BOT_TOKEN          = Deno.env.get('SLACK_BOT_TOKEN')
 const SLACK_LEADS_CHANNEL_ID   = Deno.env.get('SLACK_LEADS_CHANNEL_ID') ?? Deno.env.get('SLACK_CHANNEL_ID')
@@ -160,6 +152,79 @@ async function sha256Hex(text: string): Promise<string> {
     .join('')
 }
 
+// ─── Plan 5-02: dispatch per-user de e-mail para nova indicação ──────────────
+// Olha o lead vinculado (responsavel_id atual — sem snapshot, D-07 spirit) e
+// dispara sendEmail para o responsável (ou fallback para diretores, D-05) se
+// prefs.indicacao.email=true.
+async function dispatchEmailIndicacao(
+  ind: IndicacaoRow,
+  hydrated: HydratedIndicacao,
+): Promise<{ targets: number; sent: number; skipped: number; fallback: boolean }> {
+  if (!ind.lead_id) {
+    return { targets: 0, sent: 0, skipped: 0, fallback: false }
+  }
+
+  const { data: lead } = await supabase
+    .from('leads')
+    .select('id, responsavel_id, nome, segmento')
+    .eq('id', ind.lead_id)
+    .maybeSingle<{ id: string; responsavel_id: string | null; nome: string | null; segmento: string | null }>()
+
+  if (!lead) return { targets: 0, sent: 0, skipped: 0, fallback: false }
+
+  // D-02 + D-05: per-user para responsavel_id, ou fallback p/ diretores se NULL
+  const fallback = !lead.responsavel_id
+  const targetIds: string[] = fallback
+    ? (await findDiretores(supabase)).map((d) => d.id)
+    : [lead.responsavel_id!]
+
+  let sent = 0
+  let skipped = 0
+
+  for (const perfilId of targetIds) {
+    const { data: perfil } = await supabase
+      .from('perfis')
+      .select('email, nome')
+      .eq('id', perfilId)
+      .maybeSingle<{ email: string | null; nome: string | null }>()
+
+    if (!perfil?.email) {
+      skipped++
+      continue
+    }
+
+    const prefs = await loadPrefs(supabase, perfilId)
+    if (!prefs?.indicacao?.email) {
+      skipped++
+      continue
+    }
+
+    const magicLink = await generateMagicLink(supabase, perfil.email, '/me?tab=notificacoes')
+    const html = renderIndicacao({
+      nomeResponsavel: perfil.nome ?? 'Consultor',
+      nomeIndicante: hydrated.indicante_nome ?? 'Cliente',
+      nomeIndicado: lead.nome ?? '(sem nome)',
+      segmento: lead.segmento ?? hydrated.segmento ?? '—',
+      deepLink: `${APP_URL.replace(/\/$/, '')}/leads/${lead.id}`,
+      gerenciarPrefsLink: magicLink,
+    })
+
+    const r = await sendEmail(supabase, {
+      perfilId,
+      toEmail: perfil.email,
+      tipo: 'indicacao',
+      entidadeId: lead.id,
+      entidadeTipo: 'lead',
+      subject: `Nova indicação: ${lead.nome ?? '(sem nome)'}`,
+      html,
+    })
+    if (r.ok) sent++
+    else skipped++
+  }
+
+  return { targets: targetIds.length, sent, skipped, fallback }
+}
+
 serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, error: 'method not allowed' }, 405)
 
@@ -241,7 +306,14 @@ serve(async (req) => {
       })
       .eq('indicacao_id', ind.id)
 
-    return json({ ok: true, ts: result.ts })
+    // ─── Plan 5-02: companion e-mail per-user (D-01 broadcast preservado) ────
+    // Look up lead.responsavel_id; fallback to all diretores (D-05).
+    // Continua em background — não bloqueia retorno do broadcast.
+    const emailResults = await dispatchEmailIndicacao(ind, hydrated).catch((e) => ({
+      error: e instanceof Error ? e.message : String(e),
+    }))
+
+    return json({ ok: true, ts: result.ts, email: emailResults })
   } catch (err) {
     const message = (err as Error).message
     await supabase
