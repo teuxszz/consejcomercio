@@ -4,9 +4,23 @@
 
 CRM interno da CONSEJ (empresa júnior de consultoria jurídica em Natal/RN) que gerencia o ciclo completo de lead → cliente → contrato.
 
-## Current State (v2.0 shipped 2026-05-27)
+## Current State (v3.0 active — kickoff 2026-05-27)
 
-**Última entrega:** Milestone v2.0 — Adoção & Crescimento ✅ shipped
+**Milestone ativo:** v3.0 — Comunicação, Portal e Inteligência
+
+Completa três frentes deferred da v2.0, mantendo a restrição de zero custo incremental:
+
+- **Comunicação multi-canal:** Slack (existente) + e-mail (Resend free tier) + push PWA (web-push protocol). Usuário escolhe canais por tipo de notificação
+- **Portal do cliente expandido:** upload de documentos pelo cliente + aprovação de propostas online
+- **Inteligência operacional:** relatórios de performance individual exportáveis (PDF/CSV) + forecast com regressão linear + classificação heurística de leads
+
+Notion explicitamente fora (CONSEJ não usa). IA generativa fora (viola zero-custo). Classificação de leads usa heurísticas determinísticas locais — sem API externa.
+
+Detalhes: [REQUIREMENTS.md](./REQUIREMENTS.md) · [ROADMAP.md](./ROADMAP.md)
+
+## Last Shipped (v2.0)
+
+**v2.0 — Adoção & Crescimento** ✅ shipped 2026-05-27
 
 Transformou o CRM em "lugar onde o trabalho acontece":
 - Sistema de tarefas + sinal de adoção (`/tarefas`, `/adocao`)
@@ -16,17 +30,16 @@ Transformou o CRM em "lugar onde o trabalho acontece":
 
 Detalhes completos: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) · [v2.0-REQUIREMENTS.md](./milestones/v2.0-REQUIREMENTS.md)
 
-## Next Milestone Goals (v3.0 — a definir)
+## Future Goals (post-v3.0)
 
-Iniciar com `/gsd-new-milestone`. Tópicos potenciais (deferred do v2.0):
+Após v3.0 shipping, candidatos para v4.0+ (todos preservando zero-custo):
 
-- Notificações por e-mail como alternativa ao Slack
-- PWA / push notifications nativas mobile
-- Integração Notion (linkar atas e docs com leads/clientes)
-- Portal do cliente — expansão (upload docs + aprovação propostas)
-- Relatório de performance individual exportável (PDF/CSV)
-- Forecast com regressão linear (refino do helper `calcularForecast`)
-- IA para classificação automática de leads (somente após coletar mais dados)
+- Templates de e-mail visualmente ricos (atualmente HTML simples)
+- Push grouping/coalescing por janela de tempo (evitar spam)
+- Comentários inline em propostas no portal (markup colaborativo)
+- Comparação de relatórios entre períodos (delta % vs ano anterior)
+- Classificação de leads com modelo ML real (TensorFlow.js local — exige >500 leads ganhos para train/test)
+- Forecast com modelos mais sofisticados (ARIMA, Prophet — exige Python/edge)
 
 ## Who It's For
 

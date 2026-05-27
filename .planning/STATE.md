@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: adocao-e-crescimento
-current_phase: archived
+milestone: v3.0
+milestone_name: comunicacao-portal-inteligencia
+current_phase: 05
 current_plan: 0
-status: shipped
-last_updated: "2026-05-27T13:00:00.000Z"
+status: ready_to_plan
+last_updated: "2026-05-27T13:30:00.000Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
-# STATE — CONSEJ CRM v2 (post v2.0)
+# STATE — CONSEJ CRM v2 Milestone v3.0
 
 *Single source of truth for current project position. Updated at each phase transition.*
 
@@ -22,58 +22,117 @@ progress:
 
 ## Project Reference
 
-**Last shipped milestone:** v2.0 — Adoção & Crescimento (shipped 2026-05-27)
-**Core value delivered:** "Transformar o CRM de 'lugar onde deveria reportar' em 'lugar onde o trabalho acontece'"
+**Milestone:** v3.0 — Comunicação, Portal e Inteligência
+**Core value:** Completar comunicação multi-canal (Slack+Email+Push), expandir o portal do cliente e adicionar inteligência operacional (relatórios, forecast estatístico, classificação de leads) — todos com zero custo incremental
 **Stack:** React 19 + Vite + Supabase (PostgreSQL + Auth + RLS + Edge Functions) + Vercel
-**Constraint:** Zero custo incremental de API/hosting
+**Constraint:** Zero custo incremental (preservado da v2.0)
 
-Archives: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) · [v2.0-REQUIREMENTS.md](./milestones/v2.0-REQUIREMENTS.md)
+Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) · [v2.0-REQUIREMENTS.md](./milestones/v2.0-REQUIREMENTS.md)
 
 ---
 
 ## Current Position
 
-**Status:** No active milestone — v2.0 shipped, awaiting `/gsd-new-milestone` to start next cycle.
+Phase: 05 (multi-channel-notifications-email) — READY TO PLAN
+Plan: 0 of TBD
+**Current phase:** 05
+**Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
+**Phase status:** Ready to plan via `/gsd-plan-phase 5`
+**Milestone status:** Active, 0/6 phases complete
 
 ```
-Progress: [████████████████████] 100% (v2.0 complete: 4/4 phases, 10/10 plans, 23/23 requirements)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6 phases complete)
 ```
 
 ---
 
-## v2.0 Phase Summary (shipped)
+## Phase Summary
 
-| Phase | Name | Requirements | Status | Completed |
-|-------|------|--------------|--------|-----------|
-| 1 | Tasks + Adoption Signal | SEC-01/02, TASK-01..04, NOTIF-04, ADOPT-01..03 | ✅ Complete | 2026-05-27 (retroactive SUMMARY) |
-| 2 | Cadence Guide + WhatsApp Quick Actions | CAD-01..04, WA-01..03 | ✅ Complete | 2026-05-26 |
-| 3 | Pull-back Notifications | NOTIF-01/02/03 | ✅ Complete | 2026-05-26 |
-| 4 | Revenue Dashboard | REV-01/02/03 | ✅ Complete + UAT approved | 2026-05-27 |
+| Phase | Name | Requirements | Status |
+|-------|------|--------------|--------|
+| 5 | Multi-Channel Notifications (Email) | EMAIL-01..04 | Ready to plan |
+| 6 | PWA + Push Notifications | PUSH-01..04 | Not started |
+| 7 | Client Portal Expansion | PORTAL-01..04 | Not started |
+| 8 | Individual Performance Reports | REP-01..04 | Not started |
+| 9 | Forecast Linear Regression | ML-01..04 | Not started |
+| 10 | Smart Lead Classification | CLASS-01..05 | Not started |
 
 ---
 
-## Key Decisions (v2.0 — preserved)
+## Key Decisions (v3.0)
 
 | Decision | Rationale | Phase |
 |----------|-----------|-------|
-| SEC-01 (RLS fix) precede qualquer feature TASK em produção | Clientes do tipo `cliente` não podem ler tarefas internas | Phase 1 |
-| Notificações via Slack edge functions existentes | Zero custo incremental; extensão do que já existe | Phase 3 |
-| `stand_by` incluído no NOT IN do cron 034 | Leads pausados não devem ser cobrados na cadência | Phase 3 |
-| DM consolidada (não por evento) com cron + edge function | Um único code path para NOTIF-02 + NOTIF-03 | Phase 3 |
-| WhatsApp via wa.me links (sem API) | Meta Business API exigiria número dedicado + custo fixo | Phase 2 |
-| Revenue dashboard depende de Phase 1 (adoção) | Dados incompletos tornam analytics inútil | Phase 4 |
-| MRR pro-rata em `valor_total ÷ duração` | Reflete receita "como se" o contrato fosse mensal | Phase 4 |
-| `valor_protegido` NÃO contribui ao MRR | Provisão de risco, não receita realizada | Phase 4 |
-| Forecast: contratos sem `data_fim` não entram em saídas | Sem data_fim significa "renova automaticamente" | Phase 4 |
+| Resend free tier (100/dia, 3k/mês) para e-mail | Zero custo até o limite; alternativa Supabase Auth tem só 4/hora | Phase 5 |
+| Notion explicitamente fora | CONSEJ não usa Notion (decisão do usuário, 2026-05-27) | Out of Scope |
+| Push via Web Push Protocol + VAPID | Gratuito (browser push services); funciona Chrome Android + Safari iOS 16.4+ | Phase 6 |
+| Supabase Storage `cliente-docs` no free tier 1GB | Quota suficiente para volume CONSEJ atual; LRU se aproximar do limite | Phase 7 |
+| PDF gerado client-side (jspdf ou react-pdf + html2canvas) | Sem servidor de PDF; bundle +~150kb aceitável | Phase 8 |
+| Forecast regressão linear via `ml-regression-simple-linear` (~4KB) | Estatística honesta com banda 80% CI; sem ML pesado | Phase 9 |
+| Classificação de leads via heurísticas determinísticas (sem API) | Zero custo; auditável; alinhado com pattern do DiagnosticForm existente | Phase 10 |
+| Phase numbering continua da v2.0 (5-10, não 1-6) | Histórico contínuo de phases através do projeto facilita rastreabilidade entre milestones | Roadmap |
+
+---
+
+## Accumulated Context
+
+### Blockers
+
+*(nenhum atualmente)*
+
+### Todos por fase
+
+**Phase 5 (pre-start):**
+- Criar conta Resend free, gerar API key, adicionar como Supabase Secret `RESEND_API_KEY`
+- Migration 035: tabela `notificacoes_envios` (histórico) + coluna `perfis.preferencias_notif` (JSONB)
+- Templates HTML simples em PT-BR para cada tipo de notif (tarefa/cadência/renovação/indicação)
+
+**Phase 6 (pre-start):**
+- Gerar VAPID keys (lib `web-push`) e adicionar `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` como Supabase Secrets
+- Criar `public/sw.js` Service Worker minimal + `public/manifest.json` PWA + ícones 192/512
+- Testar install prompt em Chrome Android e Safari iOS 16.4+ reais
+
+**Phase 7 (pre-start):**
+- Criar Supabase Storage bucket `cliente-docs` com RLS policy "cliente vê só os seus"
+- Migration 036: tabela `cliente_doc_aprovacoes` (id, doc_path, status, timestamps, cliente_id, consultor_id)
+
+**Phase 8 (pre-start):**
+- Decidir lib: `jspdf + html2canvas` vs `react-pdf` (bundle size + qualidade do gráfico renderizado)
+
+**Phase 9 (pre-start):**
+- Adicionar `ml-regression-simple-linear` ao package.json OU implementar artesanalmente (~30 linhas)
+
+**Phase 10 (pre-start):**
+- Migration 037: coluna `configuracoes.lead_classifier_weights` (JSONB) com defaults
+- Definir conjunto de heurísticas em conversa com o usuário (alinhar com domínio CONSEJ)
+
+### Validated assumptions
+
+- Resend free tier suficiente para CONSEJ (volume estimado <30 e-mails/dia)
+- iOS 16.4+ tem suporte a Web Push (lançado março/2023; cobertura ampla em 2026)
+- Supabase Storage 1GB suficiente para volume atual de documentos cliente
+- recharts renderiza limpo em PDF via html2canvas (verificado em projetos similares)
+
+---
+
+## Performance Metrics (v3.0 targets)
+
+| Metric | Target | Current |
+|--------|--------|---------|
+| Consultor sem Slack ainda recebe notif (via email/push) | 100% | 0% (só Slack hoje) |
+| Cliente envia documento sem WhatsApp/email manual | >50% adoção em 60d | 0% |
+| Coordenador exporta PDF para 1:1 | usado mensalmente | indisponível |
+| Forecast Receita: erro médio CI80 | <15% no plano de 3m | indisponível |
+| Lead classificado dentro de 1s no abrir do Kanban | <1s | indisponível |
 
 ---
 
 ## Session Continuity
 
-**Last action:** Milestone v2.0 arquivada em 2026-05-27. ROADMAP colapsado, REQUIREMENTS arquivada, PROJECT.md atualizado com Current State + Next Goals. Git tag `v2.0` a criar.
-**Next action:** Iniciar Milestone v3.0 via `/gsd-new-milestone` quando houver decisão sobre escopo (notificações por e-mail, PWA push, integração Notion, portal do cliente expansion, etc.) — ver PROJECT.md "Next Milestone Goals".
-**Open questions:** Próximo escopo a ser definido em `/gsd-new-milestone` (questioning → research → requirements → roadmap).
+**Last action:** Milestone v3.0 iniciada em 2026-05-27 — PROJECT.md, REQUIREMENTS.md, ROADMAP.md e STATE.md criados/atualizados. 6 fases (5-10) e 25 requirements definidos. Notion explicitamente excluído. Phase numbering continua da v2.0.
+**Next action:** Rodar `/gsd-plan-phase 5` para detalhar a Phase 5 (Multi-Channel Notifications Email). Antes disso, criar conta Resend free e gerar API key como pre-requisito de setup.
+**Open questions:** Validar setup Resend (gratuidade real, deliverability em domínios .com.br). Definir conjunto exato de heurísticas para CLASS-01 com domain knowledge CONSEJ.
 
 ---
 
-*Last updated: 2026-05-27 after archiving v2.0*
+*Last updated: 2026-05-27 after v3.0 kickoff*
