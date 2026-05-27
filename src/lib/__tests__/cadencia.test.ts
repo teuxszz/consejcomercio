@@ -35,7 +35,7 @@ function makeInteracao(daysAgo: number): InteracaoLead {
     mensagem: null,
     perfil_id: null,
     status_apos: null,
-  } as InteracaoLead
+  } as unknown as InteracaoLead
 }
 
 describe('getNextCadenciaPoint', () => {
