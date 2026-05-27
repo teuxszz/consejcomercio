@@ -31,7 +31,7 @@ let currentRow: { id: string; status: string } | null = { id: 'notif-1', status:
 
 vi.mock('https://esm.sh/@supabase/supabase-js@2', () => ({
   createClient: () => ({
-    from: vi.fn((_table: string) => ({
+    from: vi.fn(() => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           maybeSingle: vi.fn(() => Promise.resolve({ data: currentRow, error: null })),
