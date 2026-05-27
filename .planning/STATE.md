@@ -4,13 +4,13 @@ milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
 current_phase: 05
 status: executing
-last_updated: "2026-05-27T16:00:00.000Z"
+last_updated: "2026-05-27T17:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 4
+  completed_plans: 2
+  percent: 8
 ---
 
 # STATE — CONSEJ CRM v2 Milestone v3.0
@@ -32,11 +32,11 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 05 (multi-channel-notifications-email) — EXECUTING (Wave 1 complete)
-Plan: 1 of 4 complete
+Phase: 05 (multi-channel-notifications-email) — EXECUTING (Waves 1+2 complete)
+Plan: 2 of 4 complete
 **Current phase:** 05
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
-**Phase status:** Wave 1 (Plan 05-01) COMPLETE. Migration 035 aplicada em produção via Supabase Studio (CLI db push falhou por bug de cli_login_postgres role). Edge function `notify-tarefa` deployed com helpers `_shared/`. 202 testes verdes. Próximas waves: 05-02 (Wave 2, restantes notify-* + webhook Resend), 05-03 (Wave 3, UI internos), 05-04 (Wave 4, Portal placeholder).
+**Phase status:** Waves 1+2 COMPLETE. Backend de notificações multi-canal totalmente deployed: helpers `_shared/{auth,perfis,email,slack,templates/{tarefa,cadencia,renovacao,indicacao}}`, 4 notify-* refatoradas (notify-tarefa, notify-resumo-diario, notify-indicacao, notify-renovacao), e nova edge function `resend-webhook` com HMAC svix verificação. Webhook Resend conectado, `WEBHOOK_RESEND_SECRET` provisionada. 246 testes verdes. Próximas waves: 05-03 (Wave 3, UI internos), 05-04 (Wave 4, Portal placeholder).
 **Milestone status:** Active, 0/6 phases complete
 
 ```
@@ -135,9 +135,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/6
 
 ## Session Continuity
 
-**Last action:** Wave 1 (Plan 05-01) executada em 2026-05-27. Worktree spawn → 5 tasks → 3 commits atômicos (`2eb4367` migration, `bc6979b` helpers, `ffa4c49` notify-tarefa) + SUMMARY (`f513b9f`). Fix inline da generated column immutable (`32af69b`) durante apply. Migration aplicada manualmente via Supabase Studio (`supabase db push` falhou com 42501 — agora documentado no tech-debt com fix via `SUPABASE_DB_PASSWORD`). Edge function deployed via `supabase functions deploy notify-tarefa`. Smoke test pulado (manual depois). Tests: 202 passed, 14 skipped, 1 todo. Worktree do Plan 05-01 cleanup OK.
-**Next action:** Quando quiser, `/gsd-execute-phase 5 --wave 2` pra Plan 05-02 (refactor notify-resumo-diario/indicacao/renovacao pra usar helper + edge function `resend-webhook` com HMAC svix + 3 templates adicionais). Smoke test do notify-tarefa: atribuir uma tarefa real pelo CRM e verificar que linha aparece em `notificacoes_envios` com status `queued`/`delivered`.
-**Open questions:** nenhuma — Wave 1 está fechada. CLI bug do `supabase db push` documentado no tech-debt; orphan worktrees pré-existentes (`agent-a026b738fa11cbd99`, `agent-abb4ea3eb4032a6de`, `agent-ac6661204c53f4c55`) foram deixados intactos por não serem desta sessão.
+**Last action:** Wave 2 (Plan 05-02) executada em 2026-05-27. Worktree spawn → 4 tasks (3 commits atômicos `8db65f1` helpers/templates, `ac3678a` refactor 4 notify-*, `eff5a77` resend-webhook + `f87c854` lint fix + `980e3f7` SUMMARY) → checkpoint humano → 5 funções deployed via batch (`notify-tarefa notify-resumo-diario notify-indicacao notify-renovacao resend-webhook`) → usuário registrou webhook Resend + setou `WEBHOOK_RESEND_SECRET` + redeploy. Worktree merged + cleanup OK. Tests: 246 passed (+44 desde Wave 1).
+**Next action:** Quando quiser, `/gsd-execute-phase 5 --wave 3` pra Plan 05-03 (UI internos: shadcn Switch install, 4 hooks, NotificacoesPanel matriz 4×2, tab MeEspaco, NotificacoesHistoricoPage, QuotaResendBanner, edge `reenviar-notificacao` + 2 testes UI). Smoke test backend: atribuir tarefa real pelo CRM e ver `notificacoes_envios` evoluir queued → delivered → opened.
+**Open questions:** nenhuma — Waves 1+2 fechadas. Backend de notificações multi-canal 100% deployed e funcional.
 
 ## Tech Debt
 
