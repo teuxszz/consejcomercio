@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useContratos, useUpdateContrato, useDeleteContrato } from '@/hooks/useContratos'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { ScopeToggle, type Scope } from '@/components/shared/ScopeToggle'
@@ -329,6 +330,17 @@ export function ContratosPage() {
   const [rmFilter, setRmFilter]       = useState<RMFilter>('todos')
   const [sortBy, setSortBy]           = useState<ContratoSort>('padrao')
   const [selected, setSelected]       = useState<Contrato | null>(null)
+  const [searchParams]                = useSearchParams()
+
+  // Drill-down de /receita: ?vencendo_em_dias=N filtra contratos com data_fim em [hoje, hoje+N].
+  // Parse defensivo (ASVS V5): valores não-inteiros, negativos ou > 365 são ignorados silenciosamente.
+  const vencendoEmDias = useMemo<number | null>(() => {
+    const raw = searchParams.get('vencendo_em_dias')
+    if (raw === null) return null
+    const n = Number(raw)
+    if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0 || n > 365) return null
+    return n
+  }, [searchParams])
 
   const mineCount = meuPerfil?.id ? (contratos?.filter(c => c.responsavel_id === meuPerfil.id).length ?? 0) : 0
 
@@ -344,6 +356,11 @@ export function ContratosPage() {
       list = list.filter(c => c.status === statusFilter)
     if (rmFilter !== 'todos')
       list = list.filter(c => c.rm_status === rmFilter)
+    if (vencendoEmDias !== null)
+      list = list.filter(c => {
+        const d = getDaysUntilExpiry(c.data_fim)
+        return d !== null && d >= 0 && d <= vencendoEmDias
+      })
 
     list = [...list]
     if (sortBy === 'vencimento') {
@@ -358,7 +375,7 @@ export function ContratosPage() {
       list.sort((a, b) => getContractProgress(b.data_inicio, b.data_fim) - getContractProgress(a.data_inicio, a.data_fim))
     }
     return list
-  }, [contratos, search, tipoFilter, statusFilter, rmFilter, sortBy])
+  }, [contratos, scope, meuPerfil, search, tipoFilter, statusFilter, rmFilter, vencendoEmDias, sortBy])
 
   const expiringSoon = filtered.filter(c => {
     const d = getDaysUntilExpiry(c.data_fim)
