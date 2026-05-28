@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useIndicacoes, useCreateIndicacao, useUpdateIndicacao, useDeleteIndicacao } from '@/hooks/useIndicacoes'
 import { useCreateLead } from '@/hooks/useLeads'
 import { useQueryClient } from '@tanstack/react-query'
@@ -66,6 +67,33 @@ export function IndicacoesPage() {
   const [indicadoEmail, setIndicadoEmail] = useState('')
   const [tipoRecompensa, setTipoRecompensa] = useState('desconto_contrato')
 
+  // PUSH-04 / D-14: deep link ?highlight=<id> vindo de push notification.
+  // Página não tem modal de detalhe, então scroll + visual highlight (ring) é o fallback.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
+  const highlightId = searchParams.get('highlight')
+  useEffect(() => {
+    if (!highlightId || !indicacoes?.length) return
+    const ind = indicacoes.find(i => i.id === highlightId)
+    if (!ind) return
+    setHighlightedId(ind.id)
+    requestAnimationFrame(() => {
+      document.getElementById(`indicacao-${ind.id}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    })
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.delete('highlight')
+      return next
+    }, { replace: true })
+    // Remove ring após 3s
+    const tid = setTimeout(() => setHighlightedId(null), 3000)
+    return () => clearTimeout(tid)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, indicacoes])
+
   const totalIndicacoes = indicacoes?.length || 0
   const convertidas = indicacoes?.filter(i => i.status === 'convertido').length || 0
   const recompensasPendentes = indicacoes?.filter(i => i.status === 'convertido' && !i.recompensa_entregue).length || 0
@@ -127,7 +155,11 @@ export function IndicacoesPage() {
             const indicanteTipo = ind.indicante_cliente ? 'cliente' : 'parceiro'
 
             return (
-              <Card key={ind.id}>
+              <Card
+                key={ind.id}
+                id={`indicacao-${ind.id}`}
+                className={cn(highlightedId === ind.id && 'ring-2 ring-primary transition-all')}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.20)' }}>

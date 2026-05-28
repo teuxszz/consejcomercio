@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, CheckCircle2 } from 'lucide-react'
 import {
@@ -44,6 +44,31 @@ export function TarefasPage() {
   const remover  = useDeleteTarefa()
 
   const tarefas = scope === 'all' && isCoordenadorOrAcima ? todasTarefas : minhasTarefas
+
+  // PUSH-04 / D-14: deep link ?highlight=<id> vindo de push notification.
+  // Abre TarefaModal em edit mode + scroll para o card. Limpa o param da URL
+  // após processar (replace: true → não polui histórico).
+  const highlightId = searchParams.get('highlight')
+  useEffect(() => {
+    if (!highlightId || !tarefas?.length) return
+    const tarefa = tarefas.find(t => t.id === highlightId)
+    if (!tarefa) return
+    setEditingTarefa(tarefa)
+    setModalOpen(true)
+    requestAnimationFrame(() => {
+      document.getElementById(`tarefa-${tarefa.id}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    })
+    // Limpa highlight da URL para evitar re-trigger em re-render
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.delete('highlight')
+      return next
+    }, { replace: true })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, tarefas])
 
   const filtradas = useMemo(() => {
     const now = new Date()
@@ -147,14 +172,15 @@ export function TarefasPage() {
           <CardContent className="p-0">
             <div className="divide-y" style={{ borderColor: 'var(--alpha-border)' }}>
               {filtradas.map(t => (
-                <TarefaCard
-                  key={t.id}
-                  tarefa={t}
-                  userId={meuPerfil?.id ?? ''}
-                  onConcluir={handleConcluir}
-                  onEditar={handleEditar}
-                  onRemover={handleRemover}
-                />
+                <div key={t.id} id={`tarefa-${t.id}`}>
+                  <TarefaCard
+                    tarefa={t}
+                    userId={meuPerfil?.id ?? ''}
+                    onConcluir={handleConcluir}
+                    onEditar={handleEditar}
+                    onRemover={handleRemover}
+                  />
+                </div>
               ))}
             </div>
           </CardContent>
