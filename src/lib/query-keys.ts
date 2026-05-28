@@ -63,6 +63,7 @@ export const QUERY_KEYS = {
     byId: (id: string) => ['objecoes', id] as const,
   },
   configuracoes: ['configuracoes'] as const,
+  
   dashboard: ['dashboard'] as const,
   preferenciasNotif: {
     all: ['preferenciasNotif'] as const,
@@ -78,5 +79,17 @@ export const QUERY_KEYS = {
   pushSubscriptions: {
     all: ['pushSubscriptions'] as const,
     byPerfil: (perfilId: string) => ['pushSubscriptions', perfilId] as const,
+  },
+  // ─── Phase 7 — Client Portal Expansion (cliente_docs) ─────────────────────
+  clienteDocs: {
+    all: ['clienteDocs'] as const,
+    byCliente: (clienteId: string) => ['clienteDocs', 'cliente', clienteId] as const,
+    byId: (id: string) => ['clienteDocs', id] as const,
+  },
+  aprovacoesPendentes: {
+    all: ['aprovacoesPendentes'] as const,
+  },
+  bucketUsage: {
+    byBucket: (bucket: string) => ['bucketUsage', bucket] as const,
   },
 }
