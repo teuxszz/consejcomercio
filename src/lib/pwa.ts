@@ -75,9 +75,14 @@ export async function subscribePush(vapidPublicKey: string): Promise<{
   auth: string
 } | null> {
   const registration = await navigator.serviceWorker.ready
+  // applicationServerKey precisa de BufferSource com ArrayBuffer explícito
+  // (TS 5.9: Uint8Array<ArrayBufferLike> não é assignable a Uint8Array<ArrayBuffer>)
+  const keyBytes = urlBase64ToUint8Array(vapidPublicKey)
+  const keyBuffer = new ArrayBuffer(keyBytes.byteLength)
+  new Uint8Array(keyBuffer).set(keyBytes)
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    applicationServerKey: keyBuffer,
   })
 
   const p256dh = subscription.getKey('p256dh')
