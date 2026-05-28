@@ -29,6 +29,7 @@ import {
   findDiretores,
 } from '../_shared/perfis.ts'
 import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { sendPush } from '../_shared/push.ts'
 import { renderTarefa } from '../_shared/templates/render.ts'
 import { postDm } from '../_shared/slack.ts'
 
@@ -216,6 +217,31 @@ serve(async (req) => {
   // ─── Decisão Slack (apenas se há slackUserId + prefs.tarefa.slack=true) ────
   const wantSlack = prefs?.tarefa?.slack === true && slackUserId !== null && !fallbackAcionado
 
+  // ─── Decisão Push (Phase 6 D-03 + D-05 helper) ─────────────────────────────
+  // Push NÃO usa fallback diretor (Open Question 2 RESEARCH §5):
+  //   - diretores podem não ter PWA instalado → drop silencioso é OK
+  //   - spam de notif p/ liderança a cada tarefa órfã é UX ruim
+  //   - skipped_no_subscription é resultado válido e auditável pelo SUMMARY
+  const wantPush = prefs?.tarefa?.push === true && !fallbackAcionado
+
+  const pushPayload = wantPush
+    ? {
+        title: `Nova tarefa: ${tarefa.titulo}`.slice(0, 50),
+        body: `${criadorNome} te atribuiu uma tarefa`.slice(0, 150),
+        data: { deepLink: link, tipo: 'tarefa' as const, entidadeId: tarefa.id },
+      }
+    : null
+
+  const pushPromise: Promise<{ ok: boolean; skipped?: string } | Awaited<ReturnType<typeof sendPush>>> = wantPush
+    ? sendPush(supabase, {
+        perfilId: novoAtribuido,
+        tipo: 'tarefa',
+        entidadeId: tarefa.id,
+        entidadeTipo: 'tarefa',
+        payload: pushPayload!,
+      })
+    : Promise.resolve({ ok: true, skipped: 'push_off' as const })
+
   // ─── Envia e-mails (parallel sobre emailTargets) ───────────────────────────
   const emailPromises = emailTargets.map(async (t) => {
     const wantEmail = t.prefs?.tarefa?.email === true
@@ -274,12 +300,24 @@ serve(async (req) => {
       })()
     : Promise.resolve({ ok: true, skipped: 'slack_off' })
 
-  // ─── D-03: dispatch paralelo ───────────────────────────────────────────────
-  const [slackRes, ...emailResArray] = await Promise.all([slackPromise, ...emailPromises])
+  // ─── D-03 + Phase 6 Open Question 1: dispatch paralelo via allSettled ──────
+  // Promise.allSettled (refactor Phase 6): falha de 1 canal NÃO aborta os outros.
+  // Resilência cross-canal — Slack indisponível não impede push/email, etc.
+  const settled = await Promise.allSettled([slackPromise, pushPromise, ...emailPromises])
+  const [slackSettled, pushSettled, ...emailSettledArray] = settled
+  const unwrap = <T,>(s: PromiseSettledResult<T>): T | { ok: false; error: string } =>
+    s.status === 'fulfilled' ? s.value : { ok: false, error: String(s.reason ?? 'unknown') }
+  const slackRes = unwrap(slackSettled)
+  const pushRes = unwrap(pushSettled)
+  const emailResArray = emailSettledArray.map(unwrap)
 
   return json({
-    ok: slackRes.ok && emailResArray.every((e) => (e as { ok: boolean }).ok),
+    ok:
+      (slackRes as { ok: boolean }).ok &&
+      (pushRes as { ok: boolean }).ok &&
+      emailResArray.every((e) => (e as { ok: boolean }).ok),
     slack: slackRes,
+    push: pushRes,
     email: emailResArray,
     fallback_diretor: fallbackAcionado,
   })
