@@ -67,10 +67,11 @@ function makeWrapper() {
 }
 
 const DEFAULT_PREFS: PreferenciasNotif = {
-  tarefa:    { slack: true,  email: true  },
-  cadencia:  { slack: false, email: true  },
-  renovacao: { slack: true,  email: true  },
-  indicacao: { slack: true,  email: false },
+  // push: false — fixture Phase 5 não exercita push; Plan 03/04 cobrem.
+  tarefa:    { slack: true,  email: true,  push: false },
+  cadencia:  { slack: false, email: true,  push: false },
+  renovacao: { slack: true,  email: true,  push: false },
+  indicacao: { slack: true,  email: false, push: false },
 }
 
 describe('usePreferenciasNotif', () => {
@@ -136,7 +137,7 @@ describe('usePreferenciasNotif', () => {
 
     const NEW_PREFS: PreferenciasNotif = {
       ...DEFAULT_PREFS,
-      tarefa: { slack: false, email: false },
+      tarefa: { slack: false, email: false, push: false },
     }
 
     await act(async () => {

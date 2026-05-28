@@ -16,16 +16,18 @@ const TIPOS: { id: TipoNotif; label: string; descricao: string }[] = [
 ]
 
 const DEFAULT_PREFS: PreferenciasNotif = {
-  tarefa:    { slack: false, email: true },
-  cadencia:  { slack: false, email: true },
-  renovacao: { slack: false, email: true },
-  indicacao: { slack: false, email: true },
+  // push: false (Phase 6 D-04 smart default — usuário liga manualmente após instalar PWA)
+  tarefa:    { slack: false, email: true, push: false },
+  cadencia:  { slack: false, email: true, push: false },
+  renovacao: { slack: false, email: true, push: false },
+  indicacao: { slack: false, email: true, push: false },
 }
 
 function prefsEqual(a: PreferenciasNotif, b: PreferenciasNotif): boolean {
   for (const t of TIPOS) {
     if (a[t.id].slack !== b[t.id].slack) return false
     if (a[t.id].email !== b[t.id].email) return false
+    if (a[t.id].push !== b[t.id].push) return false
   }
   return true
 }

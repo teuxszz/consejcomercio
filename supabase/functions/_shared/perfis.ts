@@ -9,6 +9,7 @@ import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 export interface PreferenciasTipo {
   slack: boolean
   email: boolean
+  push: boolean // push adicionado Phase 6 D-16 — D-04 default false
 }
 
 export interface PreferenciasNotif {

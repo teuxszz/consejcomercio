@@ -427,10 +427,11 @@ export const NIVEL_CONFIG: Record<NivelToken, { label: string; cor: string; bonu
   diamante: { label: 'Diamante', cor: '#818cf8', bonus: 30, min: 15000, next: 15000 },
 }
 
-// ─── Phase 5 — Multi-Channel Notifications (Email) ──────────────────────────
+// ─── Phase 5 — Multi-Channel Notifications (Email + Slack) ──────────────────
+// ─── Phase 6 — PWA + Push (D-16: 'push' added to CanalNotif/PreferenciasNotif)
 
 export type TipoNotif = 'tarefa' | 'cadencia' | 'renovacao' | 'indicacao'
-export type CanalNotif = 'email' | 'slack'
+export type CanalNotif = 'email' | 'slack' | 'push'
 export type StatusNotif =
   | 'queued'
   | 'delivered'
@@ -443,10 +444,24 @@ export type StatusNotif =
   | 'failed'
 
 export interface PreferenciasNotif {
-  tarefa:    { slack: boolean; email: boolean }
-  cadencia:  { slack: boolean; email: boolean }
-  renovacao: { slack: boolean; email: boolean }
-  indicacao: { slack: boolean; email: boolean }
+  // Ordem `slack | email | push` alinha com a matriz UI (Plan 04 — 4×3)
+  tarefa:    { slack: boolean; email: boolean; push: boolean }
+  cadencia:  { slack: boolean; email: boolean; push: boolean }
+  renovacao: { slack: boolean; email: boolean; push: boolean }
+  indicacao: { slack: boolean; email: boolean; push: boolean }
+}
+
+/** Row da tabela push_subscriptions (Phase 6 migration 036).
+ * Nome com sufixo Row pra não colidir com tipo nativo do DOM PushSubscription. */
+export interface PushSubscriptionRow {
+  id: string
+  perfil_id: string
+  endpoint: string
+  p256dh: string
+  auth: string
+  user_agent: string | null
+  last_seen_at: string
+  created_at: string
 }
 
 export interface NotificacaoEnvio {
