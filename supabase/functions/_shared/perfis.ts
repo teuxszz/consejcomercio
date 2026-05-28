@@ -13,10 +13,12 @@ export interface PreferenciasTipo {
 }
 
 export interface PreferenciasNotif {
-  tarefa:    PreferenciasTipo
-  cadencia:  PreferenciasTipo
-  renovacao: PreferenciasTipo
-  indicacao: PreferenciasTipo
+  tarefa:     PreferenciasTipo
+  cadencia:   PreferenciasTipo
+  renovacao:  PreferenciasTipo
+  indicacao:  PreferenciasTipo
+  // Phase 7 D-16 — aprovação/revisão de cliente_docs
+  documentos: PreferenciasTipo
 }
 
 export interface Diretor {

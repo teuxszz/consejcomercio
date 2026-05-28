@@ -40,7 +40,8 @@ try {
 }
 
 // ─── Tipos exportados ────────────────────────────────────────────────────────
-export type TipoNotif = 'tarefa' | 'cadencia' | 'renovacao' | 'indicacao'
+// Phase 7 D-16: 'documentos' adicionado para aprovação/revisão de cliente_docs
+export type TipoNotif = 'tarefa' | 'cadencia' | 'renovacao' | 'indicacao' | 'documentos'
 export type EntidadeTipo = 'lead' | 'cliente' | 'contrato' | 'tarefa'
 
 export interface PushPayload {
