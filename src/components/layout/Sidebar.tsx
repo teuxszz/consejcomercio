@@ -78,10 +78,11 @@ const UTILITY_ITEMS = [
 const ACTIVE_BG = '#006d88'
 const HOVER_BG  = '#00263a'
 
-function NavItem({ to, label, icon: Icon, badge }: { to: string; label: string; icon: React.FC<{ className?: string }>; badge?: number }) {
+function NavItem({ to, label, icon: Icon, badge, onClick }: { to: string; label: string; icon: React.FC<{ className?: string }>; badge?: number; onClick?: () => void }) {
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) =>
         cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 transition-colors', isActive ? 'text-white' : 'hover:text-white')
       }
@@ -106,7 +107,7 @@ function NavItem({ to, label, icon: Icon, badge }: { to: string; label: string; 
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function Sidebar() {
+export function Sidebar({ className, onNavigate }: { className?: string; onNavigate?: () => void } = {}) {
   const navigate = useNavigate()
   const { data: perfil } = useMeuPerfil()
   const { theme, toggleTheme } = useTheme()
@@ -115,6 +116,7 @@ export function Sidebar() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    onNavigate?.()
     navigate('/login')
     toast.success('Sessão encerrada.')
   }
@@ -124,7 +126,7 @@ export function Sidebar() {
     : '?'
 
   return (
-    <div className="w-56 shrink-0 h-screen flex flex-col" style={{ backgroundColor: '#00081d' }}>
+    <div className={cn("w-56 shrink-0 h-screen flex flex-col", className)} style={{ backgroundColor: '#00081d' }}>
 
       {/* Logo */}
       <div className="flex items-center justify-center px-4 py-5" style={{ borderBottom: '1px solid #000d32' }}>
@@ -159,16 +161,16 @@ export function Sidebar() {
                 {group.label}
               </p>
             )}
-            {group.items.map(item => <NavItem key={item.to} {...item} />)}
-            {group.label === 'PIPELINE' && <NavItem to="/tarefas" label="Tarefas" icon={CheckSquare} badge={badgeCount} />}
-            {group.label === 'CLIENTES' && isCoordenadorOrAcima && <NavItem to="/receita" label="Receita" icon={DollarSign} />}
-            {group.label === 'CRESCIMENTO' && isCoordenadorOrAcima && <NavItem to="/adocao" label="Adoção" icon={Activity} />}
+            {group.items.map(item => <NavItem key={item.to} {...item} onClick={onNavigate} />)}
+            {group.label === 'PIPELINE' && <NavItem to="/tarefas" label="Tarefas" icon={CheckSquare} badge={badgeCount} onClick={onNavigate} />}
+            {group.label === 'CLIENTES' && isCoordenadorOrAcima && <NavItem to="/receita" label="Receita" icon={DollarSign} onClick={onNavigate} />}
+            {group.label === 'CRESCIMENTO' && isCoordenadorOrAcima && <NavItem to="/adocao" label="Adoção" icon={Activity} onClick={onNavigate} />}
           </div>
         ))}
 
         {/* Separator + utility items */}
         <div style={{ borderTop: '1px solid #000d32', paddingTop: '6px', marginTop: '6px' }}>
-          {UTILITY_ITEMS.map(item => <NavItem key={item.to} {...item} />)}
+          {UTILITY_ITEMS.map(item => <NavItem key={item.to} {...item} onClick={onNavigate} />)}
         </div>
       </nav>
 
@@ -203,11 +205,11 @@ export function Sidebar() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => navigate('/me')}>
+            <DropdownMenuItem onSelect={() => { onNavigate?.(); navigate('/me') }}>
               <UserCircle2 className="w-4 h-4" />
               Meu Espaço
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => navigate('/portal')}>
+            <DropdownMenuItem onSelect={() => { onNavigate?.(); navigate('/portal') }}>
               <Gift className="w-4 h-4" />
               Portal de Indicações
             </DropdownMenuItem>

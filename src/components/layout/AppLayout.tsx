@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Sidebar } from './Sidebar'
+import { MobileHeader } from './MobileHeader'
 import { GlobalSearch } from './GlobalSearch'
 import { InstallAppBanner } from './InstallAppBanner'
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
@@ -97,13 +98,16 @@ export function AppLayout() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-background">
-        <div className="px-6 pt-3"><InstallAppBanner /></div>
-        <div key={location.pathname} className="p-6 animate-in fade-in duration-150">
-          <Outlet />
-        </div>
-      </main>
+      <Sidebar className="hidden md:flex" />
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <MobileHeader />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background">
+          <div className="px-4 md:px-6 pt-3"><InstallAppBanner /></div>
+          <div key={location.pathname} className="p-4 md:p-6 animate-in fade-in duration-150">
+            <Outlet />
+          </div>
+        </main>
+      </div>
       <GlobalSearch />
       <OnboardingWizard />
       <Toaster
