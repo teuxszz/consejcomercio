@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
-current_phase: 06
+current_phase: 05 (closed) → próxima Phase 06 (PWA + Push Notifications)
 status: phase_complete
-last_updated: "2026-05-27T21:00:00.000Z"
+last_updated: "2026-05-28T12:06:15.483Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 4
   completed_plans: 4
-  percent: 16
+  percent: 17
 ---
 
 # STATE — CONSEJ CRM v2 Milestone v3.0
