@@ -24,7 +24,7 @@
 ## Phases
 
 - [x] **Phase 5: Multi-Channel Notifications (Email)** — opt-in granular + Resend integration + histórico de envio (completed 2026-05-27)
-- [ ] **Phase 6: PWA + Push Notifications** — Service Worker + VAPID + deep links
+- [x] **Phase 6: PWA + Push Notifications** — Service Worker + VAPID + deep links (completed 2026-05-28)
 - [ ] **Phase 7: Client Portal Expansion** — upload de documentos + aprovação de propostas
 - [ ] **Phase 8: Individual Performance Reports** — métricas + export PDF/CSV
 - [ ] **Phase 9: Forecast Linear Regression** — refinamento estatístico da `/receita`
@@ -71,14 +71,14 @@ Plans:
 3. Tarefa atribuída → push aparece no lockscreen do celular do usuário (testado iOS + Android) **paralelo** ao Slack/email conforme preferência multi-canal da Phase 5.
 4. Tocar na notificação abre o CRM direto em `/tarefas?highlight=<id>` (deep link funcional).
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md — Foundation + de-risk: migration 036 (push_subscriptions + CHECK canal + handle_new_user + backfill) + types (CanalNotif/PreferenciasNotif/PushSubscriptionRow) + R-L1 smoke-test (esm.sh vs npm: web-push) + Wave 0 test scaffolds + push-mocks (PUSH-01, PUSH-02, PUSH-03)
 - [x] 06-02-PLAN.md — PWA shell installable: public/manifest.json + public/sw.js + ícones 192/512 + index.html PWA meta tags + main.tsx SW registration + vercel.json cache control (PUSH-01, PUSH-04)
 - [x] 06-03-PLAN.md — Send infrastructure: _shared/push.ts (sendPush helper espelhando email.ts) + integração nas 4 notify-* via Promise.allSettled + smoke E2E (PUSH-03, PUSH-04)
 - [x] 06-04-PLAN.md — Subscribe flow client-side: src/lib/pwa.ts + usePushSubscriptions hook + InstalarAppCard + extensão NotificacoesPanel matriz 4×3 com iOS gate D-13 e permission flow D-12 (PUSH-01, PUSH-02)
-- [ ] 06-05-PLAN.md — Install banner + AppLayout SW listener + page hooks TarefasPage/IndicacoesPage para ?highlight=<id> + UAT manual 8 itens (PUSH-01, PUSH-04)
+- [x] 06-05-PLAN.md — Install banner + AppLayout SW listener + page hooks TarefasPage/IndicacoesPage para ?highlight=<id> + UAT manual 8 itens (PUSH-01, PUSH-04)
 
 **UI hint:** sim (PWA manifest + install prompt + preferências push)
 
@@ -153,7 +153,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 5. Multi-Channel Notifications (Email) | 4/4 | Complete   | 2026-05-27 |
-| 6. PWA + Push Notifications | 4/5 | In Progress|  |
+| 6. PWA + Push Notifications | 5/5 | Complete   | 2026-05-28 |
 | 7. Client Portal Expansion | 0/TBD | Not started | - |
 | 8. Individual Performance Reports | 0/TBD | Not started | - |
 | 9. Forecast Linear Regression | 0/TBD | Not started | - |
