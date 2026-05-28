@@ -32,7 +32,7 @@ export function KanbanColumn({ stageId, label, leads, perfis = [] }: Props) {
     <div
       ref={setNodeRef}
       className={cn(
-        'w-64 shrink-0 flex flex-col rounded-xl border-t-2 transition-colors',
+        'w-[85vw] max-w-[280px] md:w-64 shrink-0 flex flex-col rounded-xl border-t-2 transition-colors snap-start',
         COLUMN_COLORS[stageId] || 'border-t-slate-400',
       )}
       style={{

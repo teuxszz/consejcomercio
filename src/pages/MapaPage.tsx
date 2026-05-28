@@ -127,10 +127,10 @@ export function MapaPage() {
   }).length
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-80px)]">
+    <div className="flex flex-col md:flex-row gap-4 md:h-[calc(100vh-80px)]">
 
       {/* ─── Left panel ─── */}
-      <div className="w-72 shrink-0 flex flex-col gap-3 overflow-y-auto pb-4">
+      <div className="w-full md:w-72 shrink-0 flex flex-col gap-3 md:overflow-y-auto pb-4">
 
         {/* Header */}
         <div>
@@ -243,7 +243,7 @@ export function MapaPage() {
       </div>
 
       {/* ─── Map panel ─── */}
-      <div className="flex-1 rounded-2xl relative overflow-hidden" style={{ background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-bg-sm)' }}>
+      <div className="flex-1 rounded-2xl relative overflow-hidden min-h-[60vh] md:min-h-0" style={{ background: 'var(--alpha-bg-xs)', border: '1px solid var(--alpha-bg-sm)' }}>
 
         {/* Legend */}
         <div className="absolute top-3 right-3 z-10 rounded-xl px-3 py-2 text-[10px]"

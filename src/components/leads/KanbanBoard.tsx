@@ -101,7 +101,7 @@ export function KanbanBoard({ leads }: Props) {
       )}
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-3 overflow-x-auto pb-4 h-full">
+        <div className="flex gap-3 overflow-x-auto pb-4 h-full snap-x snap-mandatory md:snap-none scroll-px-3">
           {visibleStages.map(stage => (
             <KanbanColumn
               key={stage.id}
