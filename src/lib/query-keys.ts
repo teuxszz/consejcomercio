@@ -75,4 +75,8 @@ export const QUERY_KEYS = {
   quotaResend: {
     current: ['quotaResend', 'current'] as const,
   },
+  pushSubscriptions: {
+    all: ['pushSubscriptions'] as const,
+    byPerfil: (perfilId: string) => ['pushSubscriptions', perfilId] as const,
+  },
 }
