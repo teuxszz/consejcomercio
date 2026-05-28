@@ -22,6 +22,7 @@ import { constantTimeAuthCheck } from '../_shared/auth.ts'
 import { findSlackUserId, findPerfilNome, loadPrefs } from '../_shared/perfis.ts'
 import { postDm } from '../_shared/slack.ts'
 import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { sendPush } from '../_shared/push.ts'
 import { renderCadencia } from '../_shared/templates/render.ts'
 
 interface ResumoDiarioPayload {
@@ -164,12 +165,41 @@ serve(async (req) => {
         })()
       : Promise.resolve({ ok: true, skipped: 'email_off' })
 
-  // 10. Dispatch paralelo (D-03)
-  const [slackRes, emailRes] = await Promise.all([slackPromise, emailPromise])
+  // 9b. Decisão Push (Phase 6 D-05 helper + D-03 toggle)
+  // entidade_id: null é correto — cadência é agregada por dia; idempotência
+  // UNIQUE produz 1 push/dia (lock-step com email D-21 Phase 5, cron 034
+  // schedule '0 10 * * *' = daily-only matinal BRT, sem 2x/dia).
+  const wantPush = prefs?.cadencia?.push === true
+  const pushPromise: Promise<{ ok: boolean; skipped?: string } | Awaited<ReturnType<typeof sendPush>>> = wantPush
+    ? sendPush(supabase, {
+        perfilId: payload.perfil_id,
+        tipo: 'cadencia',
+        entidadeId: null,
+        entidadeTipo: null,
+        payload: {
+          title: `Cadência: ${totalTarefas} tarefa(s) hoje`.slice(0, 50),
+          body: `${nomeConsultor}, abra o CRM para ver suas ações de hoje`.slice(0, 150),
+          data: { deepLink: `${APP_URL}/me`, tipo: 'cadencia' as const, entidadeId: null },
+        },
+      })
+    : Promise.resolve({ ok: true, skipped: 'push_off' as const })
+
+  // 10. D-03 + Phase 6 Open Question 1: dispatch via allSettled (cross-canal resiliente)
+  const settled = await Promise.allSettled([slackPromise, pushPromise, emailPromise])
+  const [slackSettled, pushSettled, emailSettled] = settled
+  const unwrap = <T,>(s: PromiseSettledResult<T>): T | { ok: false; error: string } =>
+    s.status === 'fulfilled' ? s.value : { ok: false, error: String(s.reason ?? 'unknown') }
+  const slackRes = unwrap(slackSettled)
+  const pushRes = unwrap(pushSettled)
+  const emailRes = unwrap(emailSettled)
 
   return json({
-    ok: slackRes.ok && emailRes.ok,
+    ok:
+      (slackRes as { ok: boolean }).ok &&
+      (pushRes as { ok: boolean }).ok &&
+      (emailRes as { ok: boolean }).ok,
     slack: slackRes,
+    push: pushRes,
     email: emailRes,
   })
 })

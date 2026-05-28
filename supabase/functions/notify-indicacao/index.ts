@@ -19,6 +19,7 @@ import { buildIndicacaoBlocks, buildIndicacaoFallbackText } from './slack.ts'
 import { constantTimeAuthCheck } from '../_shared/auth.ts'
 import { loadPrefs, findDiretores } from '../_shared/perfis.ts'
 import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { sendPush } from '../_shared/push.ts'
 import { renderIndicacao } from '../_shared/templates/render.ts'
 
 const SLACK_BOT_TOKEN          = Deno.env.get('SLACK_BOT_TOKEN')
@@ -152,16 +153,25 @@ async function sha256Hex(text: string): Promise<string> {
     .join('')
 }
 
-// ─── Plan 5-02: dispatch per-user de e-mail para nova indicação ──────────────
+// ─── Plan 5-02 + Phase 6 Plan 03: dispatch per-user de e-mail + push ─────────
 // Olha o lead vinculado (responsavel_id atual — sem snapshot, D-07 spirit) e
-// dispara sendEmail para o responsável (ou fallback para diretores, D-05) se
-// prefs.indicacao.email=true.
+// dispara sendEmail + sendPush em paralelo via Promise.allSettled (Open Question 1)
+// para o responsável (ou fallback p/ diretores, D-05) se prefs.indicacao.{email,push}=true.
+// NOTA: push NÃO usa fallback diretor (Open Question 2 Phase 6) — diretor pode
+// não ter PWA instalado; silent miss aceitável. Apenas email faz fallback.
 async function dispatchEmailIndicacao(
   ind: IndicacaoRow,
   hydrated: HydratedIndicacao,
-): Promise<{ targets: number; sent: number; skipped: number; fallback: boolean }> {
+): Promise<{
+  targets: number
+  sent: number
+  skipped: number
+  fallback: boolean
+  push_sent: number
+  push_skipped: number
+}> {
   if (!ind.lead_id) {
-    return { targets: 0, sent: 0, skipped: 0, fallback: false }
+    return { targets: 0, sent: 0, skipped: 0, fallback: false, push_sent: 0, push_skipped: 0 }
   }
 
   const { data: lead } = await supabase
@@ -170,59 +180,97 @@ async function dispatchEmailIndicacao(
     .eq('id', ind.lead_id)
     .maybeSingle<{ id: string; responsavel_id: string | null; nome: string | null; segmento: string | null }>()
 
-  if (!lead) return { targets: 0, sent: 0, skipped: 0, fallback: false }
+  if (!lead) return { targets: 0, sent: 0, skipped: 0, fallback: false, push_sent: 0, push_skipped: 0 }
 
-  // D-02 + D-05: per-user para responsavel_id, ou fallback p/ diretores se NULL
+  // D-02 + D-05: email per-user para responsavel_id, ou fallback p/ diretores se NULL
   const fallback = !lead.responsavel_id
-  const targetIds: string[] = fallback
+  const emailTargetIds: string[] = fallback
     ? (await findDiretores(supabase)).map((d) => d.id)
     : [lead.responsavel_id!]
 
+  // Phase 6 D-05 push: apenas responsavel_id (sem fallback diretor — Open Question 2)
+  const pushTargetIds: string[] = lead.responsavel_id ? [lead.responsavel_id] : []
+
   let sent = 0
   let skipped = 0
+  let push_sent = 0
+  let push_skipped = 0
 
-  for (const perfilId of targetIds) {
+  const allTargetIds = Array.from(new Set([...emailTargetIds, ...pushTargetIds]))
+
+  for (const perfilId of allTargetIds) {
     const { data: perfil } = await supabase
       .from('perfis')
       .select('email, nome')
       .eq('id', perfilId)
       .maybeSingle<{ email: string | null; nome: string | null }>()
 
-    if (!perfil?.email) {
-      skipped++
-      continue
-    }
-
     const prefs = await loadPrefs(supabase, perfilId)
-    if (!prefs?.indicacao?.email) {
-      skipped++
-      continue
-    }
+    const deepLink = `${APP_URL.replace(/\/$/, '')}/indicacoes?highlight=${ind.id}`
 
-    const magicLink = await generateMagicLink(supabase, perfil.email, '/me?tab=notificacoes')
-    const html = renderIndicacao({
-      nomeResponsavel: perfil.nome ?? 'Consultor',
-      nomeIndicante: hydrated.indicante_nome ?? 'Cliente',
-      nomeIndicado: lead.nome ?? '(sem nome)',
-      segmento: lead.segmento ?? hydrated.segmento ?? '—',
-      deepLink: `${APP_URL.replace(/\/$/, '')}/leads/${lead.id}`,
-      gerenciarPrefsLink: magicLink,
-    })
+    // ─── Email branch (mantém comportamento Phase 5) ──────────────────────────
+    const wantEmail =
+      emailTargetIds.includes(perfilId) && !!perfil?.email && prefs?.indicacao?.email === true
+    const emailPromise = wantEmail
+      ? (async () => {
+          const magicLink = await generateMagicLink(supabase, perfil!.email!, '/me?tab=notificacoes')
+          const html = renderIndicacao({
+            nomeResponsavel: perfil!.nome ?? 'Consultor',
+            nomeIndicante: hydrated.indicante_nome ?? 'Cliente',
+            nomeIndicado: lead.nome ?? '(sem nome)',
+            segmento: lead.segmento ?? hydrated.segmento ?? '—',
+            deepLink: `${APP_URL.replace(/\/$/, '')}/leads/${lead.id}`,
+            gerenciarPrefsLink: magicLink,
+          })
+          return sendEmail(supabase, {
+            perfilId,
+            toEmail: perfil!.email!,
+            tipo: 'indicacao',
+            entidadeId: lead.id,
+            entidadeTipo: 'lead',
+            subject: `Nova indicação: ${lead.nome ?? '(sem nome)'}`,
+            html,
+          })
+        })()
+      : Promise.resolve({ ok: false, skipped: 'email_off_or_no_email' } as const)
 
-    const r = await sendEmail(supabase, {
-      perfilId,
-      toEmail: perfil.email,
-      tipo: 'indicacao',
-      entidadeId: lead.id,
-      entidadeTipo: 'lead',
-      subject: `Nova indicação: ${lead.nome ?? '(sem nome)'}`,
-      html,
-    })
-    if (r.ok) sent++
+    // ─── Push branch (Phase 6 D-05 helper + D-03 toggle) ──────────────────────
+    const wantPush =
+      pushTargetIds.includes(perfilId) && prefs?.indicacao?.push === true
+    const pushPromise = wantPush
+      ? sendPush(supabase, {
+          perfilId,
+          tipo: 'indicacao',
+          entidadeId: lead.id,
+          entidadeTipo: 'lead',
+          payload: {
+            title: `Nova indicação`.slice(0, 50),
+            body: `${lead.nome ?? '(sem nome)'} (${hydrated.indicante_nome ?? 'origem'})`.slice(0, 150),
+            data: { deepLink, tipo: 'indicacao' as const, entidadeId: lead.id },
+          },
+        })
+      : Promise.resolve({ ok: false, skipped: 'push_off_or_no_target' } as const)
+
+    // Open Question 1 — dispatch paralelo por perfil
+    const [emailSettled, pushSettled] = await Promise.allSettled([emailPromise, pushPromise])
+
+    const emailRes = emailSettled.status === 'fulfilled' ? emailSettled.value : { ok: false }
+    const pushRes = pushSettled.status === 'fulfilled' ? pushSettled.value : { ok: false }
+
+    if ((emailRes as { ok: boolean }).ok) sent++
     else skipped++
+    if ((pushRes as { ok: boolean }).ok) push_sent++
+    else push_skipped++
   }
 
-  return { targets: targetIds.length, sent, skipped, fallback }
+  return {
+    targets: allTargetIds.length,
+    sent,
+    skipped,
+    fallback,
+    push_sent,
+    push_skipped,
+  }
 }
 
 serve(async (req) => {
@@ -306,14 +354,21 @@ serve(async (req) => {
       })
       .eq('indicacao_id', ind.id)
 
-    // ─── Plan 5-02: companion e-mail per-user (D-01 broadcast preservado) ────
-    // Look up lead.responsavel_id; fallback to all diretores (D-05).
-    // Continua em background — não bloqueia retorno do broadcast.
-    const emailResults = await dispatchEmailIndicacao(ind, hydrated).catch((e) => ({
+    // ─── Plan 5-02 + Phase 6 Plan 03: companion email + push per-user ────────
+    // Look up lead.responsavel_id; fallback to all diretores (email only — D-05).
+    // Push fanout só para responsavel_id (Open Question 2 — sem fallback).
+    // Promise.allSettled interno: falha de email não aborta push e vice-versa.
+    const dispatchResults = await dispatchEmailIndicacao(ind, hydrated).catch((e) => ({
       error: e instanceof Error ? e.message : String(e),
     }))
 
-    return json({ ok: true, ts: result.ts, email: emailResults })
+    // Resposta retro-compatível: campo `email` mantido (Phase 5), `push` adicionado (Phase 6)
+    const pushRes =
+      'push_sent' in dispatchResults
+        ? { ok: dispatchResults.push_sent > 0, sent: dispatchResults.push_sent, skipped: dispatchResults.push_skipped }
+        : { ok: false, error: 'dispatch failed' }
+
+    return json({ ok: true, ts: result.ts, email: dispatchResults, push: pushRes })
   } catch (err) {
     const message = (err as Error).message
     await supabase

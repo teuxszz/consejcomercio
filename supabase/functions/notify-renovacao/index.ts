@@ -17,6 +17,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { constantTimeAuthCheck } from '../_shared/auth.ts'
 import { loadPrefs, findDiretores } from '../_shared/perfis.ts'
 import { sendEmail, generateMagicLink } from '../_shared/email.ts'
+import { sendPush } from '../_shared/push.ts'
 import { renderRenovacao } from '../_shared/templates/render.ts'
 
 interface RenovacaoPayload {
@@ -232,46 +233,60 @@ serve(async (req) => {
     .eq('contrato_id', payload.contrato_id)
     .eq('dias_antes', payload.dias_antes)
 
-  // ─── Plan 5-02: companion e-mail per-user (D-01 broadcast preservado) ──────
-  const emailResults = await dispatchEmailRenovacao(contrato, payload.dias_antes).catch((e) => ({
+  // ─── Plan 5-02 + Phase 6 Plan 03: companion email + push per-user ──────────
+  // D-05 helper compartilhado; push dispara em paralelo via Promise.allSettled
+  // dentro do dispatch. Push sem fallback diretor (Open Question 2).
+  const dispatchResults = await dispatchEmailRenovacao(contrato, payload.dias_antes).catch((e) => ({
     error: e instanceof Error ? e.message : String(e),
   }))
 
-  return json({ ok: true, ts: result.ts, email: emailResults })
+  const pushRes =
+    'push_sent' in dispatchResults
+      ? { ok: dispatchResults.push_sent > 0, sent: dispatchResults.push_sent, skipped: dispatchResults.push_skipped }
+      : { ok: false, error: 'dispatch failed' }
+
+  return json({ ok: true, ts: result.ts, email: dispatchResults, push: pushRes })
 })
 
-// ─── Plan 5-02: dispatch per-user de e-mail para renovação ───────────────────
+// ─── Plan 5-02 + Phase 6 Plan 03: dispatch per-user de email + push ──────────
 // Lê contrato.responsavel_id JÁ HIDRATADO no momento do disparo (D-07).
-// Fallback p/ diretores se NULL (D-05). Prefs.renovacao.email gate.
+// Email: fallback p/ diretores se responsavel_id NULL (D-05).
+// Push: APENAS para responsavel_id (Open Question 2 — sem fallback diretor).
+// Promise.allSettled interno (Open Question 1) — falha email não aborta push.
 async function dispatchEmailRenovacao(
   contrato: ContratoHidratado,
   diasAntes: number,
-): Promise<{ targets: number; sent: number; skipped: number; fallback: boolean }> {
+): Promise<{
+  targets: number
+  sent: number
+  skipped: number
+  fallback: boolean
+  push_sent: number
+  push_skipped: number
+}> {
   const fallback = !contrato.responsavel_id
-  const targetIds: string[] = fallback
+  const emailTargetIds: string[] = fallback
     ? (await findDiretores(supabase)).map((d) => d.id)
     : [contrato.responsavel_id!]
 
+  // Push só para responsavel_id (sem fallback — Open Question 2)
+  const pushTargetIds: string[] = contrato.responsavel_id ? [contrato.responsavel_id] : []
+
   let sent = 0
   let skipped = 0
+  let push_sent = 0
+  let push_skipped = 0
 
-  for (const perfilId of targetIds) {
+  const allTargetIds = Array.from(new Set([...emailTargetIds, ...pushTargetIds]))
+
+  for (const perfilId of allTargetIds) {
     const { data: perfil } = await supabase
       .from('perfis')
       .select('email, nome')
       .eq('id', perfilId)
       .maybeSingle<{ email: string | null; nome: string | null }>()
 
-    if (!perfil?.email) {
-      skipped++
-      continue
-    }
-
     const prefs = await loadPrefs(supabase, perfilId)
-    if (!prefs?.renovacao?.email) {
-      skipped++
-      continue
-    }
 
     const valorBRL =
       contrato.valor_total != null
@@ -280,32 +295,78 @@ async function dispatchEmailRenovacao(
           ? `${contrato.valor_mensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/mês`
           : '—'
 
-    const deepLink = contrato.cliente_id
+    // Email deep link mantém comportamento Phase 5 (vai pra /clientes/<id>)
+    const emailDeepLink = contrato.cliente_id
       ? `${APP_URL.replace(/\/$/, '')}/clientes/${contrato.cliente_id}`
       : `${APP_URL.replace(/\/$/, '')}/contratos`
 
-    const magicLink = await generateMagicLink(supabase, perfil.email, '/me?tab=notificacoes')
-    const html = renderRenovacao({
-      nomeResponsavel: perfil.nome ?? 'Consultor',
-      nomeCliente: contrato.cliente_nome ?? contrato.cliente_empresa ?? '(cliente)',
-      diasAteRenovacao: diasAntes,
-      valorContrato: valorBRL,
-      deepLink,
-      gerenciarPrefsLink: magicLink,
-    })
+    // D-14 partial (Blocker #3): push deep link = /contratos/<id> SEM ?tab=renovacao.
+    // ContratoDetailPage com tabs não existe; adicionar query param produziria URL
+    // inerte (router monta /contratos mas nada reage ao param). Tech-debt: futura
+    // phase pode criar detail page com tabs (renovação/histórico/dados).
+    const pushDeepLink = `${APP_URL.replace(/\/$/, '')}/contratos/${contrato.id}`
 
-    const r = await sendEmail(supabase, {
-      perfilId,
-      toEmail: perfil.email,
-      tipo: 'renovacao',
-      entidadeId: contrato.id,
-      entidadeTipo: 'contrato',
-      subject: `Renovação em ${diasAntes} dia(s): ${contrato.cliente_nome ?? '(cliente)'}`,
-      html,
-    })
-    if (r.ok) sent++
+    // ─── Email branch (mantém comportamento Phase 5) ──────────────────────────
+    const wantEmail =
+      emailTargetIds.includes(perfilId) && !!perfil?.email && prefs?.renovacao?.email === true
+    const emailPromise = wantEmail
+      ? (async () => {
+          const magicLink = await generateMagicLink(supabase, perfil!.email!, '/me?tab=notificacoes')
+          const html = renderRenovacao({
+            nomeResponsavel: perfil!.nome ?? 'Consultor',
+            nomeCliente: contrato.cliente_nome ?? contrato.cliente_empresa ?? '(cliente)',
+            diasAteRenovacao: diasAntes,
+            valorContrato: valorBRL,
+            deepLink: emailDeepLink,
+            gerenciarPrefsLink: magicLink,
+          })
+          return sendEmail(supabase, {
+            perfilId,
+            toEmail: perfil!.email!,
+            tipo: 'renovacao',
+            entidadeId: contrato.id,
+            entidadeTipo: 'contrato',
+            subject: `Renovação em ${diasAntes} dia(s): ${contrato.cliente_nome ?? '(cliente)'}`,
+            html,
+          })
+        })()
+      : Promise.resolve({ ok: false, skipped: 'email_off_or_no_email' } as const)
+
+    // ─── Push branch (Phase 6 D-05 + D-03 toggle) ─────────────────────────────
+    const wantPush =
+      pushTargetIds.includes(perfilId) && prefs?.renovacao?.push === true
+    const pushPromise = wantPush
+      ? sendPush(supabase, {
+          perfilId,
+          tipo: 'renovacao',
+          entidadeId: contrato.id,
+          entidadeTipo: 'contrato',
+          payload: {
+            title: `Renovação próxima: ${contrato.cliente_nome ?? '(cliente)'}`.slice(0, 50),
+            body: `Vence em ${diasAntes} dia(s)`.slice(0, 150),
+            data: { deepLink: pushDeepLink, tipo: 'renovacao' as const, entidadeId: contrato.id },
+          },
+        })
+      : Promise.resolve({ ok: false, skipped: 'push_off_or_no_target' } as const)
+
+    // Open Question 1 — dispatch paralelo por perfil
+    const [emailSettled, pushSettled] = await Promise.allSettled([emailPromise, pushPromise])
+
+    const emailRes = emailSettled.status === 'fulfilled' ? emailSettled.value : { ok: false }
+    const pushRes = pushSettled.status === 'fulfilled' ? pushSettled.value : { ok: false }
+
+    if ((emailRes as { ok: boolean }).ok) sent++
     else skipped++
+    if ((pushRes as { ok: boolean }).ok) push_sent++
+    else push_skipped++
   }
 
-  return { targets: targetIds.length, sent, skipped, fallback }
+  return {
+    targets: allTargetIds.length,
+    sent,
+    skipped,
+    fallback,
+    push_sent,
+    push_skipped,
+  }
 }
