@@ -68,10 +68,11 @@ function makeWrapper() {
 
 const DEFAULT_PREFS: PreferenciasNotif = {
   // push: false — fixture Phase 5 não exercita push; Plan 03/04 cobrem.
-  tarefa:    { slack: true,  email: true,  push: false },
-  cadencia:  { slack: false, email: true,  push: false },
-  renovacao: { slack: true,  email: true,  push: false },
-  indicacao: { slack: true,  email: false, push: false },
+  tarefa:     { slack: true,  email: true,  push: false },
+  cadencia:   { slack: false, email: true,  push: false },
+  renovacao:  { slack: true,  email: true,  push: false },
+  indicacao:  { slack: true,  email: false, push: false },
+  documentos: { slack: false, email: true,  push: false }, // Phase 7 D-16 default
 }
 
 describe('usePreferenciasNotif', () => {

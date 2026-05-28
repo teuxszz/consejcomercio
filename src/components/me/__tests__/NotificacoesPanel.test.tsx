@@ -69,10 +69,11 @@ function wrapper({ children }: { children: ReactNode }) {
 
 const DEFAULT_PREFS: PreferenciasNotif = {
   // push: false — fixture Phase 5 mantém matriz 4×2 testada; Plan 04 amplia para 4×3.
-  tarefa:    { slack: true, email: true, push: false },
-  cadencia:  { slack: true, email: true, push: false },
-  renovacao: { slack: true, email: true, push: false },
-  indicacao: { slack: true, email: true, push: false },
+  tarefa:     { slack: true, email: true, push: false },
+  cadencia:   { slack: true, email: true, push: false },
+  renovacao:  { slack: true, email: true, push: false },
+  indicacao:  { slack: true, email: true, push: false },
+  documentos: { slack: false, email: true, push: false }, // Phase 7 D-16 default
 }
 
 describe('NotificacoesPanel', () => {

@@ -218,6 +218,10 @@ export interface MetasConfig {
   pontos_ganho_consultoria: number
   pontos_indicacao: number
   recompensa_descricao: string
+  // ─── Phase 7 D-13 (RESEARCH Open Q1 RESOLVED) ──────────────────────────────
+  // Threshold para flag "aprovação pendente há mais de N dias" no dashboard
+  // do consultor responsável. Default 5 dias quando undefined.
+  dias_para_aprovacao_pendente?: number
 }
 
 export interface MensagensConfig {
@@ -430,7 +434,7 @@ export const NIVEL_CONFIG: Record<NivelToken, { label: string; cor: string; bonu
 // ─── Phase 5 — Multi-Channel Notifications (Email + Slack) ──────────────────
 // ─── Phase 6 — PWA + Push (D-16: 'push' added to CanalNotif/PreferenciasNotif)
 
-export type TipoNotif = 'tarefa' | 'cadencia' | 'renovacao' | 'indicacao'
+export type TipoNotif = 'tarefa' | 'cadencia' | 'renovacao' | 'indicacao' | 'documentos'
 export type CanalNotif = 'email' | 'slack' | 'push'
 export type StatusNotif =
   | 'queued'
@@ -444,11 +448,37 @@ export type StatusNotif =
   | 'failed'
 
 export interface PreferenciasNotif {
-  // Ordem `slack | email | push` alinha com a matriz UI (Plan 04 — 4×3)
-  tarefa:    { slack: boolean; email: boolean; push: boolean }
-  cadencia:  { slack: boolean; email: boolean; push: boolean }
-  renovacao: { slack: boolean; email: boolean; push: boolean }
-  indicacao: { slack: boolean; email: boolean; push: boolean }
+  // Ordem `slack | email | push` alinha com a matriz UI (Plan 04 — 4×3 ; Phase 7: 5×3)
+  tarefa:     { slack: boolean; email: boolean; push: boolean }
+  cadencia:   { slack: boolean; email: boolean; push: boolean }
+  renovacao:  { slack: boolean; email: boolean; push: boolean }
+  indicacao:  { slack: boolean; email: boolean; push: boolean }
+  // ─── Phase 7 — Client Portal (D-16: 'documentos' adicionado) ──────────────
+  documentos: { slack: boolean; email: boolean; push: boolean }
+}
+
+// ─── Phase 7 — Client Portal Expansion (D-16: cliente_docs types) ──────────
+export type AutorDoc = 'interno' | 'cliente'
+export type TagDoc = 'proposta' | 'contrato' | 'relatorio' | 'outro'
+export type StatusDoc = 'pending' | 'aprovado' | 'revisao_solicitada' | 'superseded' | null
+
+export interface ClienteDoc {
+  id: string
+  cliente_id: string
+  autor_id: string
+  autor_tipo: AutorDoc
+  tag: TagDoc
+  nome_arquivo: string
+  mime_type: string
+  tamanho_bytes: number
+  storage_path: string
+  versao: number
+  parent_doc_id: string | null
+  requer_aprovacao: boolean
+  status: StatusDoc
+  comentario_cliente: string | null
+  created_at: string
+  deleted_at: string | null
 }
 
 /** Row da tabela push_subscriptions (Phase 6 migration 036).

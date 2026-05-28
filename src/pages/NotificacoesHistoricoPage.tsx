@@ -58,6 +58,7 @@ function tipoLabel(tipo: NotificacaoEnvio['tipo']): string {
     cadencia: 'Cadência',
     renovacao: 'Renovação',
     indicacao: 'Indicação',
+    documentos: 'Documentos',
   } as const)[tipo]
 }
 

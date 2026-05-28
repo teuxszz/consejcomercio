@@ -28,10 +28,12 @@ const TIPOS: { id: TipoNotif; label: string; descricao: string }[] = [
 
 const DEFAULT_PREFS: PreferenciasNotif = {
   // push: false (Phase 6 D-04 smart default — usuário liga manualmente após instalar PWA)
-  tarefa:    { slack: false, email: true, push: false },
-  cadencia:  { slack: false, email: true, push: false },
-  renovacao: { slack: false, email: true, push: false },
-  indicacao: { slack: false, email: true, push: false },
+  tarefa:     { slack: false, email: true, push: false },
+  cadencia:   { slack: false, email: true, push: false },
+  renovacao:  { slack: false, email: true, push: false },
+  indicacao:  { slack: false, email: true, push: false },
+  // Phase 7 D-16 — documentos (UI dedicada virá no Plan 04a; default OFF)
+  documentos: { slack: false, email: true, push: false },
 }
 
 function prefsEqual(a: PreferenciasNotif, b: PreferenciasNotif): boolean {
