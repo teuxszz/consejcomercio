@@ -1286,37 +1286,48 @@ URL state: pode adicionar `?tab=docs` via `searchParams.set('tab', 'docs')` (pat
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Resolved by planner revision iteration 2 (2026-05-28). Decisions abaixo são canônicas; planner não precisa reabrir.
 
 1. **`dias_para_aprovacao_pendente` dentro de `metas` JSONB ou nova coluna em `configuracoes`?**
    - What we know: Phase 1/2 já têm metas como JSONB; pattern preserva schema flat
    - What's unclear: CONTEXT.md fala de "`configuracoes.dias_para_aprovacao_pendente`" — ambíguo
-   - Recommendation: **JSONB `metas.dias_para_aprovacao_pendente`** (não adiciona coluna; respeita pattern existente). Se planner discordar, adicionar coluna é trivial.
+   - Recommendation: **JSONB `metas.dias_para_aprovacao_pendente`** (não adiciona coluna; respeita pattern existente).
+   - **RESOLVED:** Chave dentro de `configuracoes.metas` JSONB (path `metas.dias_para_aprovacao_pendente`, default `5`). Migration 037 faz UPDATE com `jsonb_set(... create_if_missing=true)`. Sem nova coluna. Type extension em `MetasConfig` em `src/types/index.ts`. UI para coord+ ajustar é entregue em Plan 07-04b (componente `ConfigDiasAprovacao`).
 
 2. **Soft delete vs hard delete em `cliente_docs.deleted_at`?**
    - What we know: CONTEXT.md diz "deferred a critério do planner"; pattern existente é soft (lixeira leads)
-   - What's unclear: Se sob delete também faz DELETE no storage.objects (espaço) ou só marca row
+   - What's unclear: Se soft delete também faz DELETE no storage.objects (espaço) ou só marca row
    - Recommendation: **Soft delete na row + hard delete no storage** após confirmação. Recupera espaço sem perder histórico de aprovações. Edge function `delete-cliente-doc` (service_role) garante consistência.
+   - **RESOLVED:** Soft delete na row (`deleted_at` timestamptz) + hard delete no `storage.objects` via edge function `delete-cliente-doc` rodando com `service_role`. A edge function de delete fica fora do MVP Phase 7 (deferida para gap-closure ou Phase 8). Migration 037 cria apenas a coluna `deleted_at` + RLS DELETE retorna false para usuários comuns (service_role bypassa).
 
 3. **`storage.objects` RLS para INSERT — interno coord+ pode subir em qualquer pasta?**
    - What we know: D-15 diz "interno em qualquer pasta de cliente onde tem RLS"
    - What's unclear: Se "RLS" se refere a `cliente_docs` RLS ou `clientes` RLS
    - Recommendation: Coord+ pode subir em qualquer cliente (matches `is_at_least('coordenador')`); consultor só em clientes onde `responsavel_id = auth.uid()`. SQL no Pattern §1.
+   - **RESOLVED:** Storage RLS INSERT — coord+ (`public.is_at_least('coordenador')`) pode subir em **qualquer** pasta de cliente; consultor (`public.is_interno()`) só em pastas onde `clientes.responsavel_id = auth.uid()`; cliente só na própria pasta (`(foldername(name))[1] = perfis.cliente_id::text`). SQL exato em Pattern §1.B já reflete esta resolução.
 
-4. **Trigger UPDATE com `OLD.status IS DISTINCT FROM NEW.status` para evitar disparar 2x?**
-   - What we know: Pattern Postgres canônico para evitar notif duplicate em UPDATE noop
-   - What's unclear: Se UI já garante que status só muda quando há mudança real
-   - Recommendation: **Sempre** usar `IS DISTINCT FROM` no trigger por safety (caso de mutation otimista que reabilita o mesmo status).
+4. **Bumpar `@supabase/supabase-js` 2.99 → 2.106.2 para ter `onUploadProgress` nos types?**
+   - What we know: Suporte runtime existe em 2.99.x; types catching up em 2.106.x
+   - What's unclear: Risco vs benefício do bump na phase
+   - **RESOLVED:** Manter `@supabase/supabase-js@2.99.x` no Phase 7 — não bumpar só pelo type. Usar `@ts-expect-error` com comentário curto no `useUploadClienteDoc` / `storage-helpers.ts` (Pitfall §1). Bump fica para milestone próprio. Reduz risk não-relacionado nesta phase.
 
-5. **Sender domain Resend para email aprovação — herda Phase 5 `onboarding@resend.dev`?**
-   - What we know: Phase 5 D-24 documenta sender sandbox até DNS pronto
-   - What's unclear: Se neste phase há razão para usar domain diferente
-   - Recommendation: **Herdar Phase 5** integralmente. DNS unblock virá em milestone próprio.
+5. **Query "uso total bucket" — função SQL on-demand ou cron diário com cache?**
+   - What we know: Pattern Phase 5 tem cron; mas RPC SQL é trivial e dashboard pode chamar direto
+   - What's unclear: Volume e frequência de chamadas justifica cron?
+   - **RESOLVED:** Função SQL `public.bucket_usage_bytes(p_bucket TEXT)` em migration 039 (RESEARCH §10) que soma `(metadata->>'size')::bigint` em `storage.objects WHERE bucket_id = p_bucket`. SECURITY DEFINER + GRANT EXECUTE para `authenticated`. UI gate por `RequireRole atLeast='coordenador'`. Hook `useBucketUsage` com `staleTime: 5min`. Sem cron — função on-demand é suficiente para volume MVP.
 
 6. **Reenviar lembrete (D-12) — qual `entidade_id` em `notificacoes_envios`?**
    - What we know: Idempotência day-level usa `(perfil_id, tipo, canal, dia, entidade_id)`
    - What's unclear: Se quero permitir múltiplos reenvios no mesmo dia, preciso de algo distinto no entidade_id
    - Recommendation: Reusar `entidade_id = doc_id` MAS lembretes manuais marcam `reenviado_por_id = coord_perfil_id` (a coluna existente em notificacoes_envios). UNIQUE partial index `WHERE reenviado_por_id IS NULL` permite múltiplos lembretes (já é o behavior Phase 5 reenviar).
+   - **RESOLVED:** `entidade_id = doc_id` na UNIQUE de `notificacoes_envios`. Lembretes manuais coord+ usam coluna `reenviado_por_id` (já existente desde Phase 5). UNIQUE parcial `WHERE reenviado_por_id IS NULL` permite múltiplos lembretes no mesmo dia para o mesmo doc (cada manual vira nova row com `reenviado_por_id` setado). Comportamento canônico Phase 5 — sem mudança de schema.
+
+7. **`file.type` validation: HTML5 file.type (browser-reported) suficiente para MVP ou exigir MIME sniffing real (magic bytes) no backend?**
+   - What we know: file.type pode ser spoofed (Pitfall §2 e §3); bucket `allowed_mime_types` valida server-side
+   - What's unclear: Necessidade de sniffing real para cliente CONSEJ não-hostil
+   - **RESOLVED:** Defense-in-depth client-side via (a) HTML5 `file.type` (browser-reported, UX rápido), (b) extension whitelist, (c) `file.size` check, MAIS server-side enforcement via bucket `allowed_mime_types` + `file_size_limit` (Content-Type check no upload do Storage). MIME sniffing real (magic bytes) fica como **tech-debt aceito** (T-07-04 disposition=accept) — cliente CONSEJ não é hostil e o Storage faz a checagem real no Content-Type do request. Documentado em D-05.
 
 ---
 
