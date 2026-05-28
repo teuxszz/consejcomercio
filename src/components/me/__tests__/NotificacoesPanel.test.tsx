@@ -41,6 +41,15 @@ vi.mock('@/hooks/usePreferenciasNotif', () => ({
   useSalvarPrefs: (...args: unknown[]) => useSalvarMock(...args),
 }))
 
+// Phase 6 — usePushSubscriptions + useSubscribePush mocks (Plan 04)
+const usePushSubscriptionsMock = vi.fn()
+const useSubscribePushMock = vi.fn()
+vi.mock('@/hooks/usePushSubscriptions', () => ({
+  usePushSubscriptions: (...args: unknown[]) => usePushSubscriptionsMock(...args),
+  useSubscribePush: (...args: unknown[]) => useSubscribePushMock(...args),
+  useUnsubscribePush: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
@@ -70,22 +79,45 @@ describe('NotificacoesPanel', () => {
   beforeEach(() => {
     usePreferenciasMock.mockReset()
     useSalvarMock.mockReset()
+    usePushSubscriptionsMock.mockReset()
+    useSubscribePushMock.mockReset()
+    // Defaults Phase 6
+    usePushSubscriptionsMock.mockReturnValue({ data: [], isLoading: false })
+    useSubscribePushMock.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
     vi.clearAllMocks()
   })
 
-  it('renderiza matriz 4×2 com exatamente 8 Switches', () => {
+  it('renderiza matriz 4×3 com exatamente 12 Switches (Phase 6 Plan 04)', () => {
     usePreferenciasMock.mockReturnValue({ data: DEFAULT_PREFS, isLoading: false })
     useSalvarMock.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
 
     render(<NotificacoesPanel />, { wrapper })
 
     const switches = screen.getAllByRole('switch')
-    expect(switches).toHaveLength(8)
+    // 4 tipos × 3 canais (slack, email, push) = 12
+    expect(switches).toHaveLength(12)
     // Cada linha do tipo aparece
     expect(screen.getByText('Tarefas')).toBeTruthy()
     expect(screen.getByText('Cadência')).toBeTruthy()
     expect(screen.getByText('Renovação')).toBeTruthy()
     expect(screen.getByText('Indicação')).toBeTruthy()
+    // Header Push presente (aparece como label de coluna + possivelmente em outros lugares)
+    expect(screen.getAllByText('Push').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('iOS gate (D-13): em jsdom (sem PushManager), 4 Switches Push ficam disabled', () => {
+    usePreferenciasMock.mockReturnValue({ data: DEFAULT_PREFS, isLoading: false })
+    useSalvarMock.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
+
+    render(<NotificacoesPanel />, { wrapper })
+
+    // Os 4 switches Push têm aria-label "...via Push (indisponível)" quando bloqueados
+    const pushSwitches = screen.getAllByRole('switch').filter(s => /via Push/.test(s.getAttribute('aria-label') ?? ''))
+    expect(pushSwitches).toHaveLength(4)
+    // Cada um marcado como indisponível (gate bloqueado por unsupported em jsdom)
+    pushSwitches.forEach(s => {
+      expect(s.getAttribute('aria-label')).toMatch(/indisponível/)
+    })
   })
 
   it('togglar 1 switch + clicar Salvar chama useSalvarPrefs uma vez com o objeto INTEIRO (D-08 atomicidade)', async () => {
