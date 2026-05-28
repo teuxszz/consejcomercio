@@ -32,9 +32,9 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 05 (multi-channel-notifications-email) — ✅ COMPLETE
-Plan: 4 of 4 complete
-**Current phase:** 05 (closed) → próxima Phase 06 (PWA + Push Notifications)
+Phase: 06 (pwa-push-notifications) — Context gathered, planning next
+Plan: 0 of TBD
+**Current phase:** 06 (PWA + Push Notifications) — CONTEXT.md ready, awaiting `/gsd-plan-phase 6`
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
 **Phase status:** Phase 5 fechada. UAT 7/7 pass, UI audit 20/24 (sem blockers de produção exceto reenviar-sem-confirmação flagado), SECURITY 7/7 threats (T-05-01..07) verified. Backend multi-canal deployed (6 edge functions), migration 035 em prod, UI interna + portal placeholder shipped. CORS fix inline durante UAT (a760c96).
 **Milestone status:** v3.0 Active, **1/6 phases complete (16%)**
@@ -135,9 +135,9 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 
 ## Session Continuity
 
-**Last action:** Phase 5 **fechada formalmente** em 2026-05-27. Stack final: UAT 7/7 pass (CORS fix inline em commit `a760c96`), UI audit 20/24 (`28f3a1b`), SECURITY 7/7 threats verified — `T-05-01` HMAC svix manual + replay 5min, `T-05-02` escapeHtml em 4 templates, `T-05-03` quota banner coord+ + Resend 429, `T-05-04` RLS role-aware + dual-client edge, `T-05-05` magic link via `admin.generateLink`, `T-05-06` findDiretores idempotente, `T-05-07` self-loop guard + webhook secret.
-**Next action:** `/gsd-plan-phase 6` ou `/gsd-execute-phase 6` — Phase 6 (PWA + Push Notifications). Pré-requisitos: gerar VAPID keys + setar `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` como Supabase Secrets (ver Phase 6 pre-start no STATE.md).
-**Open questions:** nenhuma — Phase 5 100% closed (verify + UI + security todos verdes).
+**Last action:** Phase 6 CONTEXT.md escrita em 2026-05-28 via `/gsd-discuss-phase 6` (commit `be4e3f8`). 16 decisões locked (D-01..D-16) cobrindo subscription storage (tabela `push_subscriptions` multi-device, DELETE no 410 Gone, sem master switch), edge function shape (helper `_shared/push.ts` reinterpretando PUSH-03, `web-push@3.6.7` via esm.sh, VAPID em Supabase Secrets), PWA install UX (banner topo + card em `/me/preferencias`, reusar `logo.png`, SW minimal), e permission/iOS gate (request no toggle, iOS Safari standalone-only, deep link via `?highlight=<id>`). 13 ideias deferidas registradas explicitamente.
+**Next action:** `/gsd-plan-phase 6` — research → plan → verify. Pré-requisitos manuais antes de `/gsd-execute-phase 6`: (1) `npx web-push generate-vapid-keys` → setar `VAPID_PRIVATE_KEY`/`VAPID_PUBLIC_KEY`/`VAPID_SUBJECT` como Supabase Secrets; (2) setar `VITE_VAPID_PUBLIC_KEY` no env Vercel.
+**Open questions:** nenhuma — discussão cobriu as 4 áreas (storage, function shape, install UX, permission timing).
 
 ## Tech Debt
 
