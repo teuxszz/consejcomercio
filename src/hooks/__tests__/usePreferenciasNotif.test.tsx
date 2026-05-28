@@ -115,10 +115,11 @@ describe('usePreferenciasNotif', () => {
     expect(updateMock).toHaveBeenCalledTimes(1)
     expect(updateMock).toHaveBeenCalledWith({ preferencias_notif: DEFAULT_PREFS })
     expect(eqUpdateMock).toHaveBeenCalledWith('id', 'perfil-1')
-    // Garante atomicidade: as 4 chaves devem ter chegado de uma vez
+    // Garante atomicidade: as 5 chaves devem ter chegado de uma vez (Phase 7 D-16 adicionou documentos)
     const payload = updateMock.mock.calls[0][0] as { preferencias_notif: PreferenciasNotif }
     expect(Object.keys(payload.preferencias_notif).sort()).toEqual([
       'cadencia',
+      'documentos',
       'indicacao',
       'renovacao',
       'tarefa',
