@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Sidebar } from './Sidebar'
 import { GlobalSearch } from './GlobalSearch'
+import { InstallAppBanner } from './InstallAppBanner'
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
 import { Toaster } from 'sonner'
 
@@ -58,6 +59,30 @@ export function AppLayout() {
     return () => subscription.unsubscribe()
   }, [navigate, queryClient])
 
+  // PUSH-04 / D-14: SW envia { type: 'PUSH_NAVIGATE', url } via postMessage quando
+  // o usuário clica numa push notification e há tab CRM já aberta (focado pelo SW).
+  // T-06-07: validar same-origin antes de navegar — defesa-em-profundidade ao guard
+  // que já existe no sw.js (Plan 02 Task 2.2).
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== 'PUSH_NAVIGATE' || typeof e.data.url !== 'string') return
+      try {
+        const url = new URL(e.data.url)
+        if (url.origin !== window.location.origin) {
+          console.warn('[AppLayout] PUSH_NAVIGATE com origem externa ignorado:', e.data.url)
+          return
+        }
+        navigate(url.pathname + url.search)
+      } catch {
+        // T-06-20: URL malformada não pode crashar o AppLayout
+        console.warn('[AppLayout] PUSH_NAVIGATE com URL malformada:', e.data.url)
+      }
+    }
+    navigator.serviceWorker.addEventListener('message', handler)
+    return () => navigator.serviceWorker.removeEventListener('message', handler)
+  }, [navigate])
+
   if (checking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5" style={{ backgroundColor: '#00081d' }}>
@@ -74,6 +99,7 @@ export function AppLayout() {
     <div className="flex h-screen bg-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-background">
+        <div className="px-6 pt-3"><InstallAppBanner /></div>
         <div key={location.pathname} className="p-6 animate-in fade-in duration-150">
           <Outlet />
         </div>
