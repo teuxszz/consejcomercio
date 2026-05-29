@@ -95,12 +95,12 @@ Plans:
 3. Cliente clica "Aprovar" na proposta → status muda, consultor recebe notificação multi-canal (Slack+email+push conforme preferência).
 4. Coordenador+ vê em `/portal-admin/aprovacoes-pendentes` quais clientes têm >5 dias sem responder uma proposta enviada — pode reenviar lembrete com 1 clique.
 
-**Plans:** 6 plans (em 5 waves — revision iter 2 splits 01→01a/01b e 04→04a/04b por size cap)
+**Plans:** 2/6 plans executed
 **UI hint:** sim (drag-drop, ficha cliente docs, dashboard aprovações)
 
 Plans:
-- [ ] 07-01a-PLAN.md — Schema + bucket + storage RLS + Vault secret (manual gate, wave 1) (PORTAL-01..04 foundation)
-- [ ] 07-01b-PLAN.md — Types + Wave 0 scaffolds + helpers extend + file-validation + query-keys (autonomous, wave 1) (PORTAL-01..04 foundation)
+- [x] 07-01a-PLAN.md — Schema + bucket + storage RLS + Vault secret (manual gate, wave 1) (PORTAL-01..04 foundation)
+- [x] 07-01b-PLAN.md — Types + Wave 0 scaffolds + helpers extend + file-validation + query-keys (autonomous, wave 1) (PORTAL-01..04 foundation)
 - [ ] 07-02-PLAN.md — Backend multi-canal: _shared/aprovacoes.ts + notify-aprovacao-evento (com skip_slack passthrough) + notify-aprovacoes-stale + migration 038 (triggers + cron) (wave 2) (PORTAL-03, PORTAL-04 backend)
 - [ ] 07-03-PLAN.md — UI bidirecional: react-dropzone + storage-helpers + useClienteDocs (com D-02 versionamento) + UploadDropzone + ClienteDocsList + PortalDocumentosPage + tab Documentos em ClienteDetailPage (wave 3) (PORTAL-01, PORTAL-02)
 - [ ] 07-04a-PLAN.md — Aprovação UI: useAprovarDoc + useSolicitarRevisaoDoc + AprovacaoButtons + SolicitarRevisaoModal + DocVersionTimeline + SubirNovaVersaoButton (D-02 BLOCKER #2) + NotificacoesPanel 5×3 (wave 4) (PORTAL-03)
@@ -162,7 +162,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 5. Multi-Channel Notifications (Email) | 4/4 | Complete   | 2026-05-27 |
 | 6. PWA + Push Notifications | 5/5 | Complete   | 2026-05-28 |
-| 7. Client Portal Expansion | 0/4 | Not started | - |
+| 7. Client Portal Expansion | 2/6 | In Progress|  |
 | 8. Individual Performance Reports | 0/TBD | Not started | - |
 | 9. Forecast Linear Regression | 0/TBD | Not started | - |
 | 10. Smart Lead Classification | 0/TBD | Not started | - |

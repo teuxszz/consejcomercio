@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: comunicacao-portal-inteligencia
-current_phase: 06
+current_phase: 07
 status: phase_complete
-last_updated: "2026-05-28T13:28:39.826Z"
+last_updated: "2026-05-28T19:43:40.836Z"
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 9
-  completed_plans: 4
-  percent: 17
+  completed_phases: 2
+  total_plans: 15
+  completed_plans: 9
+  percent: 33
 ---
 
 # STATE — CONSEJ CRM v2 Milestone v3.0
@@ -32,9 +32,9 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 06 (pwa-push-notifications) — EXECUTING
-Plan: 1 of 5
-**Current phase:** 06
+Phase: 07 (client-portal-expansion) — EXECUTING
+Plan: 1 of 6
+**Current phase:** 07
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
 **Phase status:** Phase 5 fechada. UAT 7/7 pass, UI audit 20/24 (sem blockers de produção exceto reenviar-sem-confirmação flagado), SECURITY 7/7 threats (T-05-01..07) verified. Backend multi-canal deployed (6 edge functions), migration 035 em prod, UI interna + portal placeholder shipped. CORS fix inline durante UAT (a760c96).
 **Milestone status:** v3.0 Active, **1/6 phases complete (16%)**
