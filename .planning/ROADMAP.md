@@ -119,8 +119,14 @@ Plans:
 3. Botão "Exportar CSV" baixa lista bruta de leads/tarefas/contratos do período para Excel.
 4. `/adocao` ganha botão "Exportar PDF equipe" gerando relatório consolidado com todos consultores ativos no período.
 
-**Plans:** TBD
+**Plans:** 4 plans
 **UI hint:** sim (página de desempenho + botões export)
+
+Plans:
+- [ ] 08-01-PLAN.md — Foundation: libs (jspdf/html2canvas/papaparse/jszip) + types D-10 + slug extract + calcularDesempenho helper + Wave 0 scaffolds (REP-01..04 foundation)
+- [ ] 08-02-PLAN.md — Página + off-screen renderer: /me/desempenho + KpiGrid + 3 charts + DesempenhoReport portal + routing + RequireRole condicional + PerfilPanel link (REP-01)
+- [ ] 08-03-PLAN.md — Export individual: pdf-export.ts + csv-export.ts (lazy) + 2 botões + GlobalSearch indexing + chunks Vite (REP-02, REP-03)
+- [ ] 08-04-PLAN.md — Team report + UAT: desempenho-team.ts + DesempenhoTeamReport + ProgressModal + ExportarPDFEquipeButton (AbortController + mobile warn) + AdocaoPage drill + UAT 7-item (REP-04)
 
 ### Phase 9: Forecast Linear Regression
 
@@ -163,7 +169,7 @@ Plans:
 | 5. Multi-Channel Notifications (Email) | 4/4 | Complete   | 2026-05-27 |
 | 6. PWA + Push Notifications | 5/5 | Complete   | 2026-05-28 |
 | 7. Client Portal Expansion | 6/6 | Complete   | 2026-05-29 |
-| 8. Individual Performance Reports | 0/TBD | Not started | - |
+| 8. Individual Performance Reports | 0/4 | Not started | - |
 | 9. Forecast Linear Regression | 0/TBD | Not started | - |
 | 10. Smart Lead Classification | 0/TBD | Not started | - |
 
