@@ -40,10 +40,13 @@ const STATUS_LABELS: Record<Exclude<StatusDoc, null>, { label: string; cls: stri
   superseded:            { label: 'Substituído', cls: 'text-muted-foreground bg-muted/10 border-muted/30' },
 }
 
-function iconForMime(mime: string) {
-  if (mime.startsWith('image/')) return FileImage
-  if (mime === 'application/pdf') return FileText
-  return FileIcon
+// Renderiza um ícone Lucide por tipo MIME sem retornar componente — assim
+// o lint rule `react-hooks/static-components` (instâncias de componente em
+// render) fica satisfeito. Recebe className opcional + style opcional.
+function MimeIcon({ mime, className, style }: { mime: string; className?: string; style?: React.CSSProperties }) {
+  if (mime.startsWith('image/')) return <FileImage className={className} style={style} />
+  if (mime === 'application/pdf') return <FileText className={className} style={style} />
+  return <FileIcon className={className} style={style} />
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -128,7 +131,6 @@ interface DocCardProps {
 function DocCard({ group, mode, onDownload, actionsSlot }: DocCardProps) {
   const { current, history } = group
   const [showHistory, setShowHistory] = useState(false)
-  const Icon = iconForMime(current.mime_type)
   const hasHistory = history.length > 0
 
   if (mode === 'portal') {
@@ -143,7 +145,7 @@ function DocCard({ group, mode, onDownload, actionsSlot }: DocCardProps) {
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: 'rgba(0,137,172,0.15)' }}>
-            <Icon className="w-4 h-4" style={{ color: '#6bd0e7' }} />
+            <MimeIcon mime={current.mime_type} className="w-4 h-4" style={{ color: '#6bd0e7' }} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="truncate" style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>
@@ -232,7 +234,7 @@ function DocCard({ group, mode, onDownload, actionsSlot }: DocCardProps) {
     <li className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-primary" />
+          <MimeIcon mime={current.mime_type} className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">
