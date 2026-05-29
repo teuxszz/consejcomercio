@@ -16,6 +16,7 @@ import { DEFAULT_MENSAGENS_CONFIG } from '@/hooks/useConfiguracoes'
 import { STAGES, SECTORS, CHANNELS, TEMPLATES } from '@/pages/MensagensPage'
 import { QuotaResendBanner } from '@/components/shared/QuotaResendBanner'
 import { RequireRole } from '@/components/shared/RequireRole'
+import { ConfigDiasAprovacao } from '@/components/configuracoes/ConfigDiasAprovacao'
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -526,6 +527,18 @@ export function ConfiguracoesPage() {
                 rows={2}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Aprovação de Documentos (D-13, Phase 7 Plan 04b) ──────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Settings className="w-4 h-4" /> Aprovação de Documentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConfigDiasAprovacao />
           </CardContent>
         </Card>
 
