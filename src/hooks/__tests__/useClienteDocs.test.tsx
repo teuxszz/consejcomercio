@@ -33,7 +33,13 @@ vi.mock('@/lib/supabase', () => ({ supabase: supabaseState }))
 
 // ─── Imports após mocks ─────────────────────────────────────────────────────
 
-import { useClienteDocs, useUploadClienteDoc, useDownloadDoc } from '@/hooks/useClienteDocs'
+import {
+  useClienteDocs,
+  useUploadClienteDoc,
+  useDownloadDoc,
+  useAprovarDoc,
+  useSolicitarRevisaoDoc,
+} from '@/hooks/useClienteDocs'
 import { mockFileBuilder } from '@/test/storage-mocks'
 import { toast } from 'sonner'
 
@@ -329,6 +335,95 @@ describe('useUploadClienteDoc (mutation)', () => {
     expect(calls[3].update).toHaveBeenCalledWith({ status: 'superseded' })
     expect(calls[3].eq).toHaveBeenCalledWith('id', 'doc-v1')
     expect(calls[3].neq).toHaveBeenCalledWith('status', 'superseded')
+  })
+})
+
+// ─── useAprovarDoc (mutation D-01) ──────────────────────────────────────────
+
+describe('useAprovarDoc (mutation)', () => {
+  it('UPDATE status=aprovado + comentario_cliente=null + invalida queries + toast', async () => {
+    const builder = builderResolving({ data: null, error: null })
+    supabaseState.from.mockImplementation(() => builder)
+
+    const qc = freshQc()
+    const invalidateSpy = vi.spyOn(qc, 'invalidateQueries')
+    const { result } = renderHook(() => useAprovarDoc(), { wrapper: wrapper(qc) })
+
+    await act(async () => {
+      await result.current.mutateAsync({ docId: 'doc-1', clienteId: 'c1' })
+    })
+
+    expect(supabaseState.from).toHaveBeenCalledWith('cliente_docs')
+    expect(builder.update).toHaveBeenCalledWith({
+      status: 'aprovado',
+      comentario_cliente: null,
+    })
+    expect(builder.eq).toHaveBeenCalledWith('id', 'doc-1')
+    // 2 invalidações: byCliente + aprovacoesPendentes.all
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['clienteDocs', 'cliente', 'c1'],
+    })
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['aprovacoesPendentes'],
+    })
+    expect(toast.success).toHaveBeenCalledWith('Documento aprovado')
+  })
+
+  it('erro do supabase: toast.error com mensagem', async () => {
+    const builder = builderResolving({
+      data: null,
+      error: new Error('RLS denied'),
+    })
+    supabaseState.from.mockImplementation(() => builder)
+
+    const qc = freshQc()
+    const { result } = renderHook(() => useAprovarDoc(), { wrapper: wrapper(qc) })
+
+    await act(async () => {
+      try {
+        await result.current.mutateAsync({ docId: 'doc-1', clienteId: 'c1' })
+      } catch {
+        /* expected */
+      }
+    })
+
+    expect(toast.error).toHaveBeenCalledWith('RLS denied')
+  })
+})
+
+// ─── useSolicitarRevisaoDoc (mutation D-01) ─────────────────────────────────
+
+describe('useSolicitarRevisaoDoc (mutation)', () => {
+  it('UPDATE status=revisao_solicitada + comentario_cliente preenchido + invalida + toast', async () => {
+    const builder = builderResolving({ data: null, error: null })
+    supabaseState.from.mockImplementation(() => builder)
+
+    const qc = freshQc()
+    const invalidateSpy = vi.spyOn(qc, 'invalidateQueries')
+    const { result } = renderHook(() => useSolicitarRevisaoDoc(), {
+      wrapper: wrapper(qc),
+    })
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        docId: 'doc-2',
+        clienteId: 'c1',
+        comentario: 'Faltou ajustar a cláusula 4',
+      })
+    })
+
+    expect(builder.update).toHaveBeenCalledWith({
+      status: 'revisao_solicitada',
+      comentario_cliente: 'Faltou ajustar a cláusula 4',
+    })
+    expect(builder.eq).toHaveBeenCalledWith('id', 'doc-2')
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['clienteDocs', 'cliente', 'c1'],
+    })
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['aprovacoesPendentes'],
+    })
+    expect(toast.success).toHaveBeenCalledWith('Revisão solicitada')
   })
 })
 

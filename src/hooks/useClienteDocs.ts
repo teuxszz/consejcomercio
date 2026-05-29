@@ -140,6 +140,80 @@ export function useUploadClienteDoc() {
   })
 }
 
+// ─── Mutation: aprovar doc (D-01) ───────────────────────────────────────────
+//
+// Cliente clica "Aprovar" → UPDATE status='aprovado' + zera comentario_cliente.
+// RLS (Plan 01a migration 037) garante que só cliente vinculado consegue
+// fazer este UPDATE e apenas para 'aprovado' / 'revisao_solicitada'.
+// Trigger Postgres (Plan 02 migration 038) dispara notif multi-canal ao consultor.
+
+export function useAprovarDoc() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      docId,
+      clienteId: _clienteId,
+    }: {
+      docId: string
+      clienteId: string
+    }) => {
+      const { error } = await supabase
+        .from('cliente_docs')
+        .update({ status: 'aprovado', comentario_cliente: null })
+        .eq('id', docId)
+      if (error) throw error
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({
+        queryKey: QUERY_KEYS.clienteDocs.byCliente(vars.clienteId),
+      })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.aprovacoesPendentes.all })
+      toast.success('Documento aprovado')
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : 'Erro ao aprovar documento'),
+  })
+}
+
+// ─── Mutation: solicitar revisão (D-01) ─────────────────────────────────────
+//
+// Cliente clica "Solicitar revisão" e preenche comentário → UPDATE
+// status='revisao_solicitada' + comentario_cliente. Trigger dispara notif
+// ao consultor com o comentário.
+
+export function useSolicitarRevisaoDoc() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      docId,
+      clienteId: _clienteId,
+      comentario,
+    }: {
+      docId: string
+      clienteId: string
+      comentario: string
+    }) => {
+      const { error } = await supabase
+        .from('cliente_docs')
+        .update({
+          status: 'revisao_solicitada',
+          comentario_cliente: comentario,
+        })
+        .eq('id', docId)
+      if (error) throw error
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({
+        queryKey: QUERY_KEYS.clienteDocs.byCliente(vars.clienteId),
+      })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.aprovacoesPendentes.all })
+      toast.success('Revisão solicitada')
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : 'Erro ao solicitar revisão'),
+  })
+}
+
 // ─── Mutation: download via signed URL ──────────────────────────────────────
 
 export function useDownloadDoc() {
