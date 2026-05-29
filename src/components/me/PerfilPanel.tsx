@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Camera, Save } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { BarChart3, Camera, Save } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useMeuPerfil, useSalvarPerfil, useUploadAvatar } from '@/hooks/usePerfis'
 import { toast } from 'sonner'
@@ -138,6 +139,14 @@ export function PerfilPanel() {
             <Save className="w-4 h-4" />
             {salvar.isPending ? 'Salvando...' : 'Salvar perfil'}
           </button>
+
+          <Link
+            to="/me/desempenho"
+            className="inline-flex items-center gap-2 text-sm text-cyan-500 hover:text-cyan-400 mt-4"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Ver meu desempenho →
+          </Link>
         </div>
       </div>
     </div>

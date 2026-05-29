@@ -15,7 +15,6 @@
 // 3 sub-divs anotadas como pdf-page 1, 2 e 3 (attribute applicado abaixo) para
 // Plan 03 iterar e capturar individualmente via html2canvas (Pattern 3 RESEARCH).
 
-import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -61,10 +60,8 @@ const ROOT_STYLE: React.CSSProperties = {
 const TITLE_STYLE: React.CSSProperties = { fontSize: 14, fontWeight: 600, marginBottom: 12, color: '#0d1929' }
 
 export function DesempenhoReport({ metrics, perfilNome, leads, tarefas, geradoEm }: Props) {
-  // Portal so monta no client — evita SSR/test-edge issues
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
-  if (!mounted) return null
+  // Guard SSR-safe: document so existe no browser.
+  if (typeof document === 'undefined') return null
 
   const periodoLabel = formatPeriodLabel(metrics.periodo)
   const geradoLabel = format(geradoEm, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
