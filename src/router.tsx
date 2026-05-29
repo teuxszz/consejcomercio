@@ -41,6 +41,7 @@ import { PortalIndicarPage } from '@/pages/portal/PortalIndicarPage'
 import { PortalCatalogoPage } from '@/pages/portal/PortalCatalogoPage'
 import { PortalHistoricoPage } from '@/pages/portal/PortalHistoricoPage'
 import { PortalPreferenciasPage } from '@/pages/portal/PortalPreferenciasPage'
+import { PortalDocumentosPage } from '@/pages/portal/PortalDocumentosPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -96,6 +97,8 @@ export const router = createBrowserRouter([
       { path: 'indicar',         element: <PortalIndicarPage />  },
       { path: 'catalogo',        element: <PortalCatalogoPage /> },
       { path: 'historico',       element: <PortalHistoricoPage />},
+      // ─── Phase 7 — Client Portal Expansion (Plan 07-03) ────────────────
+      { path: 'documentos',      element: <PortalDocumentosPage /> },
       { path: 'preferencias',    element: <PortalPreferenciasPage /> },
     ],
   },

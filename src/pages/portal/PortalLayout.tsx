@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { usePortalPerfil } from '@/hooks/usePortal'
 import { calcularNivel, NIVEL_CONFIG } from '@/types'
 import { Toaster, toast } from 'sonner'
-import { Wallet, UserPlus, Gift, ClipboardList, LogOut, Coins, LayoutDashboard, ChevronsUpDown, BellRing } from 'lucide-react'
+import { Wallet, UserPlus, Gift, ClipboardList, LogOut, Coins, LayoutDashboard, ChevronsUpDown, BellRing, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -16,6 +16,8 @@ const NAV = [
   { to: '/portal/indicar',   label: 'Indicar',   icon: UserPlus       },
   { to: '/portal/catalogo',  label: 'Catálogo',  icon: Gift           },
   { to: '/portal/historico', label: 'Histórico', icon: ClipboardList  },
+  // ─── Phase 7 — Client Portal Expansion (Plan 07-03) ─────────────────────
+  { to: '/portal/documentos', label: 'Documentos', icon: FileText      },
   { to: '/portal/preferencias', label: 'Preferências', icon: BellRing  },
 ]
 
