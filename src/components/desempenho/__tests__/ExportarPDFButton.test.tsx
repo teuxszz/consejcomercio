@@ -1,18 +1,16 @@
-// Stub criado em Plan 08-01 Wave 0. Tests reais sao implementados em Plan 08-03
-// (slice export). O describe.skip cumpre o requisito Wave 0 (arquivo presente)
-// sem falhar a suite enquanto o componente ainda nao existe.
+// Phase 8 (Plan 03 Task 1) — Stub mantido. O teste real do componente esta
+// na Task 3 (apos componente existir). O teste isolado de pdf-export.ts esta
+// em src/lib/__tests__/pdf-export.test.ts (lazy import + setProperties +
+// theme restore).
 //
-// Quando 08-03 implementar ExportarPDFButton, substituir por describe(...) com:
-//   - click → setExportando(true) → spinner inline
-//   - sucesso → toast 'PDF gerado' + setExportando(false)
-//   - falha → toast.error com mensagem + recupera estado
-//   - usa mockJsPdf + mockHtml2canvas + mockBlobUrlAndAnchor de @/test/pdf-mocks
+// Esta decisao segue a "alternativa" explicita do PLAN Task 1: testes do
+// componente UI ficam no .test.tsx, testes da pure-fn ficam no .test.ts
+// dedicado. Stub vazio enquanto componente nao monta — substituido na Task 3.
 
 import { describe, it } from 'vitest'
 
-describe.skip('ExportarPDFButton (TODO: implementar em Plan 08-03)', () => {
-  it.skip('mostra spinner durante exportacao', () => {})
-  it.skip('chama gerarRelatorioIndividual com metricas + rootEl', () => {})
-  it.skip('toast de sucesso apos save do PDF', () => {})
-  it.skip('toast de erro quando html2canvas falha', () => {})
+describe.skip('ExportarPDFButton (componente — implementado na Task 3)', () => {
+  it.skip('renderiza com texto Exportar PDF', () => {})
+  it.skip('chama gerarRelatorioIndividual e dispara toast.success', () => {})
+  it.skip('toast.error quando export falha', () => {})
 })
