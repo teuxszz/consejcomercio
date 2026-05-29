@@ -21,7 +21,14 @@ import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { NewContratoModal } from '@/components/contratos/NewContratoModal'
 import { ActivityTimeline } from '@/components/shared/ActivityTimeline'
-import type { Cliente } from '@/types'
+import type { Cliente, TagDoc } from '@/types'
+// ─── Phase 7 — Client Portal Expansion (Plan 07-03) ────────────────────────
+import { useClienteDocs, useUploadClienteDoc } from '@/hooks/useClienteDocs'
+import { useMeuPerfil } from '@/hooks/usePerfis'
+import { UploadDropzone } from '@/components/clientes/UploadDropzone'
+import { ClienteDocsList } from '@/components/clientes/ClienteDocsList'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 
 const CONTRACT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
   ativo:     { label: 'Ativo',     color: 'text-emerald-400 bg-[rgba(16,185,129,0.12)] border-[rgba(16,185,129,0.25)]' },
@@ -152,6 +159,8 @@ export function ClienteDetailPage() {
   const { data: contratos } = useContratosByCliente(id!)
   const { data: todasIndicacoes } = useIndicacoes()
   const { data: todasOportunidades } = useOportunidades()
+  // Phase 7 — Client Portal Expansion: contador na tab "Documentos"
+  const { data: docs } = useClienteDocs(id ?? null)
   const [showNewContrato, setShowNewContrato] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingNps, setEditingNps] = useState(false)
@@ -227,6 +236,8 @@ export function ClienteDetailPage() {
           <TabsTrigger value="contratos">Contratos ({contratos?.length || 0})</TabsTrigger>
           <TabsTrigger value="indicacoes">Indicações ({indicacoes.length})</TabsTrigger>
           <TabsTrigger value="oportunidades">Oportunidades ({oportunidades.length})</TabsTrigger>
+          {/* ─── Phase 7 — Client Portal Expansion (Plan 07-03) ──────────── */}
+          <TabsTrigger value="documentos">Documentos ({docs?.length || 0})</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
 
@@ -518,6 +529,11 @@ export function ClienteDetailPage() {
           </div>
         </TabsContent>
 
+        {/* ── Documentos (Phase 7 — Plan 07-03) ── */}
+        <TabsContent value="documentos">
+          <DocsTabConsultor clienteId={id!} />
+        </TabsContent>
+
         {/* ── Histórico ── */}
         <TabsContent value="historico">
           <Card>
@@ -527,6 +543,70 @@ export function ClienteDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+// ─── Phase 7 — Client Portal Expansion (Plan 07-03) ─────────────────────────
+//
+// Tab "Documentos" do consultor. Permite upload com tag + checkbox
+// "Pedir aprovação do cliente". D-01/D-03: consultor escolhe; cliente NÃO
+// escolhe (UI do portal nem mostra o checkbox e o hook força requer_aprovacao=false).
+
+function DocsTabConsultor({ clienteId }: { clienteId: string }) {
+  const { data: perfil } = useMeuPerfil()
+  const upload = useUploadClienteDoc()
+  const [tag, setTag] = useState<TagDoc>('proposta')
+  const [requerAprovacao, setRequerAprovacao] = useState(true)
+
+  if (!perfil) return null
+
+  function handleFiles(files: File[]) {
+    files.forEach(file => {
+      upload.mutate({
+        clienteId,
+        file,
+        tag,
+        // D-01: consultor decide se exige aprovação; cliente nunca (forçado em useUploadClienteDoc)
+        requerAprovacao,
+        autorId: perfil!.id,
+        autorTipo: 'interno',
+      })
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl border border-border bg-card">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm whitespace-nowrap">Tag</Label>
+          <Select value={tag} onValueChange={v => setTag(v as TagDoc)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="proposta">Proposta</SelectItem>
+              <SelectItem value="contrato">Contrato</SelectItem>
+              <SelectItem value="relatorio">Relatório</SelectItem>
+              <SelectItem value="outro">Outro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={requerAprovacao}
+            onChange={e => setRequerAprovacao(e.target.checked)}
+            className="rounded border-input accent-primary"
+          />
+          Pedir aprovação do cliente
+        </label>
+      </div>
+
+      <UploadDropzone onFiles={handleFiles} disabled={upload.isPending} />
+
+      <ClienteDocsList clienteId={clienteId} mode="crm" />
     </div>
   )
 }

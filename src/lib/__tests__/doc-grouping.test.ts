@@ -4,7 +4,6 @@ import type { ClienteDoc } from '@/types'
 
 function doc(partial: Partial<ClienteDoc> & { id: string }): ClienteDoc {
   return {
-    id: partial.id,
     cliente_id: 'c1',
     autor_id: 'p1',
     autor_tipo: 'interno',

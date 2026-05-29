@@ -50,10 +50,24 @@ function freshQc() {
 }
 
 // Helpers para montar query-builder thenable que retorna {data, error}.
-function builderResolving(response: { data: unknown; error: unknown }) {
-  const b: Record<string, unknown> = {}
-  const chain = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'order']
-  for (const m of chain) b[m] = vi.fn(() => b)
+type ChainFn = ReturnType<typeof vi.fn>
+interface MockBuilder {
+  select: ChainFn
+  insert: ChainFn
+  update: ChainFn
+  delete: ChainFn
+  eq: ChainFn
+  neq: ChainFn
+  is: ChainFn
+  order: ChainFn
+  single: ChainFn
+  maybeSingle: ChainFn
+  then: (resolve: (v: { data: unknown; error: unknown }) => unknown) => unknown
+}
+function builderResolving(response: { data: unknown; error: unknown }): MockBuilder {
+  const b = {} as MockBuilder
+  const chain = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'order'] as const
+  for (const m of chain) (b as unknown as Record<string, ChainFn>)[m] = vi.fn(() => b)
   b.single = vi.fn(() => Promise.resolve(response))
   b.maybeSingle = vi.fn(() => Promise.resolve(response))
   b.then = (resolve: (v: typeof response) => unknown) => resolve(response)
@@ -224,7 +238,7 @@ describe('useUploadClienteDoc (mutation)', () => {
       })
     })
 
-    const insertedCall = fromBuilder.insert.mock.calls[0]?.[0]
+    const insertedCall = fromBuilder.insert.mock.calls[0]?.[0] as Record<string, unknown>
     expect(insertedCall.requer_aprovacao).toBe(false)
     expect(insertedCall.status).toBe(null) // sem aprovação => sem pending
   })
@@ -252,7 +266,7 @@ describe('useUploadClienteDoc (mutation)', () => {
       })
     })
 
-    const insertedCall = fromBuilder.insert.mock.calls[0]?.[0]
+    const insertedCall = fromBuilder.insert.mock.calls[0]?.[0] as Record<string, unknown>
     expect(insertedCall.versao).toBe(1)
     expect(insertedCall.parent_doc_id).toBe(null)
     // update foi chamado APENAS para storage_path (não para superseded)
@@ -267,8 +281,8 @@ describe('useUploadClienteDoc (mutation)', () => {
     //   2. .insert(...).select('id').single() → { id: 'doc-v2' }
     //   3. .update({ storage_path }).eq('id', 'doc-v2') → resolve void
     //   4. .update({ status: 'superseded' }).eq('id', parent).neq('status','superseded') → resolve void
-    const calls: Array<Record<string, unknown>> = []
-    const builderSeq = [
+    const calls: MockBuilder[] = []
+    const builderSeq: MockBuilder[] = [
       builderResolving({ data: { versao: 1 }, error: null }), // SELECT parent
       builderResolving({ data: { id: 'doc-v2' }, error: null }), // INSERT new
       builderResolving({ data: null, error: null }),             // UPDATE storage_path
@@ -307,7 +321,7 @@ describe('useUploadClienteDoc (mutation)', () => {
     expect(calls[0].eq).toHaveBeenCalledWith('id', 'doc-v1')
 
     // Builder 1 = INSERT com versao=2 + parent_doc_id=doc-v1
-    const insertedArg = (calls[1].insert as AnyFn).mock.calls[0][0]
+    const insertedArg = calls[1].insert.mock.calls[0][0] as Record<string, unknown>
     expect(insertedArg.versao).toBe(2)
     expect(insertedArg.parent_doc_id).toBe('doc-v1')
 
