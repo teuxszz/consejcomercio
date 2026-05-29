@@ -10,17 +10,22 @@ vi.mock('sonner', () => ({
 }))
 
 // supabase mock — encadeavel, custom per-test via setMockSupabase
+// `vi.hoisted` é necessário porque `vi.mock` é hoisted para o topo do arquivo;
+// sem isso o factory referencia `supabaseState` antes da inicialização.
 type AnyFn = ReturnType<typeof vi.fn>
 interface SupabaseMockState {
   from: AnyFn
   storage: { from: AnyFn }
   auth: { getUser: AnyFn }
 }
-const supabaseState: SupabaseMockState = {
-  from: vi.fn(),
-  storage: { from: vi.fn() },
-  auth: { getUser: vi.fn(() => Promise.resolve({ data: { user: null } })) },
-}
+const { supabaseState } = vi.hoisted(() => {
+  const state: SupabaseMockState = {
+    from: vi.fn(),
+    storage: { from: vi.fn() },
+    auth: { getUser: vi.fn(() => Promise.resolve({ data: { user: null } })) },
+  }
+  return { supabaseState: state }
+})
 vi.mock('@/lib/supabase', () => ({ supabase: supabaseState }))
 
 // validateDocOrThrow — let it run real (rejects size > 10MB)
@@ -325,19 +330,18 @@ describe('useDownloadDoc (mutation)', () => {
     const qc = freshQc()
     const { result } = renderHook(() => useDownloadDoc(), { wrapper: wrapper(qc) })
 
-    // spy em createElement para verificar <a>
+    // Spy em createElement para verificar atributos do <a> + click; criamos
+    // anchor REAL (jsdom-aware) e substituímos apenas .click para spy.
     const realCreate = document.createElement.bind(document)
     const clickSpy = vi.fn()
-    const removeSpy = vi.fn()
-    const aStub: Partial<HTMLAnchorElement> = {
-      click: clickSpy,
-      remove: removeSpy,
-      href: '',
-      download: '',
-    }
+    let createdAnchor: HTMLAnchorElement | null = null
     const createSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
-      if (tag === 'a') return aStub as HTMLAnchorElement
-      return realCreate(tag)
+      const el = realCreate(tag) as HTMLAnchorElement
+      if (tag === 'a') {
+        el.click = clickSpy
+        createdAnchor = el
+      }
+      return el
     })
 
     await act(async () => {
@@ -362,10 +366,12 @@ describe('useDownloadDoc (mutation)', () => {
     })
 
     expect(createSignedUrlFn).toHaveBeenCalledWith('c1/d1.pdf', 3600)
-    expect(aStub.href).toBe('https://signed.example/x')
-    expect(aStub.download).toBe('oferta.pdf')
+    expect(createdAnchor).not.toBeNull()
+    expect(createdAnchor!.href).toBe('https://signed.example/x')
+    expect(createdAnchor!.download).toBe('oferta.pdf')
     expect(clickSpy).toHaveBeenCalled()
-    expect(removeSpy).toHaveBeenCalled()
+    // anchor foi removido do DOM após o click
+    expect(document.body.contains(createdAnchor)).toBe(false)
     createSpy.mockRestore()
   })
 })
