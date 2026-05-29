@@ -3,6 +3,8 @@ import { usePortalPerfil } from '@/hooks/usePortal'
 import { useUploadClienteDoc } from '@/hooks/useClienteDocs'
 import { UploadDropzone } from '@/components/clientes/UploadDropzone'
 import { ClienteDocsList } from '@/components/clientes/ClienteDocsList'
+import { AprovacaoButtons } from '@/components/clientes/AprovacaoButtons'
+import { DocVersionTimeline } from '@/components/clientes/DocVersionTimeline'
 
 export function PortalDocumentosPage() {
   const { data: perfil, isLoading } = usePortalPerfil()
@@ -75,7 +77,12 @@ export function PortalDocumentosPage() {
         <UploadDropzone onFiles={handleFiles} disabled={upload.isPending} />
       </div>
 
-      <ClienteDocsList clienteId={clienteId} mode="portal" />
+      <ClienteDocsList
+        clienteId={clienteId}
+        mode="portal"
+        actionsSlot={doc => <AprovacaoButtons doc={doc} mode="portal" />}
+        historySlot={history => <DocVersionTimeline history={history} />}
+      />
     </div>
   )
 }

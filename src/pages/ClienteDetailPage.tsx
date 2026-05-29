@@ -27,6 +27,8 @@ import { useClienteDocs, useUploadClienteDoc } from '@/hooks/useClienteDocs'
 import { useMeuPerfil } from '@/hooks/usePerfis'
 import { UploadDropzone } from '@/components/clientes/UploadDropzone'
 import { ClienteDocsList } from '@/components/clientes/ClienteDocsList'
+import { SubirNovaVersaoButton } from '@/components/clientes/SubirNovaVersaoButton'
+import { DocVersionTimeline } from '@/components/clientes/DocVersionTimeline'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
@@ -606,7 +608,12 @@ function DocsTabConsultor({ clienteId }: { clienteId: string }) {
 
       <UploadDropzone onFiles={handleFiles} disabled={upload.isPending} />
 
-      <ClienteDocsList clienteId={clienteId} mode="crm" />
+      <ClienteDocsList
+        clienteId={clienteId}
+        mode="crm"
+        actionsSlot={doc => <SubirNovaVersaoButton doc={doc} mode="crm" />}
+        historySlot={history => <DocVersionTimeline history={history} />}
+      />
     </div>
   )
 }

@@ -56,9 +56,16 @@ export interface ClienteDocsListProps {
   mode?: 'portal' | 'crm'
   /** Slot Slice 4: pluga AprovacaoButtons / SubirNovaVersaoButton por doc. */
   actionsSlot?: (doc: ClienteDoc) => ReactNode
+  /** Slot Slice 4a (D-02): pluga DocVersionTimeline para customizar histórico. */
+  historySlot?: (history: ClienteDoc[]) => ReactNode
 }
 
-export function ClienteDocsList({ clienteId, mode = 'crm', actionsSlot }: ClienteDocsListProps) {
+export function ClienteDocsList({
+  clienteId,
+  mode = 'crm',
+  actionsSlot,
+  historySlot,
+}: ClienteDocsListProps) {
   const { data: docs = [], isLoading } = useClienteDocs(clienteId)
   const downloadDoc = useDownloadDoc()
   const roots = useMemo(() => groupByRoot(docs), [docs])
@@ -113,6 +120,7 @@ export function ClienteDocsList({ clienteId, mode = 'crm', actionsSlot }: Client
           mode={mode}
           onDownload={d => downloadDoc.mutate(d)}
           actionsSlot={actionsSlot}
+          historySlot={historySlot}
         />
       ))}
     </ul>
@@ -126,9 +134,16 @@ interface DocCardProps {
   mode: 'portal' | 'crm'
   onDownload: (doc: ClienteDoc) => void
   actionsSlot?: (doc: ClienteDoc) => ReactNode
+  historySlot?: (history: ClienteDoc[]) => ReactNode
 }
 
-function DocCard({ group, mode, onDownload, actionsSlot }: DocCardProps) {
+function DocCard({
+  group,
+  mode,
+  onDownload,
+  actionsSlot,
+  historySlot,
+}: DocCardProps) {
   const { current, history } = group
   const [showHistory, setShowHistory] = useState(false)
   const hasHistory = history.length > 0
@@ -206,7 +221,10 @@ function DocCard({ group, mode, onDownload, actionsSlot }: DocCardProps) {
           </button>
         </div>
         {actionsSlot && <div className="mt-3">{actionsSlot(current)}</div>}
-        {showHistory && hasHistory && (
+        {historySlot && hasHistory && (
+          <div className="mt-3">{historySlot(history)}</div>
+        )}
+        {!historySlot && showHistory && hasHistory && (
           <ul className="mt-3 pl-12 space-y-1.5">
             {history.map(old => (
               <li key={old.id} className="flex items-center gap-2" style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
@@ -278,7 +296,10 @@ function DocCard({ group, mode, onDownload, actionsSlot }: DocCardProps) {
         </button>
       </div>
       {actionsSlot && <div className="mt-3">{actionsSlot(current)}</div>}
-      {showHistory && hasHistory && (
+      {historySlot && hasHistory && (
+        <div className="mt-3">{historySlot(history)}</div>
+      )}
+      {!historySlot && showHistory && hasHistory && (
         <ul className="mt-3 pl-12 space-y-1.5">
           {history.map(old => (
             <li key={old.id} className="flex items-center gap-2 text-xs text-muted-foreground">
