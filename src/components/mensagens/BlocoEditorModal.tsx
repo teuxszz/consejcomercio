@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { BLOCOS, BLOCO_CATEGORIAS, isBlocoBase, type Bloco, type BlocoCategoria } from '@/lib/blocos-mensagem'
+import { slugify } from '@/lib/slug'
 import { useConfiguracoes, useUpdateConfiguracoes, DEFAULT_MENSAGENS_CONFIG } from '@/hooks/useConfiguracoes'
 import type { MensagensConfig } from '@/types'
 
@@ -27,16 +28,6 @@ interface Props {
   open: boolean
   onClose: () => void
   mode: Mode | null
-}
-
-function slugify(input: string): string {
-  return input
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 32)
 }
 
 export function BlocoEditorModal({ open, onClose, mode }: Props) {
@@ -134,7 +125,7 @@ export function BlocoEditorModal({ open, onClose, mode }: Props) {
         }
       } else {
         // Novo bloco custom
-        const baseId = `custom-${slugify(tituloTrim) || 'bloco'}`
+        const baseId = `custom-${slugify(tituloTrim, 32) || 'bloco'}`
         let id = baseId
         let n = 1
         const existing = new Set([...BLOCOS.map(b => b.id), ...next.custom.map(c => c.id)])
