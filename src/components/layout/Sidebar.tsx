@@ -55,6 +55,8 @@ const NAV_GROUPS: { label?: string; items: { to: string; label: string; icon: Re
       { to: '/parceiros',     label: 'Parceiros',     icon: Handshake      },
       { to: '/pos-juniors',   label: 'Pós-Juniors',   icon: GraduationCap  },
       { to: '/portal-admin',  label: 'Portal Tokens', icon: Coins          },
+      // Phase 7 — Plan 04b — RLS faz role-aware filter (consultor vê só dos seus)
+      { to: '/portal-admin/aprovacoes-pendentes', label: 'Aprovações Pendentes', icon: FileText },
     ],
   },
   {

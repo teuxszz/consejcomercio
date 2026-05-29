@@ -35,6 +35,7 @@ import { TarefasPage } from '@/pages/TarefasPage'
 import { AdocaoPage } from '@/pages/AdocaoPage'
 import { ReceitaPage } from '@/pages/ReceitaPage'
 import { PortalAdminPage } from '@/pages/PortalAdminPage'
+import { AprovacoesPendentesPage } from '@/pages/portal-admin/AprovacoesPendentesPage'
 import { PortalLayout } from '@/pages/portal/PortalLayout'
 import { PortalWalletPage } from '@/pages/portal/PortalWalletPage'
 import { PortalIndicarPage } from '@/pages/portal/PortalIndicarPage'
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
       { path: 'ajuda', element: <AjudaPage /> },
       { path: 'ranking', element: <RankingPage /> },
       { path: 'portal-admin', element: <PortalAdminPage /> },
+      { path: 'portal-admin/aprovacoes-pendentes', element: <AprovacoesPendentesPage /> },
       { path: 'tarefas', element: <TarefasPage /> },
       { path: 'adocao', element: <AdocaoPage /> },
       { path: 'receita', element: <ReceitaPage /> },
