@@ -88,33 +88,34 @@ describe('NotificacoesPanel', () => {
     vi.clearAllMocks()
   })
 
-  it('renderiza matriz 4×3 com exatamente 12 Switches (Phase 6 Plan 04)', () => {
+  it('renderiza matriz 5×3 com exatamente 15 Switches (Phase 7 Plan 04a)', () => {
     usePreferenciasMock.mockReturnValue({ data: DEFAULT_PREFS, isLoading: false })
     useSalvarMock.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
 
     render(<NotificacoesPanel />, { wrapper })
 
     const switches = screen.getAllByRole('switch')
-    // 4 tipos × 3 canais (slack, email, push) = 12
-    expect(switches).toHaveLength(12)
+    // 5 tipos × 3 canais (slack, email, push) = 15 (Phase 7 D-08)
+    expect(switches).toHaveLength(15)
     // Cada linha do tipo aparece
     expect(screen.getByText('Tarefas')).toBeTruthy()
     expect(screen.getByText('Cadência')).toBeTruthy()
     expect(screen.getByText('Renovação')).toBeTruthy()
     expect(screen.getByText('Indicação')).toBeTruthy()
+    expect(screen.getByText('Documentos')).toBeTruthy()
     // Header Push presente (aparece como label de coluna + possivelmente em outros lugares)
     expect(screen.getAllByText('Push').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('iOS gate (D-13): em jsdom (sem PushManager), 4 Switches Push ficam disabled', () => {
+  it('iOS gate (D-13): em jsdom (sem PushManager), 5 Switches Push ficam disabled', () => {
     usePreferenciasMock.mockReturnValue({ data: DEFAULT_PREFS, isLoading: false })
     useSalvarMock.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
 
     render(<NotificacoesPanel />, { wrapper })
 
-    // Os 4 switches Push têm aria-label "...via Push (indisponível)" quando bloqueados
+    // Os 5 switches Push têm aria-label "...via Push (indisponível)" quando bloqueados
     const pushSwitches = screen.getAllByRole('switch').filter(s => /via Push/.test(s.getAttribute('aria-label') ?? ''))
-    expect(pushSwitches).toHaveLength(4)
+    expect(pushSwitches).toHaveLength(5)
     // Cada um marcado como indisponível (gate bloqueado por unsupported em jsdom)
     pushSwitches.forEach(s => {
       expect(s.getAttribute('aria-label')).toMatch(/indisponível/)
@@ -155,10 +156,11 @@ describe('NotificacoesPanel', () => {
     expect(arg.perfilId).toBe('perfil-1')
     // tarefa.email invertido
     expect(arg.prefs.tarefa.email).toBe(false)
-    // outros 3 tipos inalterados (atomicidade — coluna inteira)
+    // outros 4 tipos inalterados (atomicidade — coluna inteira, 5×3)
     expect(arg.prefs.cadencia).toEqual(DEFAULT_PREFS.cadencia)
     expect(arg.prefs.renovacao).toEqual(DEFAULT_PREFS.renovacao)
     expect(arg.prefs.indicacao).toEqual(DEFAULT_PREFS.indicacao)
+    expect(arg.prefs.documentos).toEqual(DEFAULT_PREFS.documentos)
     // Slack do tarefa também intocado
     expect(arg.prefs.tarefa.slack).toBe(true)
   })

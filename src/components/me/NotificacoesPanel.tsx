@@ -20,10 +20,12 @@ import { canSubscribePush } from '@/lib/pwa'
 import type { PreferenciasNotif, TipoNotif } from '@/types'
 
 const TIPOS: { id: TipoNotif; label: string; descricao: string }[] = [
-  { id: 'tarefa',    label: 'Tarefas',    descricao: 'Quando alguém te atribuir uma tarefa' },
-  { id: 'cadencia',  label: 'Cadência',   descricao: 'Lembretes diários do seu pipeline' },
-  { id: 'renovacao', label: 'Renovação',  descricao: 'Contratos próximos do vencimento' },
-  { id: 'indicacao', label: 'Indicação',  descricao: 'Nova indicação atribuída a você' },
+  { id: 'tarefa',     label: 'Tarefas',    descricao: 'Quando alguém te atribuir uma tarefa' },
+  { id: 'cadencia',   label: 'Cadência',   descricao: 'Lembretes diários do seu pipeline' },
+  { id: 'renovacao',  label: 'Renovação',  descricao: 'Contratos próximos do vencimento' },
+  { id: 'indicacao',  label: 'Indicação',  descricao: 'Nova indicação atribuída a você' },
+  // Phase 7 D-08 — matriz 5×3: aprovações + uploads de cliente em propostas/contratos
+  { id: 'documentos', label: 'Documentos', descricao: 'Aprovações + uploads em propostas e contratos' },
 ]
 
 const DEFAULT_PREFS: PreferenciasNotif = {
