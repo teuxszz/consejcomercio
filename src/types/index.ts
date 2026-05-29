@@ -1,3 +1,5 @@
+import type { PeriodValue } from '@/lib/periods'
+
 export interface Lead {
   id: string
   nome: string
@@ -514,4 +516,32 @@ export interface NotificacaoEnvio {
   reenviado_por_id: string | null
   reenviado_em: string | null
   dia: string
+}
+
+// ─── Phase 8 — Individual Performance Reports (D-10) ────────────────────────
+// Métricas agregadas de desempenho de um consultor num período. Calculadas
+// client-side por `calcularDesempenho` (src/lib/desempenho.ts).
+//
+// Campos com `| null` indicam "denominador zero" — UI deve renderizar "—"
+// em vez de 0 para não confundir (e.g. nps_medio=null = sem clientes com NPS,
+// distinto de nps_medio=0 = todos clientes deram nota 0).
+
+export interface DesempenhoMetricas {
+  perfilId: string
+  perfilNome: string
+  periodo: PeriodValue
+  leads_criados: number
+  convertidos: number
+  perdidos: number
+  ciclo_medio_dias: number | null
+  win_rate: number
+  icp_fit_medio: number | null
+  tarefas_concluidas: number
+  nps_medio: number | null
+}
+
+export interface DesempenhoConsultorTeam {
+  perfilId: string
+  perfilNome: string
+  metricas: DesempenhoMetricas
 }
