@@ -25,7 +25,7 @@
 
 - [x] **Phase 5: Multi-Channel Notifications (Email)** — opt-in granular + Resend integration + histórico de envio (completed 2026-05-27)
 - [x] **Phase 6: PWA + Push Notifications** — Service Worker + VAPID + deep links (completed 2026-05-28)
-- [ ] **Phase 7: Client Portal Expansion** — upload de documentos + aprovação de propostas
+- [x] **Phase 7: Client Portal Expansion** — upload de documentos + aprovação de propostas (completed 2026-05-29)
 - [ ] **Phase 8: Individual Performance Reports** — métricas + export PDF/CSV
 - [ ] **Phase 9: Forecast Linear Regression** — refinamento estatístico da `/receita`
 - [ ] **Phase 10: Smart Lead Classification** — heurística determinística zero-custo
@@ -95,7 +95,7 @@ Plans:
 3. Cliente clica "Aprovar" na proposta → status muda, consultor recebe notificação multi-canal (Slack+email+push conforme preferência).
 4. Coordenador+ vê em `/portal-admin/aprovacoes-pendentes` quais clientes têm >5 dias sem responder uma proposta enviada — pode reenviar lembrete com 1 clique.
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 **UI hint:** sim (drag-drop, ficha cliente docs, dashboard aprovações)
 
 Plans:
@@ -104,7 +104,7 @@ Plans:
 - [x] 07-02-PLAN.md — Backend multi-canal: _shared/aprovacoes.ts + notify-aprovacao-evento (com skip_slack passthrough) + notify-aprovacoes-stale + migration 038 (triggers + cron) (wave 2) (PORTAL-03, PORTAL-04 backend)
 - [x] 07-03-PLAN.md — UI bidirecional: react-dropzone + storage-helpers + useClienteDocs (com D-02 versionamento) + UploadDropzone + ClienteDocsList + PortalDocumentosPage + tab Documentos em ClienteDetailPage (wave 3) (PORTAL-01, PORTAL-02)
 - [x] 07-04a-PLAN.md — Aprovação UI: useAprovarDoc + useSolicitarRevisaoDoc + AprovacaoButtons + SolicitarRevisaoModal + DocVersionTimeline + SubirNovaVersaoButton (D-02 BLOCKER #2) + NotificacoesPanel 5×3 (wave 4) (PORTAL-03)
-- [ ] 07-04b-PLAN.md — Dashboard + UAT: useAprovacoesPendentes + useBucketUsage + migration 039 + BucketUsageBanner + ReenviarLembreteButton (skip_slack) + ConfigDiasAprovacao (D-13 UI, WARNING #2) + AprovacoesPendentesPage + Sidebar entry + RLS/E2E tests + UAT 8 itens (wave 5) (PORTAL-04)
+- [x] 07-04b-PLAN.md — Dashboard + UAT: useAprovacoesPendentes + useBucketUsage + migration 039 + BucketUsageBanner + ReenviarLembreteButton (skip_slack) + ConfigDiasAprovacao (D-13 UI, WARNING #2) + AprovacoesPendentesPage + Sidebar entry + RLS/E2E tests + UAT 8 itens (wave 5) (PORTAL-04)
 
 ### Phase 8: Individual Performance Reports
 
@@ -162,7 +162,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 5. Multi-Channel Notifications (Email) | 4/4 | Complete   | 2026-05-27 |
 | 6. PWA + Push Notifications | 5/5 | Complete   | 2026-05-28 |
-| 7. Client Portal Expansion | 5/6 | In Progress|  |
+| 7. Client Portal Expansion | 6/6 | Complete   | 2026-05-29 |
 | 8. Individual Performance Reports | 0/TBD | Not started | - |
 | 9. Forecast Linear Regression | 0/TBD | Not started | - |
 | 10. Smart Lead Classification | 0/TBD | Not started | - |
