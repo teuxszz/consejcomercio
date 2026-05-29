@@ -9,6 +9,7 @@ vi.mock('@/hooks/useCurrentRole', () => ({
 }))
 vi.mock('@/hooks/usePerfis', () => ({
   useMeuPerfil: () => ({ data: null, isLoading: false }),
+  usePerfis: () => ({ data: [], isLoading: false }),
 }))
 vi.mock('@/hooks/useAdocao', () => ({
   useAdocaoAtividade: () => ({ data: [], isLoading: false }),
@@ -18,6 +19,24 @@ vi.mock('@/hooks/useAdocao', () => ({
 // → supabase. Mockamos pra evitar boot do client real (env vars ausentes em CI).
 vi.mock('@/hooks/useQuotaResend', () => ({
   useQuotaResend: () => ({ data: { hoje: 0, mes: 0 } }),
+}))
+// Plan 08-04: AdocaoPage agora renderiza ExportarPDFEquipeButton (coord+) que
+// chama useLeads/useTarefas/useClientes/useContratos/useConfiguracoes. Mocks
+// vazios garantem que o botao monta sem booting o supabase client.
+vi.mock('@/hooks/useLeads', () => ({
+  useLeads: () => ({ data: [], isLoading: false }),
+}))
+vi.mock('@/hooks/useTarefas', () => ({
+  useTarefas: () => ({ data: [], isLoading: false }),
+}))
+vi.mock('@/hooks/useClientes', () => ({
+  useClientes: () => ({ data: [], isLoading: false }),
+}))
+vi.mock('@/hooks/useContratos', () => ({
+  useContratos: () => ({ data: [], isLoading: false }),
+}))
+vi.mock('@/hooks/useConfiguracoes', () => ({
+  useConfiguracoes: () => ({ data: null, isLoading: false }),
 }))
 
 import { useCurrentRole } from '@/hooks/useCurrentRole'

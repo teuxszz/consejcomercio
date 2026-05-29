@@ -1,19 +1,29 @@
 import { Users } from 'lucide-react'
 import { differenceInDays, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { RequireRole } from '@/components/shared/RequireRole'
 import { QuotaResendBanner } from '@/components/shared/QuotaResendBanner'
 import { LeadsEsquecidosTable } from '@/components/adocao/LeadsEsquecidosTable'
+import { ExportarPDFEquipeButton } from '@/components/desempenho/ExportarPDFEquipeButton'
+import { loadPeriod } from '@/lib/desempenho-period'
 import { useAdocaoAtividade } from '@/hooks/useAdocao'
 
 function AdocaoContent() {
   const { data: atividade = [], isLoading } = useAdocaoAtividade()
+  const navigate = useNavigate()
   const now = new Date()
+  const period = loadPeriod()
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-bold text-foreground">Adoção</h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h1 className="text-xl font-bold text-foreground">Adoção</h1>
+        <RequireRole atLeast="coordenador" fallback={null}>
+          <ExportarPDFEquipeButton periodo={period} />
+        </RequireRole>
+      </div>
 
       <RequireRole atLeast="coordenador">
         <QuotaResendBanner />
@@ -50,7 +60,12 @@ function AdocaoContent() {
                     const iniciais = p.nome.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
                     const diasSemLogin = p.ultimoLogin ? differenceInDays(now, new Date(p.ultimoLogin)) : null
                     return (
-                      <tr key={p.id} className="hover:bg-[var(--alpha-bg-xs)] transition-colors">
+                      <tr
+                        key={p.id}
+                        className="hover:bg-[var(--alpha-bg-xs)] cursor-pointer transition-colors"
+                        onClick={() => navigate(`/me/desempenho/${p.id}`)}
+                        title={`Ver desempenho de ${p.nome}`}
+                      >
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
