@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Briefcase, FileText, Inbox, ArrowRight, KanbanSquare, Calendar, Share2, Handshake, TrendingUp } from 'lucide-react'
+import { Search, Briefcase, FileText, Inbox, ArrowRight, KanbanSquare, Calendar, Share2, Handshake, TrendingUp, LayoutDashboard } from 'lucide-react'
 import { useLeads } from '@/hooks/useLeads'
 import { useClientes } from '@/hooks/useClientes'
 import { useContratos } from '@/hooks/useContratos'
@@ -28,7 +28,14 @@ const CATEGORY_META: Record<string, { icon: React.FC<{ className?: string }>; co
   'Indicações':  { icon: Share2,       color: 'text-rose-400',    bgStyle: 'rgba(244,63,94,0.15)'    },
   Oportunidades: { icon: TrendingUp,   color: 'text-orange-400',  bgStyle: 'rgba(249,115,22,0.15)'   },
   Parceiros:     { icon: Handshake,    color: 'text-cyan-400',    bgStyle: 'rgba(6,182,212,0.15)'    },
+  'Páginas':     { icon: LayoutDashboard, color: 'text-cyan-400',  bgStyle: 'rgba(6,182,212,0.15)'    },
 }
+
+// D-09 (Phase 8) — STATIC_PAGES indexa rotas sem entidades por tras (ex.: o
+// proprio relatorio de desempenho). Match por label OU sublabel substring.
+const STATIC_PAGES: ResultItem[] = [
+  { id: 'page-desempenho', label: 'Desempenho', sublabel: 'Meu relatório de performance', path: '/me/desempenho', category: 'Páginas' },
+]
 
 function highlight(text: string, query: string) {
   if (!query.trim()) return <span>{text}</span>
@@ -84,6 +91,11 @@ export function GlobalSearch() {
 
   const results: ResultItem[] = q
     ? [
+        ...STATIC_PAGES.filter(
+          p =>
+            p.label.toLowerCase().includes(q) ||
+            (p.sublabel?.toLowerCase() ?? '').includes(q),
+        ),
         ...leads
           .filter(l => l.nome.toLowerCase().includes(q) || l.empresa?.toLowerCase().includes(q))
           .slice(0, 4)

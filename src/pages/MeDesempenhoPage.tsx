@@ -19,12 +19,15 @@ import { useConfiguracoes } from '@/hooks/useConfiguracoes'
 import { calcularDesempenho } from '@/lib/desempenho'
 import { loadPeriod, savePeriod } from '@/lib/desempenho-period'
 import type { PeriodValue } from '@/lib/periods'
+import { getPeriodRange, isInRange } from '@/lib/periods'
 import { PeriodSelector } from '@/components/shared/PeriodSelector'
 import { RequireRole } from '@/components/shared/RequireRole'
 import { DesempenhoKpiGrid } from '@/components/desempenho/DesempenhoKpiGrid'
 import { DesempenhoFunilChart } from '@/components/desempenho/DesempenhoFunilChart'
 import { DesempenhoTimelineChart } from '@/components/desempenho/DesempenhoTimelineChart'
 import { DesempenhoTarefasChart } from '@/components/desempenho/DesempenhoTarefasChart'
+import { ExportarPDFButton } from '@/components/desempenho/ExportarPDFButton'
+import { ExportarCSVButton } from '@/components/desempenho/ExportarCSVButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function MeDesempenhoPage() {
@@ -58,6 +61,32 @@ export function MeDesempenhoPage() {
     })
   }, [leads, tarefas, clientes, contratos, targetId, targetPerfil, period, config])
 
+  // Snapshots filtrados (perfil + periodo) para os exports — evita enviar
+  // dataset completo aos botoes. Memoizados para nao quebrar referencia em
+  // re-renders de PeriodSelector.
+  const periodRange = useMemo(() => getPeriodRange(period), [period])
+
+  const leadsDoPerfil = useMemo(
+    () => leads.filter(l => l.responsavel_id === targetId && isInRange(l.created_at, periodRange)),
+    [leads, targetId, periodRange],
+  )
+
+  const tarefasDoPerfil = useMemo(
+    () => tarefas.filter(t => t.atribuido_a_id === targetId && isInRange(t.created_at, periodRange)),
+    [tarefas, targetId, periodRange],
+  )
+
+  const contratosDoPerfil = useMemo(() => {
+    const filtered = contratos.filter(
+      c => c.responsavel_id === targetId && isInRange(c.created_at, periodRange),
+    )
+    // Anexa cliente_nome derivado para o CSV (T-08-03 sanitize aplicado no lib)
+    return filtered.map(c => ({
+      ...c,
+      cliente_nome: c.cliente?.nome ?? '',
+    }))
+  }, [contratos, targetId, periodRange])
+
   if (loadingMeu) return <div className="text-sm text-muted-foreground">Carregando…</div>
   if (!meuPerfil) return <div className="text-sm text-muted-foreground">Sem perfil autenticado.</div>
   if (!metrics || !targetPerfil) return <div className="text-sm text-muted-foreground">Sem dados.</div>
@@ -74,7 +103,22 @@ export function MeDesempenhoPage() {
               : 'Métricas do seu próprio trabalho no período selecionado.'}
           </p>
         </div>
-        <PeriodSelector value={period} onChange={setPeriod} derivedYearsFrom={leads} />
+        <div className="flex gap-2 items-center flex-wrap">
+          <PeriodSelector value={period} onChange={setPeriod} derivedYearsFrom={leads} />
+          <ExportarPDFButton
+            metrics={metrics}
+            leads={leadsDoPerfil}
+            tarefas={tarefasDoPerfil}
+            perfilNome={targetPerfil?.nome ?? '—'}
+          />
+          <ExportarCSVButton
+            perfilNome={targetPerfil?.nome ?? '—'}
+            periodoLabel={`${period.year}-${period.granularity}`}
+            leads={leadsDoPerfil}
+            tarefas={tarefasDoPerfil}
+            contratos={contratosDoPerfil}
+          />
+        </div>
       </div>
 
       {/* ── KPI grid 4x2 ──────────────────────────────────────────────── */}
