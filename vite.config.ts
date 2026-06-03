@@ -9,6 +9,20 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    watch: {
+      // Downloads do navegador às vezes caem na raiz do projeto; arquivos
+      // parciais/travados (.crdownload, "Não confirmado *", etc.) fazem o file
+      // watcher do Vite lançar EBUSY e derrubam o dev server. Ignorá-los.
+      ignored: [
+        '**/*.crdownload',
+        '**/*.part',
+        '**/*.tmp',
+        '**/Não confirmado*',
+        '**/Unconfirmed*',
+      ],
+    },
+  },
   build: {
     rollupOptions: {
       output: {
