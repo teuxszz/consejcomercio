@@ -117,11 +117,15 @@ async function logSlackDelivery(
 serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, error: 'method not allowed' }, 405)
 
-  if (WEBHOOK_SECRET) {
-    const auth = req.headers.get('Authorization') ?? ''
-    if (!constantTimeAuthCheck(auth, WEBHOOK_SECRET)) {
-      return json({ ok: false, error: 'unauthorized' }, 401)
-    }
+  // Fail-closed (audit 040): esta função roda com service_role e é deployada
+  // com --no-verify-jwt; o HMAC é a ÚNICA fronteira. Se o secret não estiver
+  // configurado, RECUSA o request em vez de seguir sem auth.
+  if (!WEBHOOK_SECRET) {
+    return json({ ok: false, error: 'server misconfigured: webhook secret not set' }, 500)
+  }
+  const auth = req.headers.get('Authorization') ?? ''
+  if (!constantTimeAuthCheck(auth, WEBHOOK_SECRET)) {
+    return json({ ok: false, error: 'unauthorized' }, 401)
   }
 
   if (!SLACK_BOT_TOKEN) {

@@ -165,11 +165,14 @@ async function postToSlack(blocks: unknown[], fallback: string): Promise<{ ok: b
 serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, error: 'method not allowed' }, 405)
 
-  if (WEBHOOK_SECRET) {
-    const auth = req.headers.get('Authorization') ?? ''
-    if (!constantTimeAuthCheck(auth, WEBHOOK_SECRET)) {
-      return json({ ok: false, error: 'unauthorized' }, 401)
-    }
+  // Fail-closed (audit 040): service_role + --no-verify-jwt → HMAC é a única
+  // fronteira. Sem secret configurado, recusa em vez de seguir sem auth.
+  if (!WEBHOOK_SECRET) {
+    return json({ ok: false, error: 'server misconfigured: webhook secret not set' }, 500)
+  }
+  const auth = req.headers.get('Authorization') ?? ''
+  if (!constantTimeAuthCheck(auth, WEBHOOK_SECRET)) {
+    return json({ ok: false, error: 'unauthorized' }, 401)
   }
 
   if (!SLACK_BOT_TOKEN || !SLACK_LEADS_CHANNEL_ID) {
