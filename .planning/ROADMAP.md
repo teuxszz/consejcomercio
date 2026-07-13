@@ -210,3 +210,29 @@ Plans:
 ---
 
 *Created: 2026-05-27 | Milestone v3.0: Comunicação, Portal e Inteligência*
+
+---
+
+## Backlog
+
+### Phase 999.1: Automação de SLA de follow-up — Slack DM + Google Agenda + escalação (BACKLOG)
+
+**Goal:** [Captured for future planning]
+**Requirements:** TBD
+**Plans:** 0 plans
+
+**Problema:** o gerente atua como "fiscal manual", cobrando o time sobre follow-ups atrasados. Não escala e depende de vigilância humana.
+
+**Lógica proposta:**
+- Quando um lead entra no funil OU muda de fase, o sistema calcula o prazo limite (SLA) para o próximo contato.
+- **Faltando 2h** para vencer o SLA, se o assessor não registrou a atividade, o sistema dispara automaticamente:
+  1. Bloco de compromisso na **Google Agenda** do assessor ("Fazer follow-up com Lead X")
+  2. **DM privada no Slack** do assessor
+- Se o SLA **vencer** sem ação, a notificação **escala para o canal do Slack da gerência**.
+
+**Viabilidade:** alta. Já existem no projeto: integração Slack (`notify-*`, `slack-commands`, `slack-proxy`, `SLACK_BOT_TOKEN`) e infra de cadência/tarefas (`src/lib/cadencia.ts`, `src/lib/tarefas-derivadas.ts`). **Falta:** integração com Google Calendar API (OAuth por usuário) e o motor de SLA/escalação.
+
+**Valor:** tira o gerente do papel de fiscal manual; reforça o Core Value do Milestone 2 ("razões para o time abrir o CRM todo dia").
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
