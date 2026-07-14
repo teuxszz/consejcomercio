@@ -5,9 +5,10 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const APP_URL = Deno.env.get('APP_URL') ?? ''
 
-// Allowlist de origens permitidas via CORS. APP_URL (prod) + localhost dev.
+// Allowlist de origens permitidas via CORS. APP_URL (prod) + domínio Vercel + localhost dev.
 const ALLOWED_ORIGINS = new Set([
   APP_URL.replace(/\/$/, ''),
+  'https://consejcomercio-amber.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ].filter(Boolean))
