@@ -5,8 +5,8 @@ milestone_name: — Comunicação, Portal e Inteligência
 current_phase: 999.1
 current_phase_name: sla-follow-up-automation-slack-google-calendar
 status: phase_complete
-stopped_at: Completed 999.1-01-PLAN.md
-last_updated: "2026-07-15T21:59:33.057Z"
+stopped_at: Completed 999.1-04-PLAN.md (migration only; live smoke deferred pending user Vault/deploy setup)
+last_updated: "2026-07-15T22:10:38.031Z"
 progress:
   total_phases: 6
   completed_phases: 4
@@ -139,11 +139,12 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 | Phase 999.1 P03 | 30m | 2 tasks | 3 files |
 | Phase 999.1 P06 | ~15m | 2 tasks | 2 files |
 | Phase 999.1 P05 | 12min | 2 tasks | 6 files |
+| Phase 999.1 P04 | 12min | 1 tasks | 1 files |
 
 ## Session Continuity
 
-**Last session:** 2026-07-15T21:56:47.608Z
-**Stopped at:** Completed 999.1-01-PLAN.md
+**Last session:** 2026-07-15T22:10:38.017Z
+**Stopped at:** Completed 999.1-04-PLAN.md (migration only; live smoke deferred pending user Vault/deploy setup)
 **Resume file:** None
 
 **Last action:** Phase 6 CONTEXT.md escrita em 2026-05-28 via `/gsd-discuss-phase 6` (commit `be4e3f8`). 16 decisões locked (D-01..D-16) cobrindo subscription storage (tabela `push_subscriptions` multi-device, DELETE no 410 Gone, sem master switch), edge function shape (helper `_shared/push.ts` reinterpretando PUSH-03, `web-push@3.6.7` via esm.sh, VAPID em Supabase Secrets), PWA install UX (banner topo + card em `/me/preferencias`, reusar `logo.png`, SW minimal), e permission/iOS gate (request no toggle, iOS Safari standalone-only, deep link via `?highlight=<id>`). 13 ideias deferidas registradas explicitamente.
@@ -171,3 +172,4 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 - [Phase 999.1]: SlaFollowupConfig: fases configuraveis derivadas de SLA_EXCLUDED_STAGES (sla-followup.ts), sem redeclarar; gating gerente+ via RequireRole; merge nao-destrutivo de metas ao salvar
 - [Phase ?]: useCapturarTokenGoogle upsert usa returning minimal (sem .select()) porque google_calendar_tokens não tem policy SELECT
 - [Phase ?]: Captura do refresh token usa useRef como guarda extra além do query param, defesa em profundidade para segredo de uso único
+- [Phase 999.1]: 999.1-04: cron_sla_scan() migration (15min scan, fail-closed Vault secret) committed but NOT applied to prod — live smoke deferred pending manual Vault/deploy setup
