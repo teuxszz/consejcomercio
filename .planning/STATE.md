@@ -6,7 +6,7 @@ current_phase: 999.1
 current_phase_name: sla-follow-up-automation-slack-google-calendar
 status: phase_complete
 stopped_at: Completed 999.1-01-PLAN.md
-last_updated: "2026-07-15T21:48:50.164Z"
+last_updated: "2026-07-15T21:59:33.057Z"
 progress:
   total_phases: 6
   completed_phases: 4
@@ -35,7 +35,7 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 ## Current Position
 
 Phase: 999.1 (sla-follow-up-automation-slack-google-calendar) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 **Current phase:** 999.1
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
 **Phase status:** Phase 5 fechada. UAT 7/7 pass, UI audit 20/24 (sem blockers de produção exceto reenviar-sem-confirmação flagado), SECURITY 7/7 threats (T-05-01..07) verified. Backend multi-canal deployed (6 edge functions), migration 035 em prod, UI interna + portal placeholder shipped. CORS fix inline durante UAT (a760c96).
@@ -138,10 +138,11 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 | Phase 999.1 P02 | ~20m | 3 tasks | 4 files |
 | Phase 999.1 P03 | 30m | 2 tasks | 3 files |
 | Phase 999.1 P06 | ~15m | 2 tasks | 2 files |
+| Phase 999.1 P05 | 12min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-**Last session:** 2026-07-15T21:44:30.549Z
+**Last session:** 2026-07-15T21:56:47.608Z
 **Stopped at:** Completed 999.1-01-PLAN.md
 **Resume file:** None
 
@@ -168,3 +169,5 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 - [Phase ?]: CAS-first dispatch: UPDATE ... WHERE x_sent_at IS NULL RETURNING é o literal primeiro statement antes de qualquer Slack/Calendar (Plan 03)
 - [Phase ?]: Escalação sem SLACK_GERENCIA_CHANNEL_ID faz fail-safe (skip) e nunca fail-open, D-04 (Plan 03)
 - [Phase 999.1]: SlaFollowupConfig: fases configuraveis derivadas de SLA_EXCLUDED_STAGES (sla-followup.ts), sem redeclarar; gating gerente+ via RequireRole; merge nao-destrutivo de metas ao salvar
+- [Phase ?]: useCapturarTokenGoogle upsert usa returning minimal (sem .select()) porque google_calendar_tokens não tem policy SELECT
+- [Phase ?]: Captura do refresh token usa useRef como guarda extra além do query param, defesa em profundidade para segredo de uso único
