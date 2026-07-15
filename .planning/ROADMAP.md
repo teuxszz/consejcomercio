@@ -217,9 +217,9 @@ Plans:
 
 ### Phase 999.1: Automação de SLA de follow-up — Slack DM + Google Agenda + escalação (BACKLOG)
 
-**Goal:** [Captured for future planning]
-**Requirements:** TBD
-**Plans:** 0 plans
+**Goal:** Motor autônomo de SLA de follow-up por fase do funil que, ao entrar/mudar de fase, calcula o prazo do próximo contato; faltando 2h sem atividade registrada, avisa o assessor (DM Slack sempre + bloco na Google Agenda se conectada, senão fallback só-Slack); se vencer, escala para o canal da gerência — tirando o gerente do papel de fiscal manual.
+**Requirements:** SLA-01, SLA-02, SLA-03, SLA-04, SLA-05, SLA-06, SLA-07, SLA-08, SLA-09
+**Plans:** 6 plans
 
 **Problema:** o gerente atua como "fiscal manual", cobrando o time sobre follow-ups atrasados. Não escala e depende de vigilância humana.
 
@@ -235,4 +235,9 @@ Plans:
 **Valor:** tira o gerente do papel de fiscal manual; reforça o Core Value do Milestone 2 ("razões para o time abrir o CRM todo dia").
 
 Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+- [ ] 999.1-01-PLAN.md — Relógio lead_sla: tabela + triggers upsert/resolve + RLS + helper puro sla-followup.ts (wave 1) (SLA-01, SLA-02, SLA-03)
+- [ ] 999.1-02-PLAN.md — Cofre google_calendar_tokens (RLS zero-leitura + RPCs) + _shared/google-calendar.ts (refresh/create/getValidAccessToken) (wave 1) (SLA-06)
+- [ ] 999.1-03-PLAN.md — Motor de dispatch: _shared/sla.ts (CAS + DM sempre + Calendar/fallback + escalação fail-safe) + edge function notify-sla-evento (wave 2) (SLA-04, SLA-05, SLA-07)
+- [ ] 999.1-04-PLAN.md — Cron scan (migration 043 cron_sla_scan 15min fail-closed) + smoke checkpoint (wave 3) (SLA-05, SLA-07)
+- [ ] 999.1-05-PLAN.md — UI conectar Google Agenda em /me (hook + ConectarGoogleAgendaCard + captura pós-redirect) (wave 2) (SLA-08)
+- [ ] 999.1-06-PLAN.md — UI config de prazos de SLA por fase em /configuracoes (SlaFollowupConfig) (wave 2) (SLA-09)
