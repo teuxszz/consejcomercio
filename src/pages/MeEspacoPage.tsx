@@ -18,6 +18,7 @@ import { MinhaAgendaPanel } from '@/components/me/MinhaAgendaPanel'
 import { PerfilPanel } from '@/components/me/PerfilPanel'
 import { NotificacoesPanel } from '@/components/me/NotificacoesPanel'
 import { InstalarAppCard } from '@/components/me/InstalarAppCard'
+import { ConectarGoogleAgendaCard } from '@/components/me/ConectarGoogleAgendaCard'
 import { TERMINAL_STAGES } from '@/lib/constants'
 
 const TABS = [
@@ -120,6 +121,7 @@ export function MeEspacoPage() {
         <TabsContent value="agenda"  className="mt-6"><MinhaAgendaPanel userId={userId} /></TabsContent>
         <TabsContent value="notificacoes" className="mt-6 space-y-6">
           <InstalarAppCard />
+          <ConectarGoogleAgendaCard />
           <NotificacoesPanel />
         </TabsContent>
         <TabsContent value="perfil"  className="mt-6"><PerfilPanel /></TabsContent>
