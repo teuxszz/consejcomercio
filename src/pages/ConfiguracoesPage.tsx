@@ -17,6 +17,7 @@ import { STAGES, SECTORS, CHANNELS, TEMPLATES } from '@/pages/MensagensPage'
 import { QuotaResendBanner } from '@/components/shared/QuotaResendBanner'
 import { RequireRole } from '@/components/shared/RequireRole'
 import { ConfigDiasAprovacao } from '@/components/configuracoes/ConfigDiasAprovacao'
+import { SlaFollowupConfig } from '@/components/configuracoes/SlaFollowupConfig'
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -539,6 +540,21 @@ export function ConfiguracoesPage() {
           </CardHeader>
           <CardContent>
             <ConfigDiasAprovacao />
+          </CardContent>
+        </Card>
+
+        {/* ── SLA de follow-up (D-02, Phase 999.1 Plan 06) ──────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Settings className="w-4 h-4" /> SLA de follow-up
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground -mt-1 mb-3">
+              Define o prazo (em horas) para o próximo contato em cada fase do funil.
+            </p>
+            <SlaFollowupConfig />
           </CardContent>
         </Card>
 
