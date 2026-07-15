@@ -92,4 +92,8 @@ export const QUERY_KEYS = {
   bucketUsage: {
     byBucket: (bucket: string) => ['bucketUsage', bucket] as const,
   },
+  // ─── Phase 999.1 Plan 05 — Conexão Google Agenda (linkIdentity) ───────────
+  googleCalendar: {
+    status: ['googleCalendar', 'status'] as const,
+  },
 }

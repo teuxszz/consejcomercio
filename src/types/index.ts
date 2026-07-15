@@ -551,3 +551,11 @@ export interface DesempenhoConsultorTeam {
   perfilNome: string
   metricas: DesempenhoMetricas
 }
+
+// ─── Phase 999.1 Plan 05 — Conexão Google Agenda (linkIdentity) ─────────────
+// Shape do RPC SECURITY DEFINER `google_calendar_status()` — nunca expõe o
+// token (T-999.1-01). `expira_em` é null quando o perfil nunca conectou.
+export interface GoogleCalendarStatus {
+  conectado: boolean
+  expira_em: string | null
+}
