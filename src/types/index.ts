@@ -224,6 +224,12 @@ export interface MetasConfig {
   // Threshold para flag "aprovação pendente há mais de N dias" no dashboard
   // do consultor responsável. Default 5 dias quando undefined.
   dias_para_aprovacao_pendente?: number
+  // ─── Phase 999.1 D-02 (SLA de follow-up por fase) ──────────────────────────
+  // Prazo em horas para o próximo contato, configurável por fase do funil.
+  // Chave ausente para uma fase → cai em sla_followup_horas_default; default
+  // ausente → 24h (fallback do helper/trigger, defesa em profundidade).
+  sla_followup_horas_por_stage?: Record<string, number>
+  sla_followup_horas_default?: number
 }
 
 export interface MensagensConfig {

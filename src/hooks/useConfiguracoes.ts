@@ -18,6 +18,10 @@ export const DEFAULT_METAS: MetasConfig = {
   pontos_ganho_consultoria: 60,
   pontos_indicacao: 30,
   recompensa_descricao: '',
+  // Phase 999.1 D-02 — SLA de follow-up por fase. 24h default (RESEARCH A1);
+  // por-fase começa vazio (Plan 06 grava os valores reais nas configurações).
+  sla_followup_horas_default: 24,
+  sla_followup_horas_por_stage: {},
 }
 
 export const DEFAULT_SERVICOS: ServicoConfig[] = [
