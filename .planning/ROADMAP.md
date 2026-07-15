@@ -51,6 +51,7 @@
 **Plans:** 4/4 plans complete
 
 Plans:
+
 - [x] 05-01-PLAN.md — Foundation + First Email (Tarefa) — migration 035 + helpers `_shared/` + notify-tarefa refatorada + Resend MVP end-to-end (EMAIL-01 parcial, EMAIL-02, EMAIL-03 parcial)
 - [x] 05-02-PLAN.md — Extend para cadência/renovação/indicação + edge function `resend-webhook` para tracking automático (EMAIL-02, EMAIL-03, EMAIL-04 backend)
 - [x] 05-03-PLAN.md — UI internos: tab Notificações em MeEspacoPage + página `/me/notificacoes-historico` + reenviar + banner quota coord+ (EMAIL-01, EMAIL-04)
@@ -74,6 +75,7 @@ Plans:
 **Plans:** 5/5 plans complete
 
 Plans:
+
 - [x] 06-01-PLAN.md — Foundation + de-risk: migration 036 (push_subscriptions + CHECK canal + handle_new_user + backfill) + types (CanalNotif/PreferenciasNotif/PushSubscriptionRow) + R-L1 smoke-test (esm.sh vs npm: web-push) + Wave 0 test scaffolds + push-mocks (PUSH-01, PUSH-02, PUSH-03)
 - [x] 06-02-PLAN.md — PWA shell installable: public/manifest.json + public/sw.js + ícones 192/512 + index.html PWA meta tags + main.tsx SW registration + vercel.json cache control (PUSH-01, PUSH-04)
 - [x] 06-03-PLAN.md — Send infrastructure: _shared/push.ts (sendPush helper espelhando email.ts) + integração nas 4 notify-* via Promise.allSettled + smoke E2E (PUSH-03, PUSH-04)
@@ -99,6 +101,7 @@ Plans:
 **UI hint:** sim (drag-drop, ficha cliente docs, dashboard aprovações)
 
 Plans:
+
 - [x] 07-01a-PLAN.md — Schema + bucket + storage RLS + Vault secret (manual gate, wave 1) (PORTAL-01..04 foundation)
 - [x] 07-01b-PLAN.md — Types + Wave 0 scaffolds + helpers extend + file-validation + query-keys (autonomous, wave 1) (PORTAL-01..04 foundation)
 - [x] 07-02-PLAN.md — Backend multi-canal: _shared/aprovacoes.ts + notify-aprovacao-evento (com skip_slack passthrough) + notify-aprovacoes-stale + migration 038 (triggers + cron) (wave 2) (PORTAL-03, PORTAL-04 backend)
@@ -123,6 +126,7 @@ Plans:
 **UI hint:** sim (página de desempenho + botões export)
 
 Plans:
+
 - [x] 08-01-PLAN.md — Foundation: libs (jspdf/html2canvas/papaparse/jszip) + types D-10 + slug extract + calcularDesempenho helper + Wave 0 scaffolds (REP-01..04 foundation)
 - [x] 08-02-PLAN.md — Página + off-screen renderer: /me/desempenho + KpiGrid + 3 charts + DesempenhoReport portal + routing + RequireRole condicional + PerfilPanel link (REP-01)
 - [x] 08-03-PLAN.md — Export individual: pdf-export.ts + csv-export.ts (lazy) + 2 botões + GlobalSearch indexing + chunks Vite (REP-02, REP-03)
@@ -219,11 +223,12 @@ Plans:
 
 **Goal:** Motor autônomo de SLA de follow-up por fase do funil que, ao entrar/mudar de fase, calcula o prazo do próximo contato; faltando 2h sem atividade registrada, avisa o assessor (DM Slack sempre + bloco na Google Agenda se conectada, senão fallback só-Slack); se vencer, escala para o canal da gerência — tirando o gerente do papel de fiscal manual.
 **Requirements:** SLA-01, SLA-02, SLA-03, SLA-04, SLA-05, SLA-06, SLA-07, SLA-08, SLA-09
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 **Problema:** o gerente atua como "fiscal manual", cobrando o time sobre follow-ups atrasados. Não escala e depende de vigilância humana.
 
 **Lógica proposta:**
+
 - Quando um lead entra no funil OU muda de fase, o sistema calcula o prazo limite (SLA) para o próximo contato.
 - **Faltando 2h** para vencer o SLA, se o assessor não registrou a atividade, o sistema dispara automaticamente:
   1. Bloco de compromisso na **Google Agenda** do assessor ("Fazer follow-up com Lead X")
@@ -235,7 +240,8 @@ Plans:
 **Valor:** tira o gerente do papel de fiscal manual; reforça o Core Value do Milestone 2 ("razões para o time abrir o CRM todo dia").
 
 Plans:
-- [ ] 999.1-01-PLAN.md — Relógio lead_sla: tabela + triggers upsert/resolve + RLS + helper puro sla-followup.ts (wave 1) (SLA-01, SLA-02, SLA-03)
+
+- [x] 999.1-01-PLAN.md — Relógio lead_sla: tabela + triggers upsert/resolve + RLS + helper puro sla-followup.ts (wave 1) (SLA-01, SLA-02, SLA-03)
 - [ ] 999.1-02-PLAN.md — Cofre google_calendar_tokens (RLS zero-leitura + RPCs) + _shared/google-calendar.ts (refresh/create/getValidAccessToken) (wave 1) (SLA-06)
 - [ ] 999.1-03-PLAN.md — Motor de dispatch: _shared/sla.ts (CAS + DM sempre + Calendar/fallback + escalação fail-safe) + edge function notify-sla-evento (wave 2) (SLA-04, SLA-05, SLA-07)
 - [ ] 999.1-04-PLAN.md — Cron scan (migration 043 cron_sla_scan 15min fail-closed) + smoke checkpoint (wave 3) (SLA-05, SLA-07)

@@ -1,16 +1,18 @@
 ---
 gsd_state_version: 1.0
 milestone: v3.0
-milestone_name: comunicacao-portal-inteligencia
-current_phase: 07
+milestone_name: — Comunicação, Portal e Inteligência
+current_phase: 999.1
+current_phase_name: sla-follow-up-automation-slack-google-calendar
 status: phase_complete
-last_updated: "2026-05-28T19:43:40.836Z"
+stopped_at: Completed 999.1-01-PLAN.md
+last_updated: "2026-07-15T17:39:18.375Z"
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 15
-  completed_plans: 9
-  percent: 33
+  completed_phases: 4
+  total_plans: 19
+  completed_plans: 19
+  percent: 67
 ---
 
 # STATE — CONSEJ CRM v2 Milestone v3.0
@@ -32,9 +34,9 @@ Archives da última milestone: [v2.0-ROADMAP.md](./milestones/v2.0-ROADMAP.md) �
 
 ## Current Position
 
-Phase: 07 (client-portal-expansion) — EXECUTING
-Plan: 1 of 6
-**Current phase:** 07
+Phase: 999.1 (sla-follow-up-automation-slack-google-calendar) — EXECUTING
+Plan: 2 of 6
+**Current phase:** 999.1
 **Phase numbering:** continua da v2.0 (5, 6, 7, 8, 9, 10)
 **Phase status:** Phase 5 fechada. UAT 7/7 pass, UI audit 20/24 (sem blockers de produção exceto reenviar-sem-confirmação flagado), SECURITY 7/7 threats (T-05-01..07) verified. Backend multi-canal deployed (6 edge functions), migration 035 em prod, UI interna + portal placeholder shipped. CORS fix inline durante UAT (a760c96).
 **Milestone status:** v3.0 Active, **1/6 phases complete (16%)**
@@ -132,8 +134,13 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 | Lead classificado dentro de 1s no abrir do Kanban | <1s | indisponível |
 
 ---
+| Phase 999.1 P01 | 35m | 3 tasks | 6 files |
 
 ## Session Continuity
+
+**Last session:** 2026-07-15T17:39:18.363Z
+**Stopped at:** Completed 999.1-01-PLAN.md
+**Resume file:** None
 
 **Last action:** Phase 6 CONTEXT.md escrita em 2026-05-28 via `/gsd-discuss-phase 6` (commit `be4e3f8`). 16 decisões locked (D-01..D-16) cobrindo subscription storage (tabela `push_subscriptions` multi-device, DELETE no 410 Gone, sem master switch), edge function shape (helper `_shared/push.ts` reinterpretando PUSH-03, `web-push@3.6.7` via esm.sh, VAPID em Supabase Secrets), PWA install UX (banner topo + card em `/me/preferencias`, reusar `logo.png`, SW minimal), e permission/iOS gate (request no toggle, iOS Safari standalone-only, deep link via `?highlight=<id>`). 13 ideias deferidas registradas explicitamente.
 **Next action:** `/gsd-plan-phase 6` — research → plan → verify. Pré-requisitos manuais antes de `/gsd-execute-phase 6`: (1) `npx web-push generate-vapid-keys` → setar `VAPID_PRIVATE_KEY`/`VAPID_PUBLIC_KEY`/`VAPID_SUBJECT` como Supabase Secrets; (2) setar `VITE_VAPID_PUBLIC_KEY` no env Vercel.
@@ -149,3 +156,7 @@ Progress: [███░░░░░░░░░░░░░░░░░] 16% (1/
 ---
 
 *Last updated: 2026-05-27 after v3.0 kickoff*
+
+## Decisions
+
+- [Phase 999.1]: SLA clock keyed on leads.status change (never leads.updated_at) — D-02
