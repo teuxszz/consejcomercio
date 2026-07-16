@@ -91,13 +91,18 @@ interface SlaRow {
 async function logEnvio(
   supabase: SupabaseClient,
   tipo: 'sla_warning' | 'sla_escalonamento',
+  perfilId: string | null,
   leadId: string,
   status: string,
 ): Promise<void> {
+  // perfil_id é NOT NULL em notificacoes_envios (035). Sem responsável não há
+  // como logar — pula (best-effort, nunca aborta o dispatch).
+  if (!perfilId) return
   try {
     await supabase
       .from('notificacoes_envios')
       .insert({
+        perfil_id: perfilId,
         tipo,
         canal: 'slack',
         entidade_tipo: 'lead',
@@ -199,7 +204,7 @@ async function sendWarning(supabase: SupabaseClient, leadId: string): Promise<Se
     }
   }
 
-  await logEnvio(supabase, 'sla_warning', leadId, slackRes.ok ? 'queued' : 'failed')
+  await logEnvio(supabase, 'sla_warning', responsavelId, leadId, slackRes.ok ? 'queued' : 'failed')
 
   return { ok: slackRes.ok, slack: slackRes, calendar: calendarRes }
 }
@@ -209,7 +214,8 @@ async function sendEscalonamento(supabase: SupabaseClient, leadId: string): Prom
   // D-04: canal é deferido — se o secret não está configurado, fail-safe
   // (loga/pula) em vez de fail-open (nunca lança exceção).
   if (!SLACK_GERENCIA_CHANNEL_ID) {
-    await logEnvio(supabase, 'sla_escalonamento', leadId, 'skipped_no_channel')
+    // Sem canal configurado (D-04): fail-safe silencioso. Não logamos aqui —
+    // notificacoes_envios exige perfil_id e este ramo ainda não carregou o lead.
     return { ok: true, skipped: 'no_gerencia_channel' }
   }
 
@@ -239,7 +245,7 @@ async function sendEscalonamento(supabase: SupabaseClient, leadId: string): Prom
   ]
 
   const result = await postToChannel(text, blocks)
-  await logEnvio(supabase, 'sla_escalonamento', leadId, result.ok ? 'queued' : 'failed')
+  await logEnvio(supabase, 'sla_escalonamento', lead?.responsavel_id ?? null, leadId, result.ok ? 'queued' : 'failed')
 
   return { ok: result.ok, slack: result }
 }
