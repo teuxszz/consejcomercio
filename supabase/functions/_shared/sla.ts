@@ -74,6 +74,7 @@ export interface SendNotificacaoSlaResult {
   skipped?: 'already_sent' | 'no_gerencia_channel'
   slack?: SlackDispatchResult
   calendar?: CalendarDispatchResult
+  tarefa?: { created: boolean }
 }
 
 interface LeadRow {
@@ -142,6 +143,45 @@ async function postToChannel(text: string, blocks: unknown[]): Promise<{ ok: boo
   return { ok: false, error: 'Slack indisponível após retries' }
 }
 
+// ─── criarTarefaFollowup — abre um item em "Minhas Tarefas" do assessor ──────
+// Best-effort: um erro aqui NUNCA aborta a DM/Calendar já enviados. Guarda
+// anti-duplicata: se já existe uma tarefa de follow-up ABERTA para o lead, não
+// cria outra (evita empilhar a cada re-aviso). service_role bypassa a RLS.
+async function criarTarefaFollowup(
+  supabase: SupabaseClient,
+  leadId: string,
+  leadNome: string,
+  empresa: string | null,
+  responsavelId: string | null,
+  deadlineAt: Date,
+): Promise<{ created: boolean }> {
+  if (!responsavelId) return { created: false }
+
+  const { data: existente } = await supabase
+    .from('tarefas')
+    .select('id')
+    .eq('entidade_tipo', 'lead')
+    .eq('entidade_id', leadId)
+    .eq('tipo', 'followup')
+    .in('status', ['aberta', 'em_andamento'])
+    .limit(1)
+    .maybeSingle<{ id: string }>()
+  if (existente) return { created: false }
+
+  const { error } = await supabase.from('tarefas').insert({
+    titulo: `Follow-up: ${leadNome}`,
+    descricao: `SLA de follow-up vencendo${empresa ? ` — ${empresa}` : ''}. Registre o próximo contato para resolver o SLA.`,
+    tipo: 'followup',
+    entidade_tipo: 'lead',
+    entidade_id: leadId,
+    atribuido_a_id: responsavelId,
+    prioridade: 'alta',
+    status: 'aberta',
+    data_vencimento: deadlineAt.toISOString(),
+  })
+  return { created: !error }
+}
+
 // ─── warning: DM sempre + Calendar/fallback ──────────────────────────────────
 async function sendWarning(supabase: SupabaseClient, leadId: string): Promise<SendNotificacaoSlaResult> {
   const { data: lead } = await supabase
@@ -204,9 +244,18 @@ async function sendWarning(supabase: SupabaseClient, leadId: string): Promise<Se
     }
   }
 
+  // Tarefa no CRM — abre um item em "Minhas Tarefas" do assessor (best-effort;
+  // nunca aborta a DM/Calendar já enviados).
+  let tarefaRes: { created: boolean } = { created: false }
+  try {
+    tarefaRes = await criarTarefaFollowup(supabase, leadId, leadNome, lead?.empresa ?? null, responsavelId, deadlineAt)
+  } catch {
+    tarefaRes = { created: false }
+  }
+
   await logEnvio(supabase, 'sla_warning', responsavelId, leadId, slackRes.ok ? 'queued' : 'failed')
 
-  return { ok: slackRes.ok, slack: slackRes, calendar: calendarRes }
+  return { ok: slackRes.ok, slack: slackRes, calendar: calendarRes, tarefa: tarefaRes }
 }
 
 // ─── escalonamento: posta no canal da gerência, fail-safe se ausente ─────────

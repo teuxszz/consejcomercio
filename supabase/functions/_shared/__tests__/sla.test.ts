@@ -41,7 +41,7 @@ type MockResp = { data: unknown; error: unknown }
 /** Builder encadeável mínimo — cada método devolve o próprio builder; maybeSingle/single/await resolvem a resposta configurada. */
 function makeBuilder(response: MockResp) {
   const builder: Record<string, unknown> = {}
-  const chainMethods = ['select', 'update', 'insert', 'eq', 'is', 'delete']
+  const chainMethods = ['select', 'update', 'insert', 'eq', 'is', 'in', 'limit', 'delete']
   for (const m of chainMethods) builder[m] = vi.fn(() => builder)
   builder.maybeSingle = vi.fn(() => Promise.resolve(response))
   builder.single = vi.fn(() => Promise.resolve(response))
@@ -155,6 +155,55 @@ describe('sendNotificacaoSla', () => {
     expect(result.calendar?.ok).toBe(true)
     const fromCalls = (sb.from as unknown as ReturnType<typeof vi.fn>).mock.calls
     expect(fromCalls.filter((c: unknown[]) => c[0] === 'lead_sla').length).toBe(3)
+  })
+
+  it('warning → cria tarefa de follow-up quando não há tarefa aberta para o lead', async () => {
+    mockedFindSlackId.mockResolvedValue('U123')
+    mockedPostDm.mockResolvedValue({ ok: true, ts: '1.0' })
+    mockedGetValidAccessToken.mockResolvedValue(null)
+
+    const sb = makeSupabaseMock({
+      lead_sla: [
+        { data: { lead_id: 'lead-1' }, error: null }, // CAS ganho
+        { data: SLA_ROW, error: null }, // hidratação
+      ],
+      leads: [{ data: LEAD_ROW, error: null }],
+      tarefas: [
+        { data: null, error: null }, // anti-duplicata: nenhuma tarefa aberta
+        { data: { id: 't1' }, error: null }, // insert ok
+      ],
+      notificacoes_envios: [{ data: { id: 'n1' }, error: null }],
+    })
+
+    const result = await sendNotificacaoSla(sb, { evento: 'warning', leadId: 'lead-1' })
+
+    expect(result.tarefa?.created).toBe(true)
+    const fromCalls = (sb.from as unknown as ReturnType<typeof vi.fn>).mock.calls
+    expect(fromCalls.filter((c: unknown[]) => c[0] === 'tarefas').length).toBe(2) // check + insert
+  })
+
+  it('warning → NÃO cria tarefa se já existe uma follow-up aberta para o lead (anti-duplicata)', async () => {
+    mockedFindSlackId.mockResolvedValue('U123')
+    mockedPostDm.mockResolvedValue({ ok: true, ts: '1.0' })
+    mockedGetValidAccessToken.mockResolvedValue(null)
+
+    const sb = makeSupabaseMock({
+      lead_sla: [
+        { data: { lead_id: 'lead-1' }, error: null },
+        { data: SLA_ROW, error: null },
+      ],
+      leads: [{ data: LEAD_ROW, error: null }],
+      tarefas: [
+        { data: { id: 'existente' }, error: null }, // já existe tarefa aberta
+      ],
+      notificacoes_envios: [{ data: { id: 'n1' }, error: null }],
+    })
+
+    const result = await sendNotificacaoSla(sb, { evento: 'warning', leadId: 'lead-1' })
+
+    expect(result.tarefa?.created).toBe(false)
+    const fromCalls = (sb.from as unknown as ReturnType<typeof vi.fn>).mock.calls
+    expect(fromCalls.filter((c: unknown[]) => c[0] === 'tarefas').length).toBe(1) // só o check, sem insert
   })
 
   it('escalonamento, CAS ganha, com SLACK_GERENCIA_CHANNEL_ID → postToChannel (chat.postMessage) chamado 1x', async () => {
