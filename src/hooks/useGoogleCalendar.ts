@@ -64,17 +64,16 @@ export function useCapturarTokenGoogle() {
       if (!session?.provider_token || !session?.provider_refresh_token) {
         return { captured: false }
       }
-      // Sem .select() — a tabela não tem policy de SELECT (returning minimal, T-999.1-01)
-      const { error } = await supabase.from('google_calendar_tokens').upsert(
-        {
-          perfil_id: session.user.id,
-          refresh_token: session.provider_refresh_token,
-          access_token: session.provider_token,
-          access_token_expires_at: new Date(Date.now() + 3500 * 1000).toISOString(), // ~58min
-          scope: CALENDAR_SCOPE,
-        },
-        { onConflict: 'perfil_id' },
-      )
+      // Grava via RPC SECURITY DEFINER (migration 044): o dono é o auth.uid()
+      // DO SERVIDOR, não o perfil_id mandado pelo browser — evita o 42501 que
+      // acontecia quando session.user.id divergia do sub do JWT, e mantém o
+      // escopo seguro (cada um só grava a própria linha).
+      const { error } = await supabase.rpc('google_calendar_save_token', {
+        p_refresh_token: session.provider_refresh_token,
+        p_access_token: session.provider_token,
+        p_expires_at: new Date(Date.now() + 3500 * 1000).toISOString(), // ~58min
+        p_scope: CALENDAR_SCOPE,
+      })
       if (error) throw error
       return { captured: true }
     },
